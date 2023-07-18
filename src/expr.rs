@@ -345,7 +345,6 @@ impl Expr {
                 operator: _,
                 right: _,
             } => *id,
-
             Expr::Call {
                 id,
                 callee: _,
@@ -722,10 +721,14 @@ impl Expr {
             } => {
                 let left = left.evaluate(environment.clone())?;
                 let right = right.evaluate(environment.clone())?;
-
                 match (&left, operator.token_type, &right) {
+                    (Number(x), TokenType::Power, Number(y)) => Ok(Number(x.powf(*y))),
                     (Number(x), TokenType::Plus, Number(y)) => Ok(Number(x + y)),
+                    (Number(x), TokenType::PlusEqual, Number(y)) => Ok(Number(x + y)),
+                    (Number(x), TokenType::Increment, _) => Ok(Number(x + 1.0)),
                     (Number(x), TokenType::Minus, Number(y)) => Ok(Number(x - y)),
+                    (Number(x), TokenType::MinusEqual, Number(y)) => Ok(Number(x - y)),
+                    (Number(x), TokenType::Decrement, _) => Ok(Number(x - 1.0)),
                     (Number(x), TokenType::Star, Number(y)) => Ok(Number(x * y)),
                     (Number(x), TokenType::Slash, Number(y)) => Ok(Number(x / y)),
                     (Number(x), TokenType::Greater, Number(y)) => {

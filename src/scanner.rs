@@ -96,14 +96,32 @@ impl Scanner {
             '{' => self.add_token(LeftBrace),
             '}' => self.add_token(RightBrace),
             ',' => self.add_token(Comma),
+            '^' => self.add_token(Power),
             '.' => self.add_token(Dot),
-            '-' => self.add_token(Minus),
-            '+' => self.add_token(Plus),
+            '-' => {
+                let token = if self.char_match('-') {
+                    Decrement
+                } else if self.char_match('=') {
+                    MinusEqual
+                } else {
+                    Minus
+                };
+                self.add_token(token);
+            }
+            '+' => {
+                let token = if self.char_match('+') {
+                    Increment
+                } else if self.char_match('=') {
+                    PlusEqual
+                } else {
+                    Plus
+                };
+                self.add_token(token);
+            }
             ';' => self.add_token(Semicolon),
             '*' => self.add_token(Star),
             '!' => {
                 let token = if self.char_match('=') {
-                    // !=
                     BangEqual
                 } else {
                     Bang
@@ -286,6 +304,7 @@ pub enum TokenType {
     Semicolon,  // ;
     Slash,      // /
     Star,       // *
+    Power,      // ^
 
     // One Or Two Chars
     Bang,         // !
@@ -296,6 +315,10 @@ pub enum TokenType {
     GreaterEqual, // >=
     Less,         // <
     LessEqual,    // <=
+    Increment,    // ++
+    Decrement,    // --
+    PlusEqual,    // -=
+    MinusEqual,   // +=
     Pipe,         // |>
     Gets,         // <-
 

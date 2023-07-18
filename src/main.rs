@@ -15,7 +15,7 @@ use std::io::{self, BufRead, Write};
 use std::process::exit;
 
 pub fn run_file(path: &str) -> Result<(), String> {
-    match fs::read_to_string(path) {
+    match fs::read_to_string(path.to_owned() + ".jkl") {
         Err(msg) => return Err(msg.to_string()),
         Ok(contents) => return run_string(&contents),
     }
@@ -75,7 +75,6 @@ fn run_prompt() -> Result<(), String> {
 
 fn main() {
     let args: Vec<String> = env::args().collect();
-
     if args.len() == 2 {
         match run_file(&args[1]) {
             Ok(_) => exit(0),

@@ -130,7 +130,7 @@ impl Resolver {
             self.declare(name)?;
             self.resolve_expr(initializer)?;
             self.define(name);
-        } else if let Stmt::CmdFunction {name, cmd: _} = stmt {
+        } else if let Stmt::CmdFunction { name, cmd: _ } = stmt {
             self.declare(name)?;
             self.define(name);
         } else {
@@ -290,7 +290,9 @@ impl Resolver {
                 if self.current_function != FunctionType::Method {
                     return Err("Cannot use 'super' keyword outside of a class".to_string());
                 }
-                if self.scopes.len() < 3 || !self.scopes[self.scopes.len() - 3].contains_key("super") {
+                if self.scopes.len() < 3
+                    || !self.scopes[self.scopes.len() - 3].contains_key("super")
+                {
                     return Err("Class has no superclass".to_string());
                 }
                 self.resolve_local(keyword, expr.get_id())

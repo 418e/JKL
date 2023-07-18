@@ -97,7 +97,7 @@ impl Parser {
         let name = self.consume(Identifier, &format!("Expected {kind:?} name"))?;
 
         if self.match_token(Gets) {
-            let cmd_body = self.consume(StringLit, "Expected command body")?; 
+            let cmd_body = self.consume(StringLit, "Expected command body")?;
             self.consume(Semicolon, "Expected ';' after command body")?;
 
             return Ok(Stmt::CmdFunction {
@@ -364,7 +364,7 @@ impl Parser {
     }
 
     fn assignment(&mut self) -> Result<Expr, String> {
-        let expr = self.pipe()?; 
+        let expr = self.pipe()?;
         if self.match_token(Equal) {
             let value = self.expression()?;
 
@@ -478,7 +478,7 @@ impl Parser {
     fn term(&mut self) -> Result<Expr, String> {
         let mut expr = self.factor()?;
 
-        while self.match_tokens(&[Minus, Plus]) {
+        while self.match_tokens(&[Minus, Plus, Increment, Decrement, PlusEqual, MinusEqual]) {
             let op = self.previous();
             let rhs = self.factor()?;
             expr = Binary {
@@ -488,10 +488,8 @@ impl Parser {
                 right: Box::from(rhs),
             };
         }
-
         Ok(expr)
     }
-
     fn factor(&mut self) -> Result<Expr, String> {
         let mut expr = self.unary()?;
         while self.match_tokens(&[Slash, Star]) {

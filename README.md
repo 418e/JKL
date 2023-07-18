@@ -5,7 +5,7 @@
 # Installation
 
 You must have already installed [Rust and Cargo](https://doc.rust-lang.org/cargo/getting-started/installation.html) before cloning this repository.
-create file `main`. Insert the code bellow in the `main` and run `cargo run main` in the terminal.
+create file `main.jkl`. Insert the code bellow in the `main.jkl` and run `cargo run main` in the terminal.
 ```
 
 print "Hello World!";

@@ -1,4 +1,4 @@
-# JekoLang
+# JKL Programmin Language
 
 ## Simple programming language written in Rust.
 ## v0.1.2
@@ -22,7 +22,7 @@ cargo run main
 
 # Usage
 
-JekoLang is a High-Level, dynamically typed, functional and object oriented, general purpose programming language with automatic memory management.
+JKL is a High-Level, dynamically typed, functional and object oriented, general purpose programming language with automatic memory management.
 
 # Data Types
 

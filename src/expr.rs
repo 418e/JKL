@@ -461,7 +461,7 @@ impl Expr {
                 let right_str = (*right).to_string();
                 format!("({} {})", operator_str, right_str)
             }
-            Expr::Variable { id: _, name } => format!("(var {})", name.lexeme),
+            Expr::Variable { id: _, name } => format!("(let {})", name.lexeme),
         }
     }
 

@@ -54,7 +54,7 @@ impl Stmt {
             Var {
                 name,
                 initializer: _,
-            } => format!("(var {})", name.lexeme),
+            } => format!("(let {})", name.lexeme),
             Block { statements } => format!(
                 "(block {})",
                 statements

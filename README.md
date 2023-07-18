@@ -4,9 +4,15 @@
 
 # Installation
 
-You must have already installed [Rust and Cargo](https://doc.rust-lang.org/cargo/getting-started/installation.html) in order to run the code.
+You must have already installed [Rust and Cargo](https://doc.rust-lang.org/cargo/getting-started/installation.html) before cloning this repository.
+create file `main`. Insert the code bellow in the `main` and run `cargo run main` in the terminal.
+```
 
-# Getting Started
+print "Hello World!";
+
+```
+
+# Basics
 
 After installing Rust and Cargo, you can already download/clone this repository and run the following command in the terminal:
 
@@ -43,8 +49,8 @@ JekoLang has data types you are already familiar with.
 variables in JekoLang are dynamically typed so that you don't have to worry about specifying types for each variable.
 
 ```
-var name = "John";
-var nil;
+let name = "John";
+let nil;
 
 print name;
 ```
@@ -64,25 +70,24 @@ if (condition){
 ## While loop
 
 ```
-var o = 1;
+let i = 1;
 while (i < 10) {
     print i;
-    i = a + 1;
+    i = i + 1;
 }
 ```
 
 ## For loop
 
 ```
-for (var i = 1; i < 10; i = i + 1) {
+for (let i = 1; i < 10; i = i + 1) {
     print i;
 }
 ```
 
 # Functions
-
 ```
-fun Double(a){
+fn Double(a){
     print a * 2;
     return a * 2;
 }
@@ -104,7 +109,7 @@ class Drive {
 }
 
 // You can store them in the variables as well as in the functions
-var someVariable = Drive;
+let someVariable = Drive;
 someFunction(Drive);
 ```
 
@@ -134,7 +139,3 @@ class Drive {
  var drivewithwife = Drive("wife");
  drivewithwife.drive("Store");
 ```
-
-# Credits
-
-Creating this project would be impossible without watching [Code Space's](https://www.youtube.com/@codescope6903) tutorial videos and reading the book [Crafting Interpreters](https://craftinginterpreters.com/contents.html).# JekoLang

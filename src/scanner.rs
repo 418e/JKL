@@ -21,7 +21,7 @@ fn get_keywords_hashmap() -> HashMap<&'static str, TokenType> {
         ("else", Else),
         ("false", False),
         ("for", For),
-        ("fun", Fun),
+        ("fn", Fun),
         ("if", If),
         ("nil", Nil),
         ("or", Or),
@@ -30,7 +30,7 @@ fn get_keywords_hashmap() -> HashMap<&'static str, TokenType> {
         ("super", Super),
         ("this", This),
         ("true", True),
-        ("var", Var),
+        ("let", Var),
         ("while", While),
     ])
 }

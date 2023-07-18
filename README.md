@@ -1,23 +1,23 @@
 # JekoLang
 
 ## Simple programming language written in Rust.
-
+## v0.1.2
 # Installation
 
-You must have already installed [Rust and Cargo](https://doc.rust-lang.org/cargo/getting-started/installation.html) before cloning this repository.
-create file `main.jkl`. Insert the code bellow in the `main.jkl` and run `cargo run main` in the terminal.
+Download and install [Rust and Cargo](https://doc.rust-lang.org/cargo/getting-started/installation.html) if you don't have them and then clone this repository.
+create file `main.jkl` in the root. <br>
+`main.jkl`
+
 ```
 
 print "Hello World!";
 
 ```
 
-# Basics
+you can run the code using `cargo`:
 
-After installing Rust and Cargo, you can already download/clone this repository and run the following command in the terminal:
-
-```
-cargo run
+```bash
+cargo run main
 ```
 
 # Usage
@@ -26,33 +26,45 @@ JekoLang is a High-Level, dynamically typed, functional and object oriented, gen
 
 # Data Types
 
-JekoLang has data types you are already familiar with.
-
-## Booleans. - True and False
-
-## Numbers - 12345 (An integer) , 123.45 (A decimal number)
-
-## Strings - "Hello, world!", "", "12345"
-
-## Nil - same as null
+- Booleans
+- Numbers
+- Strings
+- Nil (same as Null)
 
 # Expressions
 
-## Arithmetic - + , - , \*, /
+### Arithmetic
 
-## Comparasion and equality - < , >, <=, >=, != ,== ...
+- `-`
+- `+`
+- `*`
+- `/`
+- `++` [Beta]
+- `--` [Beta]
+- `^` [Soon]
+- `%` [Soon]
 
-## Logical Operators = or, and, !
+### Comparasion and equality
+
+- `>`
+- `<`
+- `>=`
+- `<=`
+- `==`
+- `!`
+- `!=`
+### Logical Operators
+- `and`
+- `or`
 
 # Variables
 
-variables in JekoLang are dynamically typed so that you don't have to worry about specifying types for each variable.
-
 ```
-let name = "John";
-let nil;
-
-print name;
+let StringVariable = "String";
+let IntegerVariable = 23;
+let PointerVariable = 3.1415;
+let booleanVariable = true;
+let NilVariable;
 ```
 
 # Control Flow
@@ -86,6 +98,7 @@ for (let i = 1; i < 10; i = i + 1) {
 ```
 
 # Functions
+
 ```
 fn Double(a){
     print a * 2;

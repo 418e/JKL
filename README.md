@@ -39,8 +39,8 @@ JKL is a High-Level, dynamically typed, functional and object oriented, general 
 - `+`
 - `*`
 - `/`
-- `++` [Beta]
-- `--` [Beta]
+- `++`
+- `--`
 - `^` [Soon]
 - `%` [Soon]
 
@@ -53,6 +53,8 @@ JKL is a High-Level, dynamically typed, functional and object oriented, general 
 - `==`
 - `!`
 - `!=`
+- `+=` [Soon]
+- `-=` [Soon]
 ### Logical Operators
 - `and`
 - `or`

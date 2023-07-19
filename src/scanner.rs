@@ -26,6 +26,9 @@ fn get_keywords_hashmap() -> HashMap<&'static str, TokenType> {
         ("nil", Nil),
         ("or", Or),
         ("print", Print),
+        ("sin", Sin),
+        ("cos", Cos),
+        ("tan", Tan),
         ("return", Return),
         ("super", Super),
         ("this", This),
@@ -179,6 +182,7 @@ impl Scanner {
             ' ' | '\r' | '\t' => {}
             '\n' => self.line += 1,
             '"' => self.string()?,
+            '\'' => self.string()?,
 
             c => {
                 if is_digit(c) {
@@ -338,6 +342,9 @@ pub enum TokenType {
     Nil,
     Or,
     Print,
+    Sin,
+    Cos,
+    Tan,
     Return,
     Super,
     This,

@@ -22,21 +22,16 @@ pub fn run_file(path: &str) -> Result<(), String> {
 }
 pub fn run_string(contents: &str) -> Result<(), String> {
     let mut interpreter = Interpreter::new();
-
     run(&mut interpreter, contents)
 }
 fn run(interpreter: &mut Interpreter, contents: &str) -> Result<(), String> {
     let mut scanner = Scanner::new(contents);
     let tokens = scanner.scan_tokens()?;
-
     let mut parser = Parser::new(tokens);
     let stmts = parser.parse()?;
-
     let resolver = Resolver::new();
     let locals = resolver.resolve(&stmts.iter().collect())?;
-
     interpreter.resolve(locals);
-
     interpreter.interpret(stmts.iter().collect())?;
     return Ok(());
 }
@@ -80,14 +75,6 @@ fn main() {
             Ok(_) => exit(0),
             Err(msg) => {
                 println!("ERROR:\n{}", msg);
-                exit(1);
-            }
-        }
-    } else if args.len() == 3 && args[1] == "e" {
-        match run_string(&args[2]) {
-            Ok(_) => exit(0),
-            Err(msg) => {
-                println!("ERROR:\n{msg}");
                 exit(1);
             }
         }

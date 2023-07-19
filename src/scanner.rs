@@ -100,7 +100,9 @@ impl Scanner {
             '}' => self.add_token(RightBrace),
             ',' => self.add_token(Comma),
             '^' => self.add_token(Power),
+            '&' => self.add_token(Root),
             '.' => self.add_token(Dot),
+            '@' => self.add_token(Random),
             '-' => {
                 let token = if self.char_match('-') {
                     Decrement
@@ -309,6 +311,8 @@ pub enum TokenType {
     Slash,      // /
     Star,       // *
     Power,      // ^
+    Root,       // &
+    Random,     // @
 
     // One Or Two Chars
     Bang,         // !

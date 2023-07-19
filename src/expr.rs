@@ -2,6 +2,8 @@ use crate::environment::Environment;
 use crate::interpreter::Interpreter;
 use crate::scanner;
 use crate::scanner::{Token, TokenType};
+use num::integer::Roots;
+use rand::Rng;
 use std::cell::RefCell;
 use std::cmp::{Eq, PartialEq};
 use std::collections::HashMap;
@@ -33,7 +35,7 @@ pub struct NativeFunctionImpl {
 
 #[derive(Clone)]
 pub enum LiteralValue {
-    Number(f64),
+    Number(i64),
     StringValue(String),
     True,
     False,
@@ -86,9 +88,9 @@ impl PartialEq for LiteralValue {
     }
 }
 
-fn unwrap_as_f64(literal: Option<scanner::LiteralValue>) -> f64 {
+fn unwrap_as_f64(literal: Option<scanner::LiteralValue>) -> i64 {
     match literal {
-        Some(scanner::LiteralValue::FValue(x)) => x as f64,
+        Some(scanner::LiteralValue::FValue(x)) => x as i64,
         _ => panic!("Could not unwrap as f64"),
     }
 }
@@ -183,7 +185,7 @@ impl LiteralValue {
     pub fn is_falsy(&self) -> LiteralValue {
         match self {
             Number(x) => {
-                if *x == 0.0 as f64 {
+                if *x == 0.0 as i64 {
                     True
                 } else {
                     False
@@ -208,7 +210,7 @@ impl LiteralValue {
     pub fn is_truthy(&self) -> LiteralValue {
         match self {
             Number(x) => {
-                if *x == 0.0 as f64 {
+                if *x == 0.0 as i64 {
                     False
                 } else {
                     True
@@ -706,8 +708,10 @@ impl Expr {
 
                 match (&right, operator.token_type) {
                     (Number(x), TokenType::Minus) => Ok(Number(-x)),
-                    (Number(x), TokenType::Increment) => Ok(Number(x + 1.0)),
-                    (Number(x), TokenType::Decrement) => Ok(Number(x - 1.0)),
+                    (Number(x), TokenType::Increment) => Ok(Number(x + 1)),
+                    (Number(x), TokenType::Decrement) => Ok(Number(x - 1)),
+                    (Number(x), TokenType::Power) => Ok(Number(x * x)),
+                    (Number(x), TokenType::Root) => Ok(Number(Roots::sqrt(&x))),
                     (_, TokenType::Minus) => {
                         Err(format!("Minus not implemented for {}", right.to_type()))
                     }
@@ -716,6 +720,12 @@ impl Expr {
                     }
                     (_, TokenType::Decrement) => {
                         Err(format!("Minus not implemented for {}", right.to_type()))
+                    }
+                    (_, TokenType::Power) => {
+                        Err(format!("Power not implemented for {}", right.to_type()))
+                    }
+                    (_, TokenType::Root) => {
+                        Err(format!("Power not implemented for {}", right.to_type()))
                     }
                     (any, TokenType::Bang) => Ok(any.is_falsy()),
                     (_, ttype) => Err(format!("{} is not a valid unary operator", ttype)),
@@ -729,8 +739,11 @@ impl Expr {
             } => {
                 let left = left.evaluate(environment.clone())?;
                 let right = right.evaluate(environment.clone())?;
+                let mut rng = rand::thread_rng();
                 match (&left, operator.token_type, &right) {
-                    (Number(x), TokenType::Power, Number(y)) => Ok(Number(x.powf(*y))), // soon
+                    (Number(x), TokenType::Random, Number(y)) => Ok(Number(rng.gen_range(*x..*y))),
+                    (Number(x), TokenType::Random, _) => Ok(Number(rng.gen_range(0..*x))),
+                    (_, TokenType::Random, Number(x)) => Ok(Number(rng.gen_range(0..*x))),
                     (Number(x), TokenType::Plus, Number(y)) => Ok(Number(x + y)),
                     (StringValue(x), TokenType::Plus, Number(y)) => {
                         Ok(StringValue(format!("{}{}", x, y.to_string())))

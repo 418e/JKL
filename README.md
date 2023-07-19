@@ -1,7 +1,7 @@
 # JKL Programmin Language
 
 ## Simple programming language written in Rust.
-## v0.1.2
+## v0.1.4
 # Installation
 
 Download and install [Rust and Cargo](https://doc.rust-lang.org/cargo/getting-started/installation.html) if you don't have them and then clone this repository.
@@ -36,13 +36,37 @@ JKL is a High-Level, dynamically typed, functional and object oriented, general 
 ### Arithmetic
 
 - `-`
+```
+print 8 - 4; // 4 
+```
 - `+`
+```
+print 2 + 2; // 4
+```
 - `*`
+```
+print 3 * 7; // 21 
+```
 - `/`
+```
+print 21 / 3; // 7
+```
 - `++`
+```
+print ++12; // 13
+```
 - `--`
-- `^` [Soon]
-- `%` [Soon]
+```
+print --12; // 11
+```
+- `^` 
+```
+print ^9 // 81
+```
+- `&` 
+```
+print &49 // 7
+```
 
 ### Comparasion and equality
 
@@ -59,6 +83,12 @@ JKL is a High-Level, dynamically typed, functional and object oriented, general 
 - `and`
 - `or`
 
+### Generating random numbers
+- `@`
+```
+print 100@; // generates random number from 0 to 100
+print 10@50; // generates random number from 10 to 50
+```
 # Variables
 
 ```

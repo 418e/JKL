@@ -478,7 +478,7 @@ impl Parser {
     fn term(&mut self) -> Result<Expr, String> {
         let mut expr = self.factor()?;
 
-        while self.match_tokens(&[Minus, Plus, PlusEqual, MinusEqual]) {
+        while self.match_tokens(&[Minus, Plus, PlusEqual, MinusEqual, Random]) {
             let op = self.previous();
             let rhs = self.factor()?;
             expr = Binary {
@@ -507,7 +507,7 @@ impl Parser {
     }
 
     fn unary(&mut self) -> Result<Expr, String> {
-        if self.match_tokens(&[Bang, Minus, Increment, Decrement]) {
+        if self.match_tokens(&[Bang, Minus, Increment, Decrement, Power, Root]) {
             let op = self.previous();
             let rhs = self.unary()?;
             Ok(Unary {

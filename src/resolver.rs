@@ -33,6 +33,10 @@ impl Resolver {
                 name: _,
                 initializer: _,
             } => self.resolve_var(stmt)?,
+            Stmt::Const {
+                name: _,
+                initializer: _,
+            } => self.resolve_var(stmt)?,
             Stmt::Class {
                 name,
                 methods,
@@ -127,6 +131,10 @@ impl Resolver {
     }
     fn resolve_var(&mut self, stmt: &Stmt) -> Result<(), String> {
         if let Stmt::Var { name, initializer } = stmt {
+            self.declare(name)?;
+            self.resolve_expr(initializer)?;
+            self.define(name);
+        } else if let Stmt::Const { name, initializer } = stmt {
             self.declare(name)?;
             self.resolve_expr(initializer)?;
             self.define(name);

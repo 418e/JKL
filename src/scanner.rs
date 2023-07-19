@@ -26,14 +26,12 @@ fn get_keywords_hashmap() -> HashMap<&'static str, TokenType> {
         ("nil", Nil),
         ("or", Or),
         ("print", Print),
-        ("sin", Sin),
-        ("cos", Cos),
-        ("tan", Tan),
         ("return", Return),
         ("super", Super),
         ("this", This),
         ("true", True),
         ("let", Var),
+        ("const", Const),
         ("while", While),
     ])
 }
@@ -99,8 +97,30 @@ impl Scanner {
             '{' => self.add_token(LeftBrace),
             '}' => self.add_token(RightBrace),
             ',' => self.add_token(Comma),
-            '^' => self.add_token(Power),
-            '&' => self.add_token(Root),
+            ':' => {
+                let token = if self.char_match('s') {
+                    Sin
+                } else if self.char_match('c') {
+                    Cos
+                } else if self.char_match('t') {
+                    Tan
+                } else {
+                    DoubleComma
+                };
+                self.add_token(token)
+            }
+            '^' => {
+                let token = if self.char_match('^') { Cube } else { Power };
+                self.add_token(token)
+            }
+            '&' => {
+                let token = if self.char_match('&') {
+                    CubicRoot
+                } else {
+                    Root
+                };
+                self.add_token(token)
+            }
             '.' => self.add_token(Dot),
             '@' => self.add_token(Random),
             '-' => {
@@ -299,22 +319,28 @@ impl Scanner {
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum TokenType {
     // Single-char tokens
-    LeftParen,  // (
-    RightParen, // )
-    LeftBrace,  // {
-    RightBrace, // }
-    Comma,      // ,
-    Dot,        // .
-    Minus,      // -
-    Plus,       // +
-    Semicolon,  // ;
-    Slash,      // /
-    Star,       // *
-    Power,      // ^
-    Root,       // &
-    Random,     // @
+    LeftParen,   // (
+    RightParen,  // )
+    LeftBrace,   // {
+    RightBrace,  // }
+    Comma,       // ,
+    DoubleComma, // :
+    Dot,         // .
+    Minus,       // -
+    Plus,        // +
+    Semicolon,   // ;
+    Slash,       // /
+    Star,        // *
+    Power,       // ^
+    Root,        // &
+    Random,      // @
 
     // One Or Two Chars
+    Sin,          // :s
+    Cos,          // :c
+    Tan,          // :t
+    Cube,         // ^^
+    CubicRoot,    // &&
     Bang,         // !
     BangEqual,    // !=
     Equal,        // =
@@ -346,14 +372,12 @@ pub enum TokenType {
     Nil,
     Or,
     Print,
-    Sin,
-    Cos,
-    Tan,
     Return,
     Super,
     This,
     True,
     Var,
+    Const,
     While,
     Eof,
 }

@@ -55,6 +55,8 @@ impl Parser {
     fn declaration(&mut self) -> Result<Stmt, String> {
         if self.match_token(Var) {
             self.var_declaration()
+        } else if self.match_token(Const) {
+            self.const_declaration()
         } else if self.match_token(Fun) {
             self.function(FunctionKind::Function)
         } else if self.match_token(Class) {
@@ -161,6 +163,26 @@ impl Parser {
             initializer,
         })
     }
+    fn const_declaration(&mut self) -> Result<Stmt, String> {
+        let token = self.consume(Identifier, "Expected constant name")?;
+
+        let initializer;
+        if self.match_token(Equal) {
+            initializer = self.expression()?;
+        } else {
+            initializer = Literal {
+                id: self.get_id(),
+                value: LiteralValue::Nil,
+            };
+        }
+
+        self.consume(Semicolon, "Expected ';' after constant declaration")?;
+
+        Ok(Stmt::Const {
+            name: token,
+            initializer,
+        })
+    }
 
     fn statement(&mut self) -> Result<Stmt, String> {
         if self.match_token(Print) {
@@ -194,7 +216,7 @@ impl Parser {
     }
 
     fn for_statement(&mut self) -> Result<Stmt, String> {
-        self.consume(LeftParen, "Expected '(' after 'for'.")?;
+        // self.consume(LeftParen, "Expected '(' after 'for'.")?;
 
         let initializer;
         if self.match_token(Semicolon) {
@@ -202,6 +224,9 @@ impl Parser {
         } else if self.match_token(Var) {
             let var_decl = self.var_declaration()?;
             initializer = Some(var_decl);
+        } else if self.match_token(Const) {
+            let const_decl = self.const_declaration()?;
+            initializer = Some(const_decl);
         } else {
             let expr = self.expression_statement()?;
             initializer = Some(expr);
@@ -223,7 +248,7 @@ impl Parser {
         } else {
             increment = None;
         }
-        self.consume(RightParen, "Expected ')' after for clauses.")?;
+        // self.consume(RightParen, "Expected ')' after for clauses.")?;
 
         let mut body = self.statement()?;
 
@@ -261,9 +286,9 @@ impl Parser {
     }
 
     fn while_statement(&mut self) -> Result<Stmt, String> {
-        self.consume(LeftParen, "Expected '(' after 'while'")?;
+        // self.consume(LeftParen, "Expected '(' after 'while'")?;
         let condition = self.expression()?;
-        self.consume(RightParen, "Expected ')' after condition.")?;
+        // self.consume(RightParen, "Expected ')' after condition.")?;
         let body = self.statement()?;
 
         Ok(Stmt::WhileStmt {
@@ -273,9 +298,9 @@ impl Parser {
     }
 
     fn if_statement(&mut self) -> Result<Stmt, String> {
-        self.consume(LeftParen, "Expected '(' after 'if'")?;
+        // self.consume(LeftParen, "Expected '(' after 'if'")?;
         let predicate = self.expression()?;
-        self.consume(RightParen, "Expected ')' after if-predicate")?;
+        // self.consume(RightParen, "Expected ')' after if-predicate")?;
 
         let then = Box::new(self.statement()?);
         let els = if self.match_token(Else) {
@@ -507,7 +532,9 @@ impl Parser {
     }
 
     fn unary(&mut self) -> Result<Expr, String> {
-        if self.match_tokens(&[Bang, Minus, Increment, Decrement, Power, Root]) {
+        if self.match_tokens(&[
+            Bang, Minus, Increment, Decrement, Power, Root, Cube, CubicRoot, Sin, Cos, Tan,
+        ]) {
             let op = self.previous();
             let rhs = self.unary()?;
             Ok(Unary {
@@ -692,7 +719,7 @@ impl Parser {
             }
 
             match self.peek().token_type {
-                Class | Fun | Var | For | If | While | Print | Sin | Cos | Tan | Return => return,
+                Class | Fun | Var | Const | For | If | While | Print | Return => return,
                 _ => (),
             }
 

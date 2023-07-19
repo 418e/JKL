@@ -13,6 +13,10 @@ pub enum Stmt {
         name: Token,
         initializer: Expr,
     },
+    Const {
+        name: Token,
+        initializer: Expr,
+    },
     Block {
         statements: Vec<Box<Stmt>>,
     },
@@ -55,6 +59,10 @@ impl Stmt {
                 name,
                 initializer: _,
             } => format!("(let {})", name.lexeme),
+            Const {
+                name,
+                initializer: _,
+            } => format!("(const {})", name.lexeme),
             Block { statements } => format!(
                 "(block {})",
                 statements
@@ -77,7 +85,10 @@ impl Stmt {
                 body: _,
             } => todo!(),
             CmdFunction { name: _, cmd: _ } => todo!(),
-            ReturnStmt { keyword: _, value: _ } => todo!(),
+            ReturnStmt {
+                keyword: _,
+                value: _,
+            } => todo!(),
             _ => todo!(),
         }
     }

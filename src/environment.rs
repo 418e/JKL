@@ -15,7 +15,7 @@ fn clock_impl(_args: &Vec<LiteralValue>) -> LiteralValue {
         .duration_since(std::time::SystemTime::UNIX_EPOCH)
         .expect("Could not get system time")
         .as_millis();
-    LiteralValue::Number(now as i64 / 1000)
+    LiteralValue::Number(now as f64 / 1000.0)
 }
 
 fn get_globals() -> Rc<RefCell<HashMap<String, LiteralValue>>> {

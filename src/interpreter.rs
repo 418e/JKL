@@ -53,6 +53,10 @@ impl Interpreter {
                     let value = initializer.evaluate(self.environment.clone())?;
                     self.environment.define(name.lexeme.clone(), value);
                 }
+                Stmt::Const { name, initializer } => {
+                    let value = initializer.evaluate(self.environment.clone())?;
+                    self.environment.define(name.lexeme.clone(), value);
+                }
                 Stmt::Block { statements } => {
                     let new_environment = self.environment.enclose();
                     let old_environment = self.environment.clone();

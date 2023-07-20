@@ -26,7 +26,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "jkl"
+name = "jkl-lang"
 version = "0.1.5"
 dependencies = [
  "num",

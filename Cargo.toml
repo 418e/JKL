@@ -9,7 +9,10 @@ homepage = "https://jkl-docs.vercel.app/"
 repository = "https://github.com/418e/JKL"
 license = "Apache-2.0"
 license-file = "./LICENSE"
-
+include = [
+    "./target",
+]
+    
 [dependencies]
 num = "0.4.1"
 rand = "0.8.5"

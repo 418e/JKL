@@ -2,8 +2,13 @@
 name = "jkl"
 version = "0.1.5"
 edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+authors = ["418e"]
+description = "Open Source Programming Language"
+documentation = "https://jkl-docs.vercel.app/"
+homepage = "https://jkl-docs.vercel.app/"
+repository = "https://github.com/418e/JKL"
+license = "Apache 2.0"
+license-file = "./LICENSE"
 
 [dependencies]
 num = "0.4.1"

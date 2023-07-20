@@ -7,7 +7,7 @@ description = "Open Source Programming Language"
 documentation = "https://jkl-docs.vercel.app/"
 homepage = "https://jkl-docs.vercel.app/"
 repository = "https://github.com/418e/JKL"
-license = "Apache 2.0"
+license = "Apache-2.0"
 license-file = "./LICENSE"
 
 [dependencies]

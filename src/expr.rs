@@ -705,7 +705,7 @@ impl Expr {
                 right,
             } => {
                 let right = right.evaluate(environment)?;
-
+                let mut rng = rand::thread_rng();
                 match (&right, operator.token_type) {
                     (Number(x), TokenType::Minus) => Ok(Number(-x)),
                     (Number(x), TokenType::Increment) => Ok(Number(x + 1.0)),
@@ -716,9 +716,18 @@ impl Expr {
                     (Number(x), TokenType::CubicRoot) => {
                         Ok(Number(Roots::cbrt(&(*x as i64)) as f64))
                     }
+                    (Number(x), TokenType::Random) => {
+                        Ok(Number(rng.gen_range(0..*x as i64) as f64))
+                    }
                     (Number(x), TokenType::Sin) => Ok(Number(x.sin())),
                     (Number(x), TokenType::Cos) => Ok(Number(x.cos())),
                     (Number(x), TokenType::Tan) => Ok(Number(x.tan())),
+                    (Number(x), TokenType::Round) => Ok(Number(x.round())),
+                    (Number(x), TokenType::Floor) => Ok(Number(x.floor())),
+
+                    (Number(x), TokenType::Percent) => Ok(Number(*x/100 as f64)),
+                    (Number(x), TokenType::ToBin) => Ok(Number(*x)),
+                    (Number(x), TokenType::ToDec) => Ok(Number(*x)),
                     (_, TokenType::Minus) => {
                         Err(format!("Minus not implemented for {}", right.to_type()))
                     }
@@ -749,6 +758,21 @@ impl Expr {
                     (_, TokenType::Tan) => {
                         Err(format!("Tan not implemented for {}", right.to_type()))
                     }
+                    (_, TokenType::Percent) => {
+                        Err(format!("Percent not implemented for {}", right.to_type()))
+                    }
+                    (_, TokenType::Round) => {
+                        Err(format!("Round not implemented for {}", right.to_type()))
+                    }
+                    (_, TokenType::Floor) => {
+                        Err(format!("Floor not implemented for {}", right.to_type()))
+                    }
+                    (_, TokenType::ToBin) => {
+                        Err(format!("toBin not implemented for {}", right.to_type()))
+                    }
+                    (_, TokenType::ToDec) => {
+                        Err(format!("toDec not implemented for {}", right.to_type()))
+                    }
                     (any, TokenType::Bang) => Ok(any.is_falsy()),
                     (_, ttype) => Err(format!("{} is not a valid unary operator", ttype)),
                 }
@@ -764,12 +788,6 @@ impl Expr {
                 let mut rng = rand::thread_rng();
                 match (&left, operator.token_type, &right) {
                     (Number(x), TokenType::Random, Number(y)) => Ok(Number(rng.gen_range(*x..*y))),
-                    (Number(x), TokenType::Random, _) => {
-                        Ok(Number(rng.gen_range(0..*x as i64) as f64))
-                    }
-                    (_, TokenType::Random, Number(x)) => {
-                        Ok(Number(rng.gen_range(0..*x as i64) as f64))
-                    }
                     (Number(x), TokenType::Plus, Number(y)) => Ok(Number(x + y)),
                     (StringValue(x), TokenType::Plus, Number(y)) => {
                         Ok(StringValue(format!("{}{}", x, y.to_string())))

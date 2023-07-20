@@ -97,13 +97,50 @@ impl Scanner {
             '{' => self.add_token(LeftBrace),
             '}' => self.add_token(RightBrace),
             ',' => self.add_token(Comma),
+            '%' => self.add_token(Percent),
             ':' => {
-                let token = if self.char_match('s') {
+                let token = if self.char_match('s')
+                    && self.char_match('i')
+                    && self.char_match('n')
+                    && self.char_match('_')
+                {
                     Sin
-                } else if self.char_match('c') {
+                } else if self.char_match('c')
+                    && self.char_match('o')
+                    && self.char_match('s')
+                    && self.char_match('_')
+                {
                     Cos
-                } else if self.char_match('t') {
+                } else if self.char_match('t')
+                    && self.char_match('a')
+                    && self.char_match('n')
+                    && self.char_match('_')
+                {
                     Tan
+                } else if self.char_match('r')
+                    && self.char_match('n')
+                    && self.char_match('d')
+                    && self.char_match('_')
+                {
+                    Round
+                } else if self.char_match('f')
+                    && self.char_match('l')
+                    && self.char_match('r')
+                    && self.char_match('_')
+                {
+                    Floor
+                } else if self.char_match('t')
+                    && self.char_match('o')
+                    && self.char_match('b')
+                    && self.char_match('_')
+                {
+                    ToBin
+                } else if self.char_match('t')
+                    && self.char_match('o')
+                    && self.char_match('d')
+                    && self.char_match('_')
+                {
+                    ToDec
                 } else {
                     DoubleComma
                 };
@@ -334,11 +371,16 @@ pub enum TokenType {
     Power,       // ^
     Root,        // &
     Random,      // @
+    Percent,     // %
 
     // One Or Two Chars
-    Sin,          // :s
-    Cos,          // :c
-    Tan,          // :t
+    Sin,          // :sin_
+    Cos,          // :cos_
+    Tan,          // :tan_
+    Round,        // :rnd_
+    Floor,        // :flr_
+    ToBin,        // :toB_
+    ToDec,        // :toD_
     Cube,         // ^^
     CubicRoot,    // &&
     Bang,         // !

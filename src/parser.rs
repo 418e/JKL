@@ -533,7 +533,7 @@ impl Parser {
 
     fn unary(&mut self) -> Result<Expr, String> {
         if self.match_tokens(&[
-            Bang, Minus, Increment, Decrement, Power, Root, Cube, CubicRoot, Sin, Cos, Tan,
+            Bang, Minus, Increment, Decrement, Power, Root, Cube, CubicRoot, Sin, Cos, Tan, Round,Floor, ToBin, ToDec, Percent,
         ]) {
             let op = self.previous();
             let rhs = self.unary()?;

@@ -30,6 +30,11 @@ pub enum Stmt {
         then: Box<Stmt>,
         els: Option<Box<Stmt>>,
     },
+    IfShortStmt {
+        predicate: Expr,
+        then: Box<Stmt>,
+        els: Option<Box<Stmt>>,
+    },
     WhileStmt {
         condition: Expr,
         body: Box<Stmt>,
@@ -71,6 +76,11 @@ impl Stmt {
                     .collect::<String>()
             ),
             IfStmt {
+                predicate: _,
+                then: _,
+                els: _,
+            } => todo!(),
+            IfShortStmt {
                 predicate: _,
                 then: _,
                 els: _,

@@ -132,6 +132,20 @@ impl Interpreter {
                         self.interpret(statements)?;
                     }
                 }
+                Stmt::IfShortStmt {
+                    predicate,
+                    then,
+                    els,
+                } => {
+                    let truth_value = predicate.evaluate(self.environment.clone())?;
+                    if truth_value.is_truthy() == LiteralValue::True {
+                        let statements = vec![then.as_ref()];
+                        self.interpret(statements)?;
+                    } else if let Some(els_stmt) = els {
+                        let statements = vec![els_stmt.as_ref()];
+                        self.interpret(statements)?;
+                    }
+                }
                 Stmt::WhileStmt { condition, body } => {
                     let mut flag = condition.evaluate(self.environment.clone())?;
                     while flag.is_truthy() == LiteralValue::True {

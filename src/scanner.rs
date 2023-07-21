@@ -23,6 +23,7 @@ fn get_keywords_hashmap() -> HashMap<&'static str, TokenType> {
         ("for", For),
         ("fn", Fun),
         ("if", If),
+        ("if", IfShort),
         ("nil", Nil),
         ("or", Or),
         ("print", Print),
@@ -193,6 +194,8 @@ impl Scanner {
             '=' => {
                 let token = if self.char_match('=') {
                     EqualEqual
+                } else if self.char_match('>') {
+                    Pipe
                 } else {
                     Equal
                 };
@@ -229,13 +232,6 @@ impl Scanner {
                     }
                 } else {
                     self.add_token(Slash);
-                }
-            }
-            '|' => {
-                if self.char_match('>') {
-                    self.add_token(Pipe);
-                } else {
-                    return Err(format!("Expected '>' at line {}", self.line));
                 }
             }
             ' ' | '\r' | '\t' => {}
@@ -379,8 +375,8 @@ pub enum TokenType {
     Tan,          // :tan_
     Round,        // :rnd_
     Floor,        // :flr_
-    ToBin,        // :toB_
-    ToDec,        // :toD_
+    ToBin,        // :tob_
+    ToDec,        // :tod_
     Cube,         // ^^
     CubicRoot,    // &&
     Bang,         // !
@@ -395,7 +391,7 @@ pub enum TokenType {
     Decrement,    // --
     PlusEqual,    // -=
     MinusEqual,   // +=
-    Pipe,         // |>
+    Pipe,         // =>
     Gets,         // <-
 
     // Literals
@@ -411,6 +407,7 @@ pub enum TokenType {
     Fun,
     For,
     If,
+    IfShort,
     Nil,
     Or,
     Print,

@@ -89,6 +89,11 @@ impl Resolver {
                 then: _,
                 els: _,
             } => self.resolve_if_stmt(stmt)?,
+            Stmt::IfShortStmt {
+                predicate: _,
+                then: _,
+                els: _,
+            } => self.resolve_ifshort_stmt(stmt)?,
             Stmt::Print { expression } => self.resolve_expr(expression)?,
             Stmt::ReturnStmt { keyword: _, value } => {
                 if self.current_function == FunctionType::None {
@@ -163,6 +168,24 @@ impl Resolver {
     }
     fn resolve_if_stmt(&mut self, stmt: &Stmt) -> Result<(), String> {
         if let Stmt::IfStmt {
+            predicate,
+            then,
+            els,
+        } = stmt
+        {
+            self.resolve_expr(predicate)?;
+            self.resolve_internal(then.as_ref())?;
+            if let Some(els) = els {
+                self.resolve_internal(els.as_ref())?;
+            }
+
+            Ok(())
+        } else {
+            panic!("Wrong type in resolve if stmt");
+        }
+    }
+    fn resolve_ifshort_stmt(&mut self, stmt: &Stmt) -> Result<(), String> {
+        if let Stmt::IfShortStmt {
             predicate,
             then,
             els,

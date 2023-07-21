@@ -191,6 +191,8 @@ impl Parser {
             self.block_statement()
         } else if self.match_token(If) {
             self.if_statement()
+        } else if self.match_token(IfShort) {
+            self.ifshort_statement()
         } else if self.match_token(While) {
             self.while_statement()
         } else if self.match_token(For) {
@@ -311,6 +313,25 @@ impl Parser {
         };
 
         Ok(Stmt::IfStmt {
+            predicate,
+            then,
+            els,
+        })
+    }
+    fn ifshort_statement(&mut self) -> Result<Stmt, String> {
+        // self.consume(LeftParen, "Expected '(' after 'if'")?;
+        let predicate = self.expression()?;
+        // self.consume(RightParen, "Expected ')' after if-predicate")?;
+
+        let then = Box::new(self.statement()?);
+        let els = if self.match_token(DoubleComma) {
+            let stm = self.statement()?;
+            Some(Box::new(stm))
+        } else {
+            None
+        };
+
+        Ok(Stmt::IfShortStmt {
             predicate,
             then,
             els,
@@ -533,7 +554,8 @@ impl Parser {
 
     fn unary(&mut self) -> Result<Expr, String> {
         if self.match_tokens(&[
-            Bang, Minus, Increment, Decrement, Power, Root, Cube, CubicRoot, Sin, Cos, Tan, Round,Floor, ToBin, ToDec, Percent,
+            Bang, Minus, Increment, Decrement, Power, Root, Cube, CubicRoot, Sin, Cos, Tan, Round,
+            Floor, ToBin, ToDec, Percent,
         ]) {
             let op = self.previous();
             let rhs = self.unary()?;
@@ -719,7 +741,7 @@ impl Parser {
             }
 
             match self.peek().token_type {
-                Class | Fun | Var | Const | For | If | While | Print | Return => return,
+                Class | Fun | Var | Const | For | If | IfShort | While | Print | Return => return,
                 _ => (),
             }
 

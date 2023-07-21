@@ -15,7 +15,7 @@ use std::io::{self, BufRead, Write};
 use std::process::exit;
 
 pub fn run_file(path: &str) -> Result<(), String> {
-    match fs::read_to_string(path.to_owned() + ".jkl") {
+    match fs::read_to_string(path.to_owned() + ".tron") {
         Err(msg) => return Err(msg.to_string()),
         Ok(contents) => return run_string(&contents),
     }

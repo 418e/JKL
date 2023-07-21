@@ -1,4 +1,4 @@
-# JKL Programming Language
+# Tron Programming Language
 
 ## Open source programming language written in Rust. ( v0.1.7 )
 
@@ -7,8 +7,8 @@
 # Installation
 
 Download and install [Rust and Cargo](https://doc.rust-lang.org/cargo/getting-started/installation.html) if you don't have them and then clone this repository.
-create file `main.jkl` in the root. <br>
-`main.jkl`
+create file `main.tron` in the root. <br>
+`main.tron`
 
 ```
 

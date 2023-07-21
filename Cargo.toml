@@ -1,5 +1,5 @@
 [package]
-name = "jkl-lang"
+name = "tron-lang"
 version = "0.1.7"
 edition = "2021"
 authors = ["418e"]

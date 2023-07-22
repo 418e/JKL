@@ -187,6 +187,10 @@ impl Parser {
     fn statement(&mut self) -> Result<Stmt, String> {
         if self.match_token(Print) {
             self.print_statement()
+        } else if self.match_token(Input) {
+            self.inputs_statement()
+        } else if self.match_token(Errors) {
+            self.error_statement()
         } else if self.match_token(LeftBrace) {
             self.block_statement()
         } else if self.match_token(If) {
@@ -354,6 +358,16 @@ impl Parser {
         let value = self.expression()?;
         self.consume(Semicolon, "Expected ';' after value.")?;
         Ok(Stmt::Print { expression: value })
+    }
+    fn inputs_statement(&mut self) -> Result<Stmt, String> {
+        let value = self.expression()?;
+        self.consume(Semicolon, "Expected ';' after value.")?;
+        Ok(Stmt::Input { expression: value })
+    }
+    fn error_statement(&mut self) -> Result<Stmt, String> {
+        let value = self.expression()?;
+        self.consume(Semicolon, "Expected ';' after value.")?;
+        Ok(Stmt::Errors { expression: value })
     }
 
     fn expression_statement(&mut self) -> Result<Stmt, String> {
@@ -554,8 +568,8 @@ impl Parser {
 
     fn unary(&mut self) -> Result<Expr, String> {
         if self.match_tokens(&[
-            Bang, Minus, Increment, Decrement, Power, Root, Cube, CubicRoot, Sin, Cos, Tan, Round,
-            Floor, ToBin, ToDec, Percent,
+            Bang, Minus, Increment, Decrement, Power, Root, Cube, CubicRoot, Sin, Cos, Tan, In,
+            Round, Floor, ToBin, ToDec, Percent,
         ]) {
             let op = self.previous();
             let rhs = self.unary()?;
@@ -741,7 +755,8 @@ impl Parser {
             }
 
             match self.peek().token_type {
-                Class | Fun | Var | Const | For | If | IfShort | While | Print | Return => return,
+                Class | Fun | Var | Const | For | If | IfShort | Input | Errors | While | Print
+                | Return => return,
                 _ => (),
             }
 

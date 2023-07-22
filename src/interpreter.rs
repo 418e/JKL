@@ -3,6 +3,8 @@ use crate::expr::{CallableImpl, JekoFunctionImpl, LiteralValue, NativeFunctionIm
 use crate::scanner::Token;
 use crate::stmt::Stmt;
 use std::collections::HashMap;
+use std::io;
+use std::process::exit;
 use std::process::Command;
 use std::rc::Rc;
 
@@ -48,6 +50,17 @@ impl Interpreter {
                 Stmt::Print { expression } => {
                     let value = expression.evaluate(self.environment.clone())?;
                     println!("{}", value.to_string());
+                }
+                Stmt::Input { expression } => {
+                    let value = expression.evaluate(self.environment.clone())?;
+                    println!("{}", value.to_string());
+                    let mut input = String::new();
+                    io::stdin().read_line(&mut input).unwrap();
+                }
+                Stmt::Errors { expression } => {
+                    let value = expression.evaluate(self.environment.clone())?;
+                    println!("Error: {}", value.to_string());
+                    exit(1)
                 }
                 Stmt::Var { name, initializer } => {
                     let value = initializer.evaluate(self.environment.clone())?;

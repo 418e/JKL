@@ -27,6 +27,8 @@ fn get_keywords_hashmap() -> HashMap<&'static str, TokenType> {
         ("nil", Nil),
         ("or", Or),
         ("print", Print),
+        ("input", Input),
+        ("error", Errors),
         ("return", Return),
         ("super", Super),
         ("this", This),
@@ -106,6 +108,11 @@ impl Scanner {
                     && self.char_match('_')
                 {
                     Sin
+                }else if self.char_match('i')
+                    && self.char_match('n')
+                    && self.char_match('_')
+                {
+                    In
                 } else if self.char_match('c')
                     && self.char_match('o')
                     && self.char_match('s')
@@ -377,6 +384,7 @@ pub enum TokenType {
     Floor,        // :flr_
     ToBin,        // :tob_
     ToDec,        // :tod_
+    In,           // :in_
     Cube,         // ^^
     CubicRoot,    // &&
     Bang,         // !
@@ -411,6 +419,8 @@ pub enum TokenType {
     Nil,
     Or,
     Print,
+    Input,
+    Errors,
     Return,
     Super,
     This,

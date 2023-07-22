@@ -11,7 +11,6 @@ use crate::resolver::*;
 use crate::scanner::*;
 use std::env;
 use std::fs;
-use std::io::{self, BufRead, Write};
 use std::process::exit;
 
 pub fn run_file(path: &str) -> Result<(), String> {
@@ -35,39 +34,6 @@ fn run(interpreter: &mut Interpreter, contents: &str) -> Result<(), String> {
     interpreter.interpret(stmts.iter().collect())?;
     return Ok(());
 }
-
-fn run_prompt() -> Result<(), String> {
-    let mut interpreter = Interpreter::new();
-    loop {
-        print!("> ");
-        match io::stdout().flush() {
-            Ok(_) => (),
-            Err(_) => return Err("Could not flush stdout".to_string()),
-        }
-
-        let mut buffer = String::new();
-        let stdin = io::stdin();
-        let mut handle = stdin.lock();
-        match handle.read_line(&mut buffer) {
-            Ok(n) => {
-                if n == 0 {
-                    println!("");
-                    return Ok(());
-                } else if n == 1 {
-                    continue;
-                }
-            }
-            Err(_) => return Err("Couldnt read line".to_string()),
-        }
-
-        println!("ECHO: {}", buffer);
-        match run(&mut interpreter, &buffer) {
-            Ok(_) => (),
-            Err(msg) => println!("{}", msg),
-        }
-    }
-}
-
 fn main() {
     let args: Vec<String> = env::args().collect();
     if args.len() == 2 {
@@ -78,16 +44,11 @@ fn main() {
                 exit(1);
             }
         }
-    } else if args.len() == 1 {
-        match run_prompt() {
-            Ok(_) => exit(0),
-            Err(msg) => {
-                println!("ERROR\n{}", msg);
-                exit(1);
-            }
-        }
+    } else if args.len() > 2 {
+        println!("Two many Arguments");
+        exit(64);
     } else {
-        println!("Usage: jjeko [script]");
+        println!("Argument isn't specified.");
         exit(64);
     }
 }

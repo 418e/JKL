@@ -8,6 +8,7 @@ use std::cell::RefCell;
 use std::cmp::{Eq, PartialEq};
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
+use std::io;
 use std::rc::Rc;
 
 #[derive(Clone)]
@@ -745,6 +746,12 @@ impl Expr {
                         Ok(Number(rng.gen_range(0..*x as i64) as f64))
                     }
                     (Number(x), TokenType::Sin) => Ok(Number(x.sin())),
+                    (StringValue(x), TokenType::In) => {
+                        println!("{}", x.to_string());
+                        let mut input = String::new();
+                        io::stdin().read_line(&mut input).unwrap();
+                       Ok(StringValue(format!("{}", input)))
+                    }
                     (Number(x), TokenType::Cos) => Ok(Number(x.cos())),
                     (Number(x), TokenType::Tan) => Ok(Number(x.tan())),
                     (Number(x), TokenType::Round) => Ok(Number(x.round())),
@@ -773,6 +780,9 @@ impl Expr {
                     }
                     (_, TokenType::CubicRoot) => {
                         Err(format!("CubicRoot not implemented for {}", right.to_type()))
+                    }
+                    (_, TokenType::In) => {
+                        Err(format!("In not implemented for {}", right.to_type()))
                     }
                     (_, TokenType::Sin) => {
                         Err(format!("Sin not implemented for {}", right.to_type()))
@@ -868,11 +878,6 @@ impl Expr {
                 }
             }
         }
-    }
-
-    #[allow(dead_code)]
-    pub fn print(&self) {
-        println!("{}", self.to_string());
     }
 }
 

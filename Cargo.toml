@@ -1,12 +1,12 @@
 [package]
 name = "tron-lang"
-version = "0.1.7"
+version = "0.1.8"
 edition = "2021"
 authors = ["418e"]
 description = "Open Source Programming Language"
-documentation = "https://jkl-docs.vercel.app/"
-homepage = "https://jkl-docs.vercel.app/"
-repository = "https://github.com/418e/JKL"
+documentation = "https://tron-lang.vercel.app/"
+homepage = "https://tron-docs.vercel.app/"
+repository = "https://github.com/jkl-org/Tron"
 license = "Apache-2.0"
 
 

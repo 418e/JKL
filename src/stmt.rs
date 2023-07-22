@@ -9,6 +9,12 @@ pub enum Stmt {
     Print {
         expression: Expr,
     },
+    Input {
+        expression: Expr,
+    },
+    Errors {
+        expression: Expr,
+    },
     Var {
         name: Token,
         initializer: Expr,
@@ -60,6 +66,8 @@ impl Stmt {
         match self {
             Expression { expression } => expression.to_string(),
             Print { expression } => format!("(print {})", expression.to_string()),
+            Input { expression } => format!("(input {})", expression.to_string()),
+            Errors { expression } => format!("(error {})", expression.to_string()),
             Var {
                 name,
                 initializer: _,

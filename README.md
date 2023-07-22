@@ -1,6 +1,6 @@
 # Tron Programming Language
 
-## Open source programming language written in Rust. ( v0.1.7 )
+## Open source programming language written in Rust. ( v0.1.8 )
 
 ### Visit our [Documentation](https://jkl-docs.vercel.app/) Website.
 ### Contact us on [Discord](https://discord.com/invite/UgUaUPhzug).

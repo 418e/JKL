@@ -1,0 +1,47 @@
+let addition = 12 + 512 + 1.2;
+print addition;
+
+let subscraction = 17 - 5 - 12 - 0.5;
+print subscraction;
+
+let multiplication = 2 * 7 * 4;
+print multiplication;
+
+let division = 16 / 2 / 2;
+print division;
+
+let increment = ++0;
+print increment;
+
+let decrement = --1;
+print declaration;
+
+let squared = ^5;
+print squared;
+
+let squareRoot = &64; 
+print squareRoot;
+
+let cube = ^^2; 
+print cube;
+
+let cubicRoot = &&64; 
+print cubicRoot;
+
+let sinus = :sin_30; 
+print sinus;
+
+let cosinus = :cos_45; 
+print cosinus;
+
+let tanges = :tan_90; 
+print tanges;
+
+let percentage = %70; 
+print percentage;
+
+let round = :rnd_0.5; 
+print round;
+
+let floor = :flr_0.5; 
+print floor;

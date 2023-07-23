@@ -1,0 +1,7 @@
+fn myfunction(x){
+    print "Hello " + x;
+    return x;
+}
+
+myfunction("Tron");
+print x;

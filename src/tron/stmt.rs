@@ -1,6 +1,6 @@
-use crate::expr::Expr;
-use crate::scanner::Token;
-
+use crate::tron::expr::Expr;
+use crate::tron::scanner::Token;
+// statements
 #[derive(Debug, Clone)]
 pub enum Stmt {
     Expression {
@@ -63,6 +63,7 @@ impl Stmt {
     #[allow(dead_code)]
     pub fn to_string(&self) -> String {
         use Stmt::*;
+        // formatting statements
         match self {
             Expression { expression } => expression.to_string(),
             Print { expression } => format!("(print {})", expression.to_string()),

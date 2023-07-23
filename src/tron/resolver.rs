@@ -1,6 +1,6 @@
-use crate::expr::Expr;
-use crate::scanner::Token;
-use crate::stmt::Stmt;
+use crate::tron::expr::Expr;
+use crate::tron::scanner::Token;
+use crate::tron::stmt::Stmt;
 use std::collections::HashMap;
 
 #[derive(Copy, Clone, PartialEq)]
@@ -16,7 +16,7 @@ pub struct Resolver {
     current_function: FunctionType,
     locals: HashMap<usize, usize>,
 }
-
+// resolver
 impl Resolver {
     pub fn new() -> Self {
         Self {
@@ -25,7 +25,7 @@ impl Resolver {
             locals: HashMap::new(),
         }
     }
-
+    // here we are resolving statements mostly
     fn resolve_internal(&mut self, stmt: &Stmt) -> Result<(), String> {
         match stmt {
             Stmt::Block { statements: _ } => self.resolve_block(stmt)?,

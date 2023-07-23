@@ -1,19 +1,20 @@
 use std::collections::HashMap;
 use std::string::String;
 
+// defining digital characters
 fn is_digit(ch: char) -> bool {
     ch as u8 >= '0' as u8 && ch as u8 <= '9' as u8
 }
-
+// defininig alphabetical charachters
 fn is_alpha(ch: char) -> bool {
     let uch = ch as u8;
     (uch >= 'a' as u8 && uch <= 'z' as u8) || (uch >= 'A' as u8 && uch <= 'Z' as u8) || (ch == '_')
 }
-
+// defining alphanumeric characters
 fn is_alpha_numeric(ch: char) -> bool {
     is_alpha(ch) || is_digit(ch)
 }
-
+// keywords
 fn get_keywords_hashmap() -> HashMap<&'static str, TokenType> {
     HashMap::from([
         ("and", And),
@@ -23,7 +24,7 @@ fn get_keywords_hashmap() -> HashMap<&'static str, TokenType> {
         ("for", For),
         ("fn", Fun),
         ("if", If),
-        ("if", IfShort),
+        ("ifs", IfShort),
         ("nil", Nil),
         ("or", Or),
         ("print", Print),
@@ -48,6 +49,7 @@ pub struct Scanner {
 
     keywords: HashMap<&'static str, TokenType>,
 }
+// scanner
 impl Scanner {
     pub fn new(source: &str) -> Self {
         Self {
@@ -60,6 +62,7 @@ impl Scanner {
         }
     }
     pub fn scan_tokens(self: &mut Self) -> Result<Vec<Token>, String> {
+        // Error handler
         let mut errors = vec![];
         while !self.is_at_end() {
             self.start = self.current;
@@ -90,10 +93,10 @@ impl Scanner {
     fn is_at_end(self: &Self) -> bool {
         self.current >= self.source.len()
     }
-
+    // scanning tokens
     fn scan_token(self: &mut Self) -> Result<(), String> {
         let c = self.advance();
-
+        // you can only use characters below for coding in .tron
         match c {
             '(' => self.add_token(LeftParen),
             ')' => self.add_token(RightParen),
@@ -293,6 +296,7 @@ impl Scanner {
 
         Ok(())
     }
+    // character next to the self (right)
     fn peek_next(self: &Self) -> char {
         if self.current + 1 >= self.source.len() {
             return '\0';
@@ -315,6 +319,7 @@ impl Scanner {
         self.add_token_lit(StringLit, Some(StringValue(value.to_string())));
         Ok(())
     }
+    // character next to the self (left)
     fn peek(self: &Self) -> char {
         if self.is_at_end() {
             return '\0';
@@ -357,6 +362,8 @@ impl Scanner {
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
+
+// define token types here first before implementing above
 pub enum TokenType {
     // Single-char tokens
     LeftParen,   // (

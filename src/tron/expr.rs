@@ -822,6 +822,7 @@ impl Expr {
                 let right = right.evaluate(environment.clone())?;
                 let mut rng = rand::thread_rng();
                 match (&left, operator.token_type, &right) {
+                    (_, TokenType::Sin, Number(x)) => Ok(Number(x.sin())),
                     (Number(x), TokenType::Random, Number(y)) => Ok(Number(rng.gen_range(*x..*y))),
                     (Number(x), TokenType::Plus, Number(y)) => Ok(Number(x + y)),
                     (StringValue(x), TokenType::Plus, Number(y)) => {

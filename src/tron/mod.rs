@@ -14,7 +14,7 @@ use std::fs;
 use std::process::exit;
 
 pub fn run_file(path: &str) -> Result<(), String> {
-    match fs::read_to_string(path.to_owned() + ".tron") {
+    match fs::read_to_string("src/".to_owned() + path + ".tron") {
         Err(msg) => return Err(msg.to_string()),
         Ok(contents) => return run_string(&contents),
     }
@@ -38,14 +38,6 @@ pub fn tron() {
     let args: Vec<String> = env::args().collect();
     if args.len() == 2 {
         match run_file(&args[1]) {
-            Ok(_) => exit(0),
-            Err(msg) => {
-                println!("ERROR:\n{}", msg);
-                exit(1);
-            }
-        }
-    } else if args.len() == 1 {
-        match run_file("src/main") {
             Ok(_) => exit(0),
             Err(msg) => {
                 println!("ERROR:\n{}", msg);

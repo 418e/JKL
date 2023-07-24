@@ -1,25 +1,53 @@
+[![AGPL License](https://img.shields.io/badge/license-Apache%20v2-blue.svg)](https://github.com/jkl-org/Tron/blob/main/LICENSE)
 # Tron Programming Language
 
-## Open source programming language written in Rust. ( v0.1.8 )
+An open-source programming language written in Rust.
 
-### Visit our [Documentation](https://jkl-docs.vercel.app/) Website.
-### Contact us on [Discord](https://discord.com/invite/UgUaUPhzug).
-# Installation
 
-Download and install [Rust and Cargo](https://doc.rust-lang.org/cargo/getting-started/installation.html) if you don't have them and then clone this repository.
-create file `main.tron` in the root. <br>
-`main.tron`
 
-```
 
-print "Hello World!";
+## Installation
 
-```
 
-you can run the code using `cargo`:
+Before starting the installation, please make sure that you have already installed [Rust](https://www.rust-lang.org/tools/install).
 
 ```bash
-cargo run main
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 ```
-# [Read The Docs](https://jkl-docs.vercel.app/)
+
+After that, we can clone This repository and run the command `cargo build`:
+
+```bash
+git clone https://github.com/jkl-org/Tron.git
+cd Tron
+cargo build
+```
+
+## Usage/Examples
+
+```rs
+let x = 3;
+if x > 1 {
+  print "passed";
+} else {
+  error "failed";
+}
+```
+
+
+## Acknowledgements
+
+ - [Home Page](https://tronlang.org/)
+ - [Documentation](https://docs.tronlang.org/)
+ - [News Page](https://news.tronlang.org/)
+
+
+## Feedback
+
+If you have any feedback, please reach out to us at tronlang@proton.me
+
+
+## Support
+
+For support, email tronlang@proton.me or join our [Discrod server](https://discord.com/invite/UgUaUPhzug).
 

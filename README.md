@@ -1,5 +1,3 @@
-# No longer maintained!
-
 [![AGPL License](https://img.shields.io/badge/license-Apache%20v2-blue.svg)](https://github.com/jkl-org/Tron/blob/main/LICENSE)
 # Tron Programming Language
 

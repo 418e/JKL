@@ -104,43 +104,77 @@ impl Scanner {
             '}' => self.add_token(RightBrace),
             ',' => self.add_token(Comma),
             '%' => self.add_token(Percent),
-            ':' => {
-                let token = if self.char_match('s')
-                    && self.char_match('i')
-                    && self.char_match('n')
-                    && self.char_match('_')
+            's' => {
+                let token = if self.char_match('i') && self.char_match('n') && self.char_match(':')
                 {
                     Sin
-                }else if self.char_match('i')
-                    && self.char_match('n')
-                    && self.char_match('_')
-                {
-                    In
-                } else if self.char_match('c')
-                    && self.char_match('o')
-                    && self.char_match('s')
-                    && self.char_match('_')
+                } else {
+                    S
+                };
+
+                self.add_token(token);
+            }
+            'c' => {
+                let token = if self.char_match('i') && self.char_match('n') && self.char_match(':')
                 {
                     Cos
-                } else if self.char_match('t')
-                    && self.char_match('a')
-                    && self.char_match('n')
-                    && self.char_match('_')
+                } else {
+                    S
+                };
+
+                self.add_token(token);
+            }
+
+            't' => {
+                let token = if self.char_match('a') && self.char_match('n') && self.char_match(':')
                 {
                     Tan
-                } else if self.char_match('r')
+                } else {
+                    S
+                };
+
+                self.add_token(token);
+            }
+
+            'r' => {
+                let token = if self.char_match('o')
+                    && self.char_match('u')
                     && self.char_match('n')
                     && self.char_match('d')
-                    && self.char_match('_')
+                    && self.char_match(':')
                 {
                     Round
-                } else if self.char_match('f')
-                    && self.char_match('l')
+                } else {
+                    S
+                };
+
+                self.add_token(token);
+            }
+            'f' => {
+                let token = if self.char_match('l')
+                    && self.char_match('o')
+                    && self.char_match('o')
                     && self.char_match('r')
-                    && self.char_match('_')
+                    && self.char_match(':')
                 {
                     Floor
-                } else if self.char_match('t')
+                } else {
+                    S
+                };
+
+                self.add_token(token);
+            }
+            'i' => {
+                let token = if self.char_match('n') && self.char_match(':') {
+                    In
+                } else {
+                    S
+                };
+
+                self.add_token(token);
+            }
+            ':' => {
+                let token = if self.char_match('t')
                     && self.char_match('o')
                     && self.char_match('b')
                     && self.char_match('_')
@@ -436,6 +470,9 @@ pub enum TokenType {
     Const,
     While,
     Eof,
+
+    // defs
+    S, //s
 }
 use TokenType::*;
 impl std::fmt::Display for TokenType {

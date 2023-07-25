@@ -1,6 +1,6 @@
-use crate::tron::expr::{Expr, Expr::*, LiteralValue};
-use crate::tron::scanner::{Token, TokenType, TokenType::*};
-use crate::tron::stmt::Stmt;
+use crate::expr::{Expr, Expr::*, LiteralValue};
+use crate::scanner::{Token, TokenType, TokenType::*};
+use crate::stmt::Stmt;
 
 pub struct Parser {
     tokens: Vec<Token>,

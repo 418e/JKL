@@ -1,7 +1,7 @@
-use crate::tron::environment::Environment;
-use crate::tron::expr::{CallableImpl, JekoFunctionImpl, LiteralValue, NativeFunctionImpl};
-use crate::tron::scanner::Token;
-use crate::tron::stmt::Stmt;
+use crate::environment::Environment;
+use crate::expr::{CallableImpl, JekoFunctionImpl, LiteralValue, NativeFunctionImpl};
+use crate::scanner::Token;
+use crate::stmt::Stmt;
 use std::collections::HashMap;
 use std::io;
 use std::process::exit;

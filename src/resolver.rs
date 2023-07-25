@@ -1,6 +1,6 @@
-use crate::tron::expr::Expr;
-use crate::tron::scanner::Token;
-use crate::tron::stmt::Stmt;
+use crate::expr::Expr;
+use crate::scanner::Token;
+use crate::stmt::Stmt;
 use std::collections::HashMap;
 
 #[derive(Copy, Clone, PartialEq)]

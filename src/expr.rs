@@ -1,7 +1,7 @@
-use crate::tron::environment::Environment;
-use crate::tron::interpreter::Interpreter;
-use crate::tron::scanner;
-use crate::tron::scanner::{Token, TokenType};
+use crate::environment::Environment;
+use crate::interpreter::Interpreter;
+use crate::scanner;
+use crate::scanner::{Token, TokenType};
 use num::integer::Roots;
 use rand::Rng;
 use std::cell::RefCell;
@@ -234,7 +234,7 @@ impl LiteralValue {
     }
 }
 
-use crate::tron::stmt::Stmt;
+use crate::stmt::Stmt;
 
 #[derive(Clone)]
 pub enum Expr {

@@ -50,4 +50,3 @@ If you have any feedback, please reach out to us at tronlang@proton.me
 ## Support
 
 For support, email tronlang@proton.me or join our [Discrod server](https://discord.com/invite/UgUaUPhzug).
-

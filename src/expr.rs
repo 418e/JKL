@@ -708,30 +708,6 @@ impl Expr {
                 let right = right.evaluate(environment)?;
                 let mut rng = rand::thread_rng();
 
-                fn to_binary(mut decimal: f64) -> f64 {
-                    if decimal == 0.0 {
-                        decimal
-                    } else {
-                        let mut bits = String::new();
-
-                        while decimal > 0.0 {
-                            if decimal % 2.0 == 0.0 {
-                                bits.push_str("0");
-                            } else {
-                                bits.push_str("1");
-                            }
-
-                            decimal /= 2.0;
-                        }
-
-                        // reverse the bits
-                        match bits.chars().rev().collect::<String>().parse() {
-                            Ok(num) => num,
-                            Err(_e) => panic!("Something went wrong"),
-                        }
-                    }
-                }
-
                 match (&right, operator.token_type) {
                     (Number(x), TokenType::Minus) => Ok(Number(-x)),
                     (Number(x), TokenType::Increment) => Ok(Number(x + 1.0)),
@@ -745,21 +721,23 @@ impl Expr {
                     (Number(x), TokenType::Random) => {
                         Ok(Number(rng.gen_range(0..*x as i64) as f64))
                     }
-                    (Number(x), TokenType::Sin) => Ok(Number(x.sin())),
                     (StringValue(x), TokenType::In) => {
                         println!("{}", x.to_string());
                         let mut input = String::new();
                         io::stdin().read_line(&mut input).unwrap();
                         Ok(StringValue(format!("{}", input)))
                     }
+                    (Number(x), TokenType::Sin) => Ok(Number(x.sin())),
+                    (Number(x), TokenType::ASin) => Ok(Number(x.asin())),
                     (Number(x), TokenType::Cos) => Ok(Number(x.cos())),
+                    (Number(x), TokenType::ACos) => Ok(Number(x.acos())),
                     (Number(x), TokenType::Tan) => Ok(Number(x.tan())),
+                    (Number(x), TokenType::ATan) => Ok(Number(x.atan())),
                     (Number(x), TokenType::Round) => Ok(Number(x.round())),
                     (Number(x), TokenType::Floor) => Ok(Number(x.floor())),
-
                     (Number(x), TokenType::Percent) => Ok(Number(*x / 100 as f64)),
-                    (Number(x), TokenType::ToBin) => Ok(Number(to_binary(*x))),
-                    (Number(x), TokenType::ToDec) => Ok(Number(*x)),
+                    (Number(x), TokenType::ToDeg) => Ok(Number(x.to_degrees())),
+                    (Number(x), TokenType::ToRad) => Ok(Number(x.to_radians())),
                     (_, TokenType::Minus) => {
                         Err(format!("Minus not implemented for {}", right.to_type()))
                     }
@@ -802,12 +780,6 @@ impl Expr {
                     (_, TokenType::Floor) => {
                         Err(format!("Floor not implemented for {}", right.to_type()))
                     }
-                    (_, TokenType::ToBin) => {
-                        Err(format!("ToBin not implemented for {}", right.to_type()))
-                    }
-                    (_, TokenType::ToDec) => {
-                        Err(format!("ToDec not implemented for {}", right.to_type()))
-                    }
                     (any, TokenType::Bang) => Ok(any.is_falsy()),
                     (_, ttype) => Err(format!("{} is not a valid unary operator", ttype)),
                 }
@@ -822,7 +794,6 @@ impl Expr {
                 let right = right.evaluate(environment.clone())?;
                 let mut rng = rand::thread_rng();
                 match (&left, operator.token_type, &right) {
-                    (_, TokenType::Sin, Number(x)) => Ok(Number(x.sin())),
                     (Number(x), TokenType::Random, Number(y)) => Ok(Number(rng.gen_range(*x..*y))),
                     (Number(x), TokenType::Plus, Number(y)) => Ok(Number(x + y)),
                     (StringValue(x), TokenType::Plus, Number(y)) => {
@@ -834,6 +805,7 @@ impl Expr {
                     (Number(x), TokenType::PlusEqual, Number(y)) => Ok(Number(x + y)), // soon
                     (Number(x), TokenType::Minus, Number(y)) => Ok(Number(x - y)),
                     (Number(x), TokenType::MinusEqual, Number(y)) => Ok(Number(x - y)), // soon
+                    (Number(x), TokenType::Log, Number(y)) => Ok(Number(x.log(*y))),
                     (Number(x), TokenType::Star, Number(y)) => Ok(Number(x * y)),
                     (Number(x), TokenType::Slash, Number(y)) => Ok(Number(x / y)),
                     (Number(x), TokenType::Greater, Number(y)) => {

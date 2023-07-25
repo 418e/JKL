@@ -24,7 +24,7 @@ fn get_keywords_hashmap() -> HashMap<&'static str, TokenType> {
         ("for", For),
         ("fn", Fun),
         ("if", If),
-        ("ifs", IfShort),
+        ("?", IfShort),
         ("nil", Nil),
         ("or", Or),
         ("print", Print),
@@ -35,7 +35,6 @@ fn get_keywords_hashmap() -> HashMap<&'static str, TokenType> {
         ("this", This),
         ("true", True),
         ("let", Var),
-        ("const", Const),
         ("while", While),
     ])
 }
@@ -104,88 +103,155 @@ impl Scanner {
             '}' => self.add_token(RightBrace),
             ',' => self.add_token(Comma),
             '%' => self.add_token(Percent),
-            's' => {
-                let token = if self.char_match('i') && self.char_match('n') && self.char_match(':')
-                {
-                    Sin
-                } else {
-                    S
-                };
-
-                self.add_token(token);
-            }
-            'c' => {
-                let token = if self.char_match('i') && self.char_match('n') && self.char_match(':')
-                {
-                    Cos
-                } else {
-                    S
-                };
-
-                self.add_token(token);
-            }
-
-            't' => {
-                let token = if self.char_match('a') && self.char_match('n') && self.char_match(':')
-                {
-                    Tan
-                } else {
-                    S
-                };
-
-                self.add_token(token);
-            }
-
-            'r' => {
-                let token = if self.char_match('o')
-                    && self.char_match('u')
-                    && self.char_match('n')
-                    && self.char_match('d')
-                    && self.char_match(':')
-                {
-                    Round
-                } else {
-                    S
-                };
-
-                self.add_token(token);
-            }
-            'f' => {
-                let token = if self.char_match('l')
-                    && self.char_match('o')
-                    && self.char_match('o')
-                    && self.char_match('r')
-                    && self.char_match(':')
-                {
-                    Floor
-                } else {
-                    S
-                };
-
-                self.add_token(token);
-            }
-            'i' => {
-                let token = if self.char_match('n') && self.char_match(':') {
-                    In
-                } else {
-                    S
-                };
-
-                self.add_token(token);
-            }
             ':' => {
-                let token = if self.char_match('t')
-                    && self.char_match('o')
-                    && self.char_match('b')
+                let token = if self.char_match('s')
+                    && self.char_match('i')
+                    && self.char_match('n')
                     && self.char_match('_')
                 {
-                    ToBin
+                    Sin
+                } else if self.char_match('i') && self.char_match('n') && self.char_match('_') {
+                    In
+                } else if self.char_match('c')
+                    && self.char_match('o')
+                    && self.char_match('s')
+                    && self.char_match('_')
+                {
+                    Cos
+                }else if self.char_match('l')
+                    && self.char_match('o')
+                    && self.char_match('g')
+                    && self.char_match(':')
+                {
+                Log
+                }else if self.char_match('l')
+                    && self.char_match('o')
+                    && self.char_match('g')
+                    && self.char_match('2')
+                    && self.char_match('_')
+                {
+                    Log2
+                }else if self.char_match('l')
+                    && self.char_match('o')
+                    && self.char_match('g')
+                    && self.char_match('1')
+                    && self.char_match('0')
+                    && self.char_match('_')
+                {
+                    Log10
+                }else if self.char_match('l')
+                    && self.char_match('n')
+                    && self.char_match('_')
+                {
+                    Ln
+                }else if self.char_match('a')
+                    && self.char_match('s')
+                    && self.char_match('i')
+                    && self.char_match('n')
+                    && self.char_match('_')
+                {
+                    ASin
+                }else if self.char_match('a')
+                    && self.char_match('s')
+                    && self.char_match('i')
+                    && self.char_match('n')
+                    && self.char_match('h')
+                    && self.char_match('_')
+                {
+                    ASinH
+                }else if self.char_match('s')
+                    && self.char_match('i')
+                    && self.char_match('n')
+                    && self.char_match('h')
+                    && self.char_match('_')
+                {
+                    SinH
+                }else if self.char_match('a')
+                    && self.char_match('c')
+                    && self.char_match('o')
+                    && self.char_match('s')
+                    && self.char_match('_')
+                {
+                    ACos
+                }else if self.char_match('a')
+                    && self.char_match('c')
+                    && self.char_match('o')
+                    && self.char_match('s')
+                    && self.char_match('h')
+                    && self.char_match('_')
+                {
+                    ACosH
+                }else if self.char_match('c')
+                    && self.char_match('o')
+                    && self.char_match('s')
+                    && self.char_match('h')
+                    && self.char_match('_')
+                {
+                    CosH
+                }else if self.char_match('a')
+                    && self.char_match('t')
+                    && self.char_match('a')
+                    && self.char_match('n')
+                    && self.char_match('_')
+                {
+                    ATan
+                }else if self.char_match('a')
+                    && self.char_match('t')
+                    && self.char_match('a')
+                    && self.char_match('n')
+                    && self.char_match('h')
+                    && self.char_match('_')
+                {
+                    ATanH
+                }else if self.char_match('t')
+                    && self.char_match('a')
+                    && self.char_match('n')
+                    && self.char_match('h')
+                    && self.char_match('_')
+                {
+                    TanH
+                }else if self.char_match('h')
+                    && self.char_match('y')
+                    && self.char_match('p')
+                    && self.char_match('o')
+                    && self.char_match('t')
+                    && self.char_match(':')
+                {
+                    Hypot
+                } else if self.char_match('t')
+                    && self.char_match('a')
+                    && self.char_match('n')
+                    && self.char_match('_')
+                {
+                    Tan
+                } else if self.char_match('r')
+                    && self.char_match('n')
+                    && self.char_match('d')
+                    && self.char_match('_')
+                {
+                    Round
+                } else if self.char_match('f')
+                    && self.char_match('l')
+                    && self.char_match('r')
+                    && self.char_match('_')
+                {
+                    Floor
                 } else if self.char_match('t')
                     && self.char_match('o')
                     && self.char_match('d')
+                    && self.char_match('e')
+                    && self.char_match('g')
                     && self.char_match('_')
                 {
-                    ToDec
+                    ToDeg
+                } else if self.char_match('t')
+                    && self.char_match('o')
+                    && self.char_match('r')
+                    && self.char_match('a')
+                    && self.char_match('d')
+                    && self.char_match('_')
+                {
+                    ToRad
                 } else {
                     DoubleComma
                 };
@@ -423,9 +489,23 @@ pub enum TokenType {
     Tan,          // :tan_
     Round,        // :rnd_
     Floor,        // :flr_
-    ToBin,        // :tob_
-    ToDec,        // :tod_
     In,           // :in_
+    ToDeg,        // :todeg_
+    ToRad,        // :torad_
+    Log,          // :log:
+    Log2,         // :log2_
+    Log10,        // :log10_
+    Ln,           //:ln_
+    ASin,         //:asin_
+    SinH,         //:sinh_
+    ASinH,        //:asinh_
+    ACos,         // :acos_
+    CosH,         // :cosh_
+    ACosH,        // :acosh_
+    ATan,         // :atan_
+    TanH,         // :tanh_
+    ATanH,        // :atanh_
+    Hypot,        // :hypot:
     Cube,         // ^^
     CubicRoot,    // &&
     Bang,         // !
@@ -467,12 +547,8 @@ pub enum TokenType {
     This,
     True,
     Var,
-    Const,
     While,
     Eof,
-
-    // defs
-    S, //s
 }
 use TokenType::*;
 impl std::fmt::Display for TokenType {

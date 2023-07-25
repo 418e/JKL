@@ -55,8 +55,6 @@ impl Parser {
     fn declaration(&mut self) -> Result<Stmt, String> {
         if self.match_token(Var) {
             self.var_declaration()
-        } else if self.match_token(Const) {
-            self.const_declaration()
         } else if self.match_token(Fun) {
             self.function(FunctionKind::Function)
         } else if self.match_token(Class) {
@@ -163,26 +161,6 @@ impl Parser {
             initializer,
         })
     }
-    fn const_declaration(&mut self) -> Result<Stmt, String> {
-        let token = self.consume(Identifier, "Expected constant name")?;
-
-        let initializer;
-        if self.match_token(Equal) {
-            initializer = self.expression()?;
-        } else {
-            initializer = Literal {
-                id: self.get_id(),
-                value: LiteralValue::Nil,
-            };
-        }
-
-        self.consume(Semicolon, "Expected ';' after constant declaration")?;
-
-        Ok(Stmt::Const {
-            name: token,
-            initializer,
-        })
-    }
 
     fn statement(&mut self) -> Result<Stmt, String> {
         if self.match_token(Print) {
@@ -230,9 +208,6 @@ impl Parser {
         } else if self.match_token(Var) {
             let var_decl = self.var_declaration()?;
             initializer = Some(var_decl);
-        } else if self.match_token(Const) {
-            let const_decl = self.const_declaration()?;
-            initializer = Some(const_decl);
         } else {
             let expr = self.expression_statement()?;
             initializer = Some(expr);
@@ -569,7 +544,8 @@ impl Parser {
     fn unary(&mut self) -> Result<Expr, String> {
         if self.match_tokens(&[
             Bang, Minus, Increment, Decrement, Power, Root, Cube, CubicRoot, Sin, Cos, Tan, In,
-            Round, Floor, ToBin, ToDec, Percent,
+            Round, Floor, Percent, ToDeg, ToRad, ASin, SinH, ASinH, CosH, ACos, ACosH, ATan, TanH,
+            ATanH, Hypot, Log,Log2, Log10, Ln
         ]) {
             let op = self.previous();
             let rhs = self.unary()?;
@@ -755,7 +731,7 @@ impl Parser {
             }
 
             match self.peek().token_type {
-                Class | Fun | Var | Const | For | If | IfShort | Input | Errors | While | Print
+                Class | Fun | Var | For | If | IfShort | Input | Errors | While | Print
                 | Return => return,
                 _ => (),
             }

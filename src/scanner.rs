@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use std::string::String;
-
+use colored::Colorize;
 // defining digital characters
 fn is_digit(ch: char) -> bool {
     ch as u8 >= '0' as u8 && ch as u8 <= '9' as u8
@@ -67,7 +67,7 @@ impl Scanner {
             self.start = self.current;
             match self.scan_token() {
                 Ok(_) => (),
-                Err(msg) => errors.push(msg),
+                Err(msg) => errors.push(msg.red().to_string()),
             }
         }
         self.tokens.push(Token {
@@ -355,7 +355,7 @@ impl Scanner {
                 } else if is_alpha(c) {
                     self.identifier();
                 } else {
-                    return Err(format!("Unrecognized char at line {}: {}", self.line, c));
+                    return Err(format!("Unrecognized char at line {}: {}", self.line, c).red().to_string());
                 }
             }
         }
@@ -391,7 +391,7 @@ impl Scanner {
         let value = substring.parse::<f64>();
         match value {
             Ok(value) => self.add_token_lit(Number, Some(FValue(value))),
-            Err(_) => return Err(format!("Could not parse number: {}", substring)),
+            Err(_) => return Err(format!("Could not parse number: {}", substring).red().to_string()),
         }
 
         Ok(())
@@ -412,7 +412,7 @@ impl Scanner {
         }
 
         if self.is_at_end() {
-            return Err("Unterminated string".to_string());
+            return Err("Unterminated string".to_string().red().to_string());
         }
         self.advance();
         let value = &self.source[self.start + 1..self.current - 1];

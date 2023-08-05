@@ -7,6 +7,7 @@ use std::io;
 use std::process::exit;
 use std::process::Command;
 use std::rc::Rc;
+use colored::Colorize;
 
 pub struct Interpreter {
     pub specials: HashMap<String, LiteralValue>,
@@ -49,17 +50,17 @@ impl Interpreter {
                 }
                 Stmt::Print { expression } => {
                     let value = expression.evaluate(self.environment.clone())?;
-                    println!("{}", value.to_string());
+                    println!("{}", value.to_string().green().to_string());
                 }
                 Stmt::Input { expression } => {
                     let value = expression.evaluate(self.environment.clone())?;
-                    println!("{}", value.to_string());
+                    println!("{}", value.to_string().yellow().to_string());
                     let mut input = String::new();
                     io::stdin().read_line(&mut input).unwrap();
                 }
                 Stmt::Errors { expression } => {
                     let value = expression.evaluate(self.environment.clone())?;
-                    println!("Error: {}", value.to_string());
+                    println!("Error: {}", value.to_string().red().to_string());
                     exit(1)
                 }
                 Stmt::Var { name, initializer } => {
@@ -90,7 +91,7 @@ impl Interpreter {
                             return Err(format!(
                                 "Superclass must be a class, not {}",
                                 superclass.to_type()
-                            ));
+                            ).red().to_string());
                         }
                     } else {
                         superclass_value = None;
@@ -123,7 +124,7 @@ impl Interpreter {
                         superclass: superclass_value,
                     };
                     if !self.environment.assign_global(&name.lexeme, klass) {
-                        return Err(format!("Class definition failed for {}", name.lexeme));
+                        return Err(format!("Class definition failed for {}", name.lexeme).red().to_string());
                     }
                     self.environment = *self.environment.enclosing.clone().unwrap();
                 }

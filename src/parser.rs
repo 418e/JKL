@@ -1,6 +1,7 @@
 use crate::expr::{Expr, Expr::*, LiteralValue};
 use crate::scanner::{Token, TokenType, TokenType::*};
 use crate::stmt::Stmt;
+use colored::Colorize;
 
 pub struct Parser {
     tokens: Vec<Token>,
@@ -39,7 +40,7 @@ impl Parser {
             match stmt {
                 Ok(s) => stmts.push(s),
                 Err(msg) => {
-                    errs.push(msg);
+                    errs.push(msg.red().to_string());
                     self.synchronize();
                 }
             }
@@ -115,7 +116,7 @@ impl Parser {
                     let location = self.peek().line_number;
                     return Err(format!(
                         "Line {location}: Cant have more than 255 arguments"
-                    ));
+                    ).red().to_string());
                 }
 
                 let param = self.consume(Identifier, "Expected parameter name")?;
@@ -364,7 +365,7 @@ impl Parser {
                     let location = self.peek().line_number;
                     return Err(format!(
                         "Line {location}: Cant have more than 255 arguments"
-                    ));
+                    ).red().to_string());
                 }
 
                 let param = self.consume(Identifier, "Expected parameter name")?;
@@ -419,7 +420,7 @@ impl Parser {
                     name,
                     value: Box::new(value),
                 }),
-                _ => Err("Invalid assignment target.".to_string()),
+                _ => Err("Invalid assignment target.".to_string().red().to_string()),
             }
         } else {
             Ok(expr)
@@ -591,7 +592,7 @@ impl Parser {
                     let location = self.peek().line_number;
                     return Err(format!(
                         "Line {location}: Cant have more than 255 arguments"
-                    ));
+                    ).red().to_string());
                 }
 
                 if !self.match_token(Comma) {
@@ -658,7 +659,7 @@ impl Parser {
                 self.advance();
                 result = self.function_expression()?;
             }
-            _ => return Err("Expected expression".to_string()),
+            _ => return Err("Expected expression".to_string().red().to_string()),
         }
 
         Ok(result)
@@ -671,7 +672,7 @@ impl Parser {
             let token = self.previous();
             Ok(token)
         } else {
-            Err(format!("Line {}: {}", token.line_number, msg))
+            Err(format!("Line {}: {}", token.line_number, msg).red().to_string())
         }
     }
 

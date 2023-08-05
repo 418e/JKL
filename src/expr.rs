@@ -10,6 +10,7 @@ use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 use std::io;
 use std::rc::Rc;
+use colored::Colorize;
 
 #[derive(Clone)]
 pub enum CallableImpl {
@@ -497,7 +498,7 @@ impl Expr {
                 if assign_success {
                     Ok(new_value)
                 } else {
-                    Err(format!("Variable {} has not been declared", name.lexeme))
+                    Err(format!("Variable {} has not been declared", name.lexeme).red().to_string())
                 }
             }
             Expr::Variable { id: _, name } => match environment.get(&name.lexeme, self.get_id()) {
@@ -506,7 +507,7 @@ impl Expr {
                     "Variable '{}' has not been declared at distance {:?}",
                     name.lexeme,
                     environment.get_distance(self.get_id())
-                )),
+                ).red().to_string()),
             },
             Expr::Call {
                 id: _,
@@ -539,7 +540,7 @@ impl Expr {
                         if let Some(init_method) = methods.get("init") {
                             if init_method.arity != arguments.len() {
                                 return Err(
-                                    "Invalid number of arguments in constructor".to_string()
+                                    "Invalid number of arguments in constructor".red().to_string()
                                 );
                             }
                             let mut init_method = init_method.clone();
@@ -550,13 +551,13 @@ impl Expr {
 
                             if let Err(msg) = run_jeko_function(init_method, arguments, environment)
                             {
-                                return Err(msg);
+                                return Err(msg.red().to_string());
                             }
                         }
 
                         Ok(instance)
                     }
-                    other => Err(format!("{} is not callable", other.to_type())),
+                    other => Err(format!("{} is not callable", other.to_type()).red().to_string()),
                 }
             }
             Expr::Literal { id: _, value } => Ok((*value).clone()),
@@ -584,7 +585,7 @@ impl Expr {
                         right.evaluate(environment.clone())
                     }
                 }
-                ttype => Err(format!("Invalid token in logical expression: {}", ttype)),
+                ttype => Err(format!("Invalid token in logical expression: {}", ttype).red().to_string()),
             },
             Expr::Get {
                 id: _,
@@ -614,12 +615,12 @@ impl Expr {
                     } else {
                         panic!("The class field on an instance was not a JekoClass");
                     }
-                    Err(format!("No field named {} on this instance", name.lexeme))
+                    Err(format!("No field named {} on this instance", name.lexeme).red().to_string())
                 } else {
                     Err(format!(
                         "Cannot access property on type {}",
                         obj_value.to_type()
-                    ))
+                    ).red().to_string())
                 }
             }
             Expr::Set {
@@ -654,7 +655,7 @@ impl Expr {
                     Err(format!(
                         "Cannot set property on type {}",
                         obj_value.to_type()
-                    ))
+                    ).red().to_string())
                 }
             }
             Expr::This { id: _, keyword: _ } => {
@@ -693,7 +694,7 @@ impl Expr {
                             "No method named {} on superclass {}",
                             method.lexeme,
                             superclass.to_type()
-                        ))
+                        ).red().to_string())
                     }
                 } else {
                     panic!("The superclass field on an instance was not a JekoClass");
@@ -729,6 +730,7 @@ impl Expr {
                     }
                     (Number(x), TokenType::Sin) => Ok(Number(x.sin())),
                     (Number(x), TokenType::ASin) => Ok(Number(x.asin())),
+                    (Number(x), TokenType::SinH) => Ok(Number(x.sinh())),
                     (Number(x), TokenType::Cos) => Ok(Number(x.cos())),
                     (Number(x), TokenType::ACos) => Ok(Number(x.acos())),
                     (Number(x), TokenType::Tan) => Ok(Number(x.tan())),
@@ -739,49 +741,49 @@ impl Expr {
                     (Number(x), TokenType::ToDeg) => Ok(Number(x.to_degrees())),
                     (Number(x), TokenType::ToRad) => Ok(Number(x.to_radians())),
                     (_, TokenType::Minus) => {
-                        Err(format!("Minus not implemented for {}", right.to_type()))
+                        Err(format!("Minus not implemented for {}", right.to_type()).red().to_string())
                     }
                     (_, TokenType::Increment) => {
-                        Err(format!("Increment not implemented for {}", right.to_type()))
+                        Err(format!("Increment not implemented for {}", right.to_type()).red().to_string())
                     }
                     (_, TokenType::Decrement) => {
-                        Err(format!("Minus not implemented for {}", right.to_type()))
+                        Err(format!("Minus not implemented for {}", right.to_type()).red().to_string())
                     }
                     (_, TokenType::Power) => {
-                        Err(format!("Power not implemented for {}", right.to_type()))
+                        Err(format!("Power not implemented for {}", right.to_type()).red().to_string())
                     }
                     (_, TokenType::Cube) => {
-                        Err(format!("Cube not implemented for {}", right.to_type()))
+                        Err(format!("Cube not implemented for {}", right.to_type()).red().to_string())
                     }
                     (_, TokenType::Root) => {
-                        Err(format!("Root not implemented for {}", right.to_type()))
+                        Err(format!("Root not implemented for {}", right.to_type()).red().to_string())
                     }
                     (_, TokenType::CubicRoot) => {
-                        Err(format!("CubicRoot not implemented for {}", right.to_type()))
+                        Err(format!("CubicRoot not implemented for {}", right.to_type()).red().to_string())
                     }
                     (_, TokenType::In) => {
-                        Err(format!("In not implemented for {}", right.to_type()))
+                        Err(format!("In not implemented for {}", right.to_type()).red().to_string())
                     }
                     (_, TokenType::Sin) => {
-                        Err(format!("Sin not implemented for {}", right.to_type()))
+                        Err(format!("Sin not implemented for {}", right.to_type()).red().to_string())
                     }
                     (_, TokenType::Cos) => {
-                        Err(format!("Cos not implemented for {}", right.to_type()))
+                        Err(format!("Cos not implemented for {}", right.to_type()).red().to_string())
                     }
                     (_, TokenType::Tan) => {
-                        Err(format!("Tan not implemented for {}", right.to_type()))
+                        Err(format!("Tan not implemented for {}", right.to_type()).red().to_string())
                     }
                     (_, TokenType::Percent) => {
-                        Err(format!("Percent not implemented for {}", right.to_type()))
+                        Err(format!("Percent not implemented for {}", right.to_type()).red().to_string())
                     }
                     (_, TokenType::Round) => {
-                        Err(format!("Round not implemented for {}", right.to_type()))
+                        Err(format!("Round not implemented for {}", right.to_type()).red().to_string())
                     }
                     (_, TokenType::Floor) => {
-                        Err(format!("Floor not implemented for {}", right.to_type()))
+                        Err(format!("Floor not implemented for {}", right.to_type()).red().to_string())
                     }
                     (any, TokenType::Bang) => Ok(any.is_falsy()),
-                    (_, ttype) => Err(format!("{} is not a valid unary operator", ttype)),
+                    (_, ttype) => Err(format!("{} is not a valid unary operator", ttype).red().to_string()),
                 }
             }
             Expr::Binary {
@@ -820,10 +822,10 @@ impl Expr {
                     }
 
                     (StringValue(_), op, Number(_)) => {
-                        Err(format!("{} is not defined for string and number", op))
+                        Err(format!("{} is not defined for string and number", op).red().to_string())
                     }
                     (Number(_), op, StringValue(_)) => {
-                        Err(format!("{} is not defined for string and number", op))
+                        Err(format!("{} is not defined for string and number", op).red().to_string())
                     }
 
                     (StringValue(s1), TokenType::Plus, StringValue(s2)) => {
@@ -847,7 +849,7 @@ impl Expr {
                     (x, ttype, y) => Err(format!(
                         "{} is not implemented for operands {:?} and {:?}",
                         ttype, x, y
-                    )),
+                    ).red().to_string()),
                 }
             }
         }
@@ -865,7 +867,7 @@ pub fn run_jeko_function(
             jekofun.name,
             jekofun.arity,
             arguments.len()
-        ));
+        ).red().to_string());
     }
     let mut arg_vals = vec![];
     for arg in arguments {
@@ -883,7 +885,7 @@ pub fn run_jeko_function(
     for i in 0..(jekofun.body.len()) {
         let result = int.interpret(vec![&jekofun.body[i]]);
         if let Err(e) = result {
-            return Err(e);
+            return Err(e.red().to_string());
         }
         if let Some(value) = int.specials.get("return") {
             return Ok(value.clone());

@@ -12,10 +12,11 @@ use crate::scanner::*;
 use std::env;
 use std::fs;
 use std::process::exit;
+use colored::Colorize;
 
 pub fn run_file(path: &str) -> Result<(), String> {
     match fs::read_to_string("tron/".to_owned() + path + ".tron") {
-        Err(msg) => return Err(msg.to_string()),
+        Err(msg) => return Err(msg.to_string().yellow().to_string()),
         Ok(contents) => return run_string(&contents),
     }
 }

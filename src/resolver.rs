@@ -2,7 +2,7 @@ use crate::expr::Expr;
 use crate::scanner::Token;
 use crate::stmt::Stmt;
 use std::collections::HashMap;
-
+use colored::Colorize;
 #[derive(Copy, Clone, PartialEq)]
 enum FunctionType {
     None,
@@ -45,7 +45,7 @@ impl Resolver {
                     } = super_expr
                     {
                         if super_name.lexeme == name.lexeme {
-                            return Err("A class cannot inherit from itself".to_string());
+                            return Err("A class cannot inherit from itself".to_string().red().to_string());
                         }
                     }
 
@@ -95,7 +95,7 @@ impl Resolver {
             Stmt::Errors { expression } => self.resolve_expr(expression)?,
             Stmt::ReturnStmt { keyword: _, value } => {
                 if self.current_function == FunctionType::None {
-                    return Err("Return statement is not allowed outside of a function".to_string());
+                    return Err("Return statement is not allowed outside of a function".to_string().red().to_string());
                 }
 
                 if let Some(value) = value {
@@ -230,7 +230,7 @@ impl Resolver {
         }
 
         if self.scopes[size - 1].contains_key(&name.lexeme.clone()) {
-            return Err("A variable with this name is already in scope".to_string());
+            return Err("A variable with this name is already in scope".to_string().red().to_string());
         }
 
         self.scopes[size - 1].insert(name.lexeme.clone(), false);
@@ -303,7 +303,7 @@ impl Resolver {
             }
             Expr::This { id: _, keyword } => {
                 if self.current_function != FunctionType::Method {
-                    return Err("Cannot use 'this' keyword outside of a class".to_string());
+                    return Err("Cannot use 'this' keyword outside of a class".to_string().red().to_string());
                 }
                 self.resolve_local(keyword, expr.get_id())
             }
@@ -313,12 +313,12 @@ impl Resolver {
                 method: _,
             } => {
                 if self.current_function != FunctionType::Method {
-                    return Err("Cannot use 'super' keyword outside of a class".to_string());
+                    return Err("Cannot use 'super' keyword outside of a class".to_string().red().to_string());
                 }
                 if self.scopes.len() < 3
                     || !self.scopes[self.scopes.len() - 3].contains_key("super")
                 {
-                    return Err("Class has no superclass".to_string());
+                    return Err("Class has no superclass".to_string().red().to_string());
                 }
                 self.resolve_local(keyword, expr.get_id())
             }
@@ -345,7 +345,7 @@ impl Resolver {
             Expr::Variable { id: _, name } => {
                 if !self.scopes.is_empty() {
                     if let Some(false) = self.scopes[self.scopes.len() - 1].get(&name.lexeme) {
-                        return Err("Can't read local variable in its own initializer".to_string());
+                        return Err("Can't read local variable in its own initializer".to_string().red().to_string());
                     }
                 }
 

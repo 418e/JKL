@@ -1,5 +1,5 @@
 fn main(){
-    print "Hello world!";
+    print :sinh_1;
 }
 
 main();

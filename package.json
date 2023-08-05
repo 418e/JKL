@@ -1,0 +1,23 @@
+{
+  "name": "tron-lang",
+  "version": "0.2.301",
+  "description": "An open-source programming language written in Rust",
+  "main": "tron/main.tron",
+  "directories": {
+    "example": "examples"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "cargo run main"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/418e/Tron.git"
+  },
+  "author": "418e",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/418e/Tron/issues"
+  },
+  "homepage": "https://github.com/418e/Tron#readme"
+}

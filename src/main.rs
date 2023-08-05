@@ -9,13 +9,14 @@ use crate::interpreter::*;
 use crate::parser::*;
 use crate::resolver::*;
 use crate::scanner::*;
+use colored::Colorize;
 use std::env;
 use std::fs;
 use std::process::exit;
-use colored::Colorize;
 
 pub fn run_file(path: &str) -> Result<(), String> {
-    match fs::read_to_string("tron/".to_owned() + path + ".tron") {
+    // match fs::read_to_string("test/".to_owned() + path + ".tron")
+    match fs::read_to_string("../../".to_owned() + path + ".tron") {
         Err(msg) => return Err(msg.to_string().yellow().to_string()),
         Ok(contents) => return run_string(&contents),
     }

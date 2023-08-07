@@ -50,17 +50,17 @@ impl Interpreter {
                 }
                 Stmt::Print { expression } => {
                     let value = expression.evaluate(self.environment.clone())?;
-                    println!("{}", value.to_string().green().to_string());
+                    println!(" ➤ {}", value.to_string().green().to_string());
                 }
                 Stmt::Input { expression } => {
                     let value = expression.evaluate(self.environment.clone())?;
-                    println!("{}", value.to_string().yellow().to_string());
+                    println!(" ❗ {}", value.to_string().yellow().to_string());
                     let mut input = String::new();
                     io::stdin().read_line(&mut input).unwrap();
                 }
                 Stmt::Errors { expression } => {
                     let value = expression.evaluate(self.environment.clone())?;
-                    println!("Error: {}", value.to_string().red().to_string());
+                    println!(" ❌ {}", value.to_string().red().to_string());
                     exit(1)
                 }
                 Stmt::Var { name, initializer } => {

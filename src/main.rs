@@ -1,9 +1,26 @@
-mod environment; mod expr; mod interpreter; mod parser; mod resolver; mod scanner; mod stmt; use crate::interpreter::*; use crate::parser::*; use crate::resolver::*; use crate::scanner::*; use colored::Colorize; use config::Config; use std::collections::HashMap; use std::env; use std::fs; use std::process::exit;
+mod environment;
+mod expr;
+mod interpreter;
+mod parser;
+mod resolver;
+mod scanner;
+mod stmt;
+use crate::interpreter::*;
+use crate::parser::*;
+use crate::resolver::*;
+use crate::scanner::*;
+use colored::Colorize;
+use config::Config;
+use std::collections::HashMap;
+use std::env;
+use std::fs;
+use std::process::exit;
 fn settings(param: &str) {
     let settings = Config::builder()
-        /*production */  // .add_source(config::File::with_name("../../tron"))
+        /*production */
+        .add_source(config::File::with_name("../../tron"))
         /*development */
-        .add_source(config::File::with_name("test/tron"))
+        // .add_source(config::File::with_name("test/tron"))
         .add_source(config::Environment::with_prefix("APP"))
         .build()
         .unwrap();
@@ -15,9 +32,9 @@ fn settings(param: &str) {
 }
 pub fn run_file(path: &str) -> Result<(), String> {
     /*development */
-    match fs::read_to_string("test/".to_owned() + path + ".tron")
-   /*production */ // match fs::read_to_string("../../".to_owned() + path + ".tron") 
-    {
+    // match fs::read_to_string("test/".to_owned() + path + ".tron")
+    /*production */
+    match fs::read_to_string("../../".to_owned() + path + ".tron") {
         Err(msg) => return Err(msg.to_string().yellow().to_string()),
         Ok(contents) => return run_string(&contents),
     }

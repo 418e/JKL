@@ -11,12 +11,8 @@ Before starting the installation, please make sure that you have already install
 ```bash
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 ```
-
-After that, you can create a new directory and install the Tron:
-
+If rust is already installed you are free to install Tron in your project:
 ```bash
-mkdir helloTron
-cd helloTron
 npm install tron-lang
 ```
 
@@ -25,17 +21,28 @@ add the following code in the `package.json`:
 ```json
   "scripts": {
     "install": "cd node_modules/tron-lang \n cargo build",
-    "start": "cd node_modules/tron-lang \n cargo run main"
-  },
+    "start": "cd node_modules/tron-lang \n cargo run"
+  }
 ```
 
-create the `main.tron` file
+create new configuration file `tron.toml` in the root of the project:
+
+```yml
+name = "ProjectName"
+entry = "main"
+version = "0.1.0"
+authors = "You"
+```
+
+> - `entry` defines entry point of the project (`main.tron`).
+
+create the `main.tron` file in the root of the project:
 
 ```rs
 print "Hello, Tron!";
 ```
 
-and run the `npm run start` command in the terminal
+and run the `npm start` command in the terminal
 
 ## Usage/Examples
 
@@ -54,10 +61,7 @@ if x > 1 {
 - [Documentation](https://docs.tronlang.org/)
 - [News Page](https://news.tronlang.org/)
 
-## Feedback
+## Contact
 
-If you have any feedback, please reach out to us at tronlang@proton.me
-
-## Support
-
-For support, email tronlang@proton.me or join our [Discrod server](https://discord.com/invite/UgUaUPhzug).
+- `tronlang@proton.me`.
+- `pi_bmi@proton.me`.

@@ -1,6 +1,6 @@
 {
   "name": "tron-lang",
-  "version": "0.2.304",
+  "version": "0.2.4",
   "description": "An open-source programming language written in Rust",
   "main": "tron/main.tron",
   "directories": {
@@ -8,7 +8,7 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "cargo run main"
+    "start": "cargo run"
   },
   "repository": {
     "type": "git",

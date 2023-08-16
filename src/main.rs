@@ -17,9 +17,9 @@ use std::fs;
 use std::process::exit;
 pub fn run_file(path: &str) -> Result<(), String> {
     /*development */
-    match fs::read_to_string("test/".to_owned() + path + ".tron")
+    // match fs::read_to_string("test/".to_owned() + path + ".tron")
     /*production */
-    // match fs::read_to_string("../../".to_owned() + path + ".tron") 
+    match fs::read_to_string("../../".to_owned() + path + ".tron") 
     {
         Err(msg) => return Err(msg.to_string().yellow().to_string()),
         Ok(contents) => return run_string(&contents),
@@ -32,9 +32,9 @@ pub fn run_string(contents: &str) -> Result<(), String> {
 fn run(interpreter: &mut Interpreter, contents: &str) -> Result<(), String> {
     let settings = Config::builder()
         /*production */
-        // .add_source(config::File::with_name("../../tron"))
+        .add_source(config::File::with_name("../../tron"))
         /*development */
-        .add_source(config::File::with_name("test/tron"))
+        // .add_source(config::File::with_name("test/tron"))
         .add_source(config::Environment::with_prefix("APP"))
         .build()
         .unwrap();
@@ -70,9 +70,9 @@ fn run(interpreter: &mut Interpreter, contents: &str) -> Result<(), String> {
 fn main() {
     let settings = Config::builder()
         /*production */
-        // .add_source(config::File::with_name("../../tron"))
+        .add_source(config::File::with_name("../../tron"))
         /*development */
-        .add_source(config::File::with_name("test/tron"))
+        // .add_source(config::File::with_name("test/tron"))
         .add_source(config::Environment::with_prefix("APP"))
         .build()
         .unwrap();

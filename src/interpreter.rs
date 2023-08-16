@@ -40,9 +40,9 @@ impl Interpreter {
     pub fn interpret(&mut self, stmts: Vec<&Stmt>) -> Result<(), String> {
         let settings = Config::builder()
             /*production */
-            // .add_source(config::File::with_name("../../tron"))
+            .add_source(config::File::with_name("../../tron"))
             /*development */
-            .add_source(config::File::with_name("test/tron"))
+            // .add_source(config::File::with_name("test/tron"))
             .add_source(config::Environment::with_prefix("APP"))
             .build()
             .unwrap();

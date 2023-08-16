@@ -34,8 +34,6 @@
 
 ## 117 This rule Error
 
-## 118 Super rule Error
+## 118 Unrecognized
 
-## 119 Unrecognized
-
-## 120 Parsing error
+## 119 Parsing error

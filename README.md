@@ -11,7 +11,9 @@ Before starting the installation, please make sure that you have already install
 ```bash
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 ```
+
 If rust is already installed you are free to install Tron in your project:
+
 ```bash
 npm install tron-lang
 ```
@@ -30,11 +32,11 @@ create new configuration file `tron.toml` in the root of the project:
 ```yml
 name = "ProjectName"
 entry = "main"
-version = "0.1.0"
-authors = "You"
+version = "0.0.1"
+authors = "YOU"
+decor = "default"
+pointer = "default"
 ```
-
-> - `entry` defines entry point of the project (`main.tron`).
 
 create the `main.tron` file in the root of the project:
 
@@ -51,7 +53,7 @@ let x = 3;
 if x > 1 {
   print "passed";
 } else {
-  error "failed";
+  panic "failed";
 }
 ```
 

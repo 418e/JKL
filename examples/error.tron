@@ -1,8 +1,0 @@
-let x = 10;
-
-
-if x < 20 {
-    error "x is less than 20";
-} else {
-    print "success";
-}

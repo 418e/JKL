@@ -1,5 +1,0 @@
-print "Hello, World!";
-
-let string = "Hello, World!";
-
-print "Hello, World!";

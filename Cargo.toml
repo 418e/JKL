@@ -1,6 +1,6 @@
 [package]
 name = "tron-lang"
-version = "0.2.3"
+version = "1.0.0"
 edition = "2021"
 authors = ["418e"]
 description = "Open Source Programming Language"
@@ -8,7 +8,6 @@ documentation = "https://docs.tronlang.org/"
 homepage = "https://tronlang.org/"
 repository = "https://github.com/418e/Tron"
 license = "Apache-2.0"
-
 
 [dependencies]
 num = "0.4.1"

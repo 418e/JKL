@@ -1,4 +1,0 @@
-// doesn't stores input value
-input "Hello World!";
-// stores input value
-let hello = :in_"hi";

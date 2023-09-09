@@ -59,9 +59,7 @@ if x > 1 {
 
 ## Acknowledgements
 
-- [Home Page](https://tronlang.org/)
 - [Documentation](https://docs.tronlang.org/)
-- [News Page](https://news.tronlang.org/)
 
 ## Contact
 

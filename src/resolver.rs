@@ -45,6 +45,8 @@ impl Resolver {
             Stmt::Print { expression } => self.resolve_expr(expression)?,
             Stmt::Input { expression } => self.resolve_expr(expression)?,
             Stmt::Errors { expression } => self.resolve_expr(expression)?,
+            Stmt::Import { expression } => self.resolve_expr(expression)?,
+            Stmt::Exits {} => (),
             Stmt::ReturnStmt { keyword: _, value } => {
                 if self.current_function == FunctionType::None {
                     return Err(

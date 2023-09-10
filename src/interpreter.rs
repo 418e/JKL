@@ -1,10 +1,14 @@
 use crate::environment::Environment;
 use crate::expr::{CallableImpl, JekoFunctionImpl, LiteralValue, NativeFunctionImpl};
+use crate::parser::*;
+use crate::resolver::*;
 use crate::scanner::Token;
+use crate::scanner::*;
 use crate::stmt::Stmt;
 use colored::Colorize;
 use config::Config;
 use std::collections::HashMap;
+use std::fs;
 use std::io;
 use std::process::exit;
 use std::process::Command;
@@ -80,6 +84,46 @@ impl Interpreter {
                         println!(" {} {}", pointer, value.to_string().red().to_string());
                     }
                     exit(1)
+                }
+                Stmt::Exits {} => exit(1),
+                Stmt::Import { expression } => {
+                    let value = expression.evaluate(self.environment.clone())?;
+                    fn run_file(path: &str) -> Result<(), String> {
+                        /*production */
+                        match fs::read_to_string("../../".to_owned() + path + ".tron")
+                        /* development */
+                        // match fs::read_to_string("test/".to_owned() + path) 
+{ Err(msg) => return Err(msg.to_string()), Ok(contents) => return run_string(&contents), }
+                    }
+                    fn run_string(contents: &str) -> Result<(), String> {
+                        let mut interpreter = Interpreter::new();
+                        run(&mut interpreter, contents)
+                    }
+                    fn run(interpreter: &mut Interpreter, contents: &str) -> Result<(), String> {
+                        let mut scanner = Scanner::new(contents);
+                        let tokens = scanner.scan_tokens()?;
+                        let mut parser = Parser::new(tokens);
+                        let stmts = parser.parse()?;
+                        let resolver = Resolver::new();
+                        let locals = resolver.resolve(&stmts.iter().collect())?;
+                        interpreter.resolve(locals);
+                        interpreter.interpret(stmts.iter().collect())?;
+                        return Ok(());
+                    }
+                    let val: String = value.to_string();
+                    fn rem_first_and_last(value: &str) -> &str {
+                        let mut chars = value.chars();
+                        chars.next();
+                        chars.next_back();
+                        chars.as_str()
+                    }
+                    match run_file(rem_first_and_last(&val)) {
+                        Ok(_) => exit(0),
+                        Err(msg) => {
+                            println!("Error 108:\n{}", msg);
+                            exit(1);
+                        }
+                    }
                 }
                 Stmt::Var { name, initializer } => {
                     let value = initializer.evaluate(self.environment.clone())?;

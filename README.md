@@ -27,7 +27,7 @@ add the following code in the `package.json`:
   }
 ```
 
-create new configuration file `tron.toml` in the root of the project:
+Create a new configuration file `tron.toml` in the root of the project:
 
 ```yml
 name = "ProjectName"
@@ -48,18 +48,16 @@ and run the `npm start` command in the terminal
 
 ## Usage/Examples
 
-```rs
-let x = 3;
-if x > 1 {
-  print "passed";
-} else {
-  panic "failed";
-}
-```
 
-## Acknowledgements
+## Acknowledgments
 
+<<<<<<< HEAD
 - [Documentation](https://docs.tronlang.org/)
+=======
+- [Official website](https://tronlang.org/)
+- [Documentation](https://docs.tronlang.org/)
+- [Blog](https://blog.tronlang.org/)
+>>>>>>> 077d0e1 (1.0.1)
 
 ## Contact
 

@@ -436,7 +436,6 @@ impl Expr {
                 arguments,
             } => {
                 let callable: LiteralValue = (*callee).evaluate(environment.clone())?;
-               
                 match callable {
                     Callable(CallableImpl::JekoFunction(jekofun)) => {
                         run_jeko_function(jekofun, arguments, environment)
@@ -489,11 +488,11 @@ impl Expr {
                 object,
                 name,
             } => {
-                
                 let obj_value = object.evaluate(environment.clone())?;
                 Err(format!(
                     "Error 105: Cannot access property on type {} / {:?}",
-                    obj_value.to_type(), name
+                    obj_value.to_type(),
+                    name
                 )
                 .red()
                 .to_string())
@@ -505,12 +504,14 @@ impl Expr {
                 value,
             } => {
                 let obj_value = object.evaluate(environment.clone())?;
-                    Err(format!(
-                        "Error 105: Cannot set property on type {} /  {:?} / {:?}",
-                        obj_value.to_type(), name, value
-                    )
-                    .red()
-                    .to_string())
+                Err(format!(
+                    "Error 105: Cannot set property on type {} /  {:?} / {:?}",
+                    obj_value.to_type(),
+                    name,
+                    value
+                )
+                .red()
+                .to_string())
             }
             Expr::This { id: _, keyword: _ } => {
                 let this = environment

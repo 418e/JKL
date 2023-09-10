@@ -24,6 +24,8 @@ fn get_keywords_hashmap() -> HashMap<&'static str, TokenType> {
         ("print", Print),
         ("in", Input),
         ("panic", Errors),
+        ("run", Import),
+        ("exit", Exits),
         ("return", Return),
         ("this", This),
         ("true", True),
@@ -322,6 +324,15 @@ impl Scanner {
         }
         self.advance();
         let value = &self.source[self.start + 1..self.current - 1];
+        if &self.source[self.start + 1..self.start + 2] == "{"
+            && &self.source[self.current - 2..self.current - 1] == "}"
+        {
+            let vector = &self.source[self.start + 2..self.current - 2];
+            let parts = vector.split(",");
+            for part in parts {
+                println!("{}", part);
+            }
+        }
         self.add_token_lit(StringLit, Some(StringValue(value.to_string())));
         Ok(())
     }
@@ -425,6 +436,8 @@ pub enum TokenType {
     Var,
     While,
     Eof,
+    Import,
+    Exits,
 }
 use TokenType::*;
 impl std::fmt::Display for TokenType {

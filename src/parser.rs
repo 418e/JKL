@@ -117,6 +117,10 @@ impl Parser {
             self.inputs_statement()
         } else if self.match_token(Errors) {
             self.error_statement()
+        } else if self.match_token(Exits) {
+            self.exits_statement()
+        } else if self.match_token(Import) {
+            self.import_statement()
         } else if self.match_token(LeftBrace) {
             self.block_statement()
         } else if self.match_token(If) {
@@ -244,6 +248,15 @@ impl Parser {
         let value = self.expression()?;
         self.consume(Semicolon, "Expected ';' after value.")?;
         Ok(Stmt::Errors { expression: value })
+    }
+    fn exits_statement(&mut self) -> Result<Stmt, String> {
+        self.consume(Semicolon, "Expected ';' after value.")?;
+        Ok(Stmt::Exits {})
+    }
+    fn import_statement(&mut self) -> Result<Stmt, String> {
+        let value = self.expression()?;
+        self.consume(Semicolon, "Expected ';' after value.")?;
+        Ok(Stmt::Import { expression: value })
     }
     fn expression_statement(&mut self) -> Result<Stmt, String> {
         let expr = self.expression()?;
@@ -583,7 +596,9 @@ impl Parser {
                 return;
             }
             match self.peek().token_type {
-                Fun | Var | For | If | Input | Errors | While | Print | Return => return,
+                Fun | Var | For | If | Input | Errors | While | Print | Return | Import | Exits => {
+                    return
+                }
                 _ => (),
             }
             self.advance();

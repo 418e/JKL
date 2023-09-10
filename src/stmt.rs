@@ -14,6 +14,10 @@ pub enum Stmt {
     Errors {
         expression: Expr,
     },
+    Exits {},
+    Import {
+        expression: Expr,
+    },
     Var {
         name: Token,
         initializer: Expr,
@@ -53,6 +57,8 @@ impl Stmt {
             Print { expression } => format!("(print {})", expression.to_string()),
             Input { expression } => format!("(input {})", expression.to_string()),
             Errors { expression } => format!("(error {})", expression.to_string()),
+            Import { expression } => format!("(run {})", expression.to_string()),
+            Exits {} => format!("(exit)"),
             Var {
                 name,
                 initializer: _,

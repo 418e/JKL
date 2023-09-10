@@ -16,11 +16,11 @@ use std::env;
 use std::fs;
 use std::process::exit;
 pub fn run_file(path: &str) -> Result<(), String> {
-    /*development */
+    /* create test folder in the root and create your .tron files there if you are running this locally. uncomment the code bellow "development" comment and comment the line of code bellow the "production" comment */
+    /* development */
     // match fs::read_to_string("test/".to_owned() + path + ".tron")
     /*production */
-    match fs::read_to_string("../../".to_owned() + path + ".tron") 
-    {
+    match fs::read_to_string("../../".to_owned() + path + ".tron") {
         Err(msg) => return Err(msg.to_string().yellow().to_string()),
         Ok(contents) => return run_string(&contents),
     }
@@ -41,7 +41,6 @@ fn run(interpreter: &mut Interpreter, contents: &str) -> Result<(), String> {
     let decor = &settings
         .try_deserialize::<HashMap<String, String>>()
         .unwrap()["decor"];
-
     let mut scanner = Scanner::new(contents);
     let tokens = scanner.scan_tokens()?;
     let mut parser = Parser::new(tokens);
@@ -52,17 +51,16 @@ fn run(interpreter: &mut Interpreter, contents: &str) -> Result<(), String> {
         println!("\n");
     } else if decor == "default" {
         println!("\n ╔════════════《 📄 》════════════╗ \n");
-    }else {
+    } else {
         println!("\n ╚════════════《 {} 》════════════╝", decor);
     }
-
     interpreter.resolve(locals);
     interpreter.interpret(stmts.iter().collect())?;
     if decor == "false" {
         println!("\n");
-    }  else if decor == "default" {
+    } else if decor == "default" {
         println!("\n ╚════════════《 📄 》════════════╝ \n");
-    }else {
+    } else {
         println!("\n ╚════════════《 {} 》════════════╝", decor);
     }
     return Ok(());

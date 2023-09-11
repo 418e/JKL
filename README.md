@@ -1,8 +1,55 @@
-[![AGPL License](https://img.shields.io/badge/license-Apache%20v2-blue.svg)](https://github.com/jkl-org/Tron/blob/main/LICENSE)
 
-# Tron Programming Language
 
-An open-source programming language written in Rust.
+![Logo](https://tronlang.org/tron.svg)
+
+
+[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/) 
+
+![npm](https://img.shields.io/npm/v/tron-lang)
+
+
+
+
+# Tron Programming Language 
+
+An Open Source, Fast and Simple Programming Language written in Rust
+
+
+## Usage/Examples
+
+```rust
+let name = :in_"Please enter your name: ";
+print "Hello " + name;
+```
+```rust
+fn add(a,b){
+  return a + b;
+}
+
+print add(1,5);
+```
+
+```rust
+let age = :in_"Please enter your age: ";
+
+if age < 18 {
+    print "minor";
+    exit;
+} else {
+    print "adult";
+}
+
+import "adultsonly.tron"
+```
+
+
+## Acknowledgements
+
+ - [Official Website](https://tronlang.org)
+ - [Blog](https://blog.tronlang.org)
+ - [Documentation](https://docs.tronlang.org)
+ - [Facebook Page](https://www.facebook.com/Tronpl)
+
 
 ## Installation
 
@@ -45,21 +92,12 @@ print "Hello, Tron!";
 ```
 
 and run the `npm start` command in the terminal
+## Support
 
-## Usage/Examples
+For support, email tronlang@proton.me or pi_bmi@proton.me.
 
 
-## Acknowledgments
+## Authors
 
-<<<<<<< HEAD
-- [Documentation](https://docs.tronlang.org/)
-=======
-- [Official website](https://tronlang.org/)
-- [Documentation](https://docs.tronlang.org/)
-- [Blog](https://blog.tronlang.org/)
->>>>>>> 077d0e1 (1.0.1)
+- [@418e](https://www.github.com/418e)
 
-## Contact
-
-- `tronlang@proton.me`.
-- `pi_bmi@proton.me`.

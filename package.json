@@ -1,8 +1,8 @@
 {
   "name": "tron-lang",
-  "version": "1.0.1",
+  "version": "1.0.2001",
   "description": "An open-source programming language written in Rust",
-  "main": "tron/main.tron",
+  "main": "src/main.rs",
   "scripts": {
     "start": "cargo run"
   },

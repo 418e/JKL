@@ -1,19 +1,12 @@
-
-
 ![Logo](https://tronlang.org/tron.svg)
 
-
-[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/) 
+[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
 
 ![npm](https://img.shields.io/npm/v/tron-lang)
 
-
-
-
-# Tron Programming Language 
+# Tron Programming Language
 
 An Open Source, Fast and Simple Programming Language written in Rust
-
 
 ## Usage/Examples
 
@@ -21,6 +14,7 @@ An Open Source, Fast and Simple Programming Language written in Rust
 let name = :in_"Please enter your name: ";
 print "Hello " + name;
 ```
+
 ```rust
 fn add(a,b){
   return a + b;
@@ -29,27 +23,24 @@ fn add(a,b){
 print add(1,5);
 ```
 
-```rust
-let age = :in_"Please enter your age: ";
+```rs
+let age = :num_"Please enter your age: ";
 
 if age < 18 {
     print "minor";
     exit;
 } else {
     print "adult";
+    run "adultsonly.tron";
 }
-
-import "adultsonly.tron"
 ```
-
 
 ## Acknowledgements
 
- - [Official Website](https://tronlang.org)
- - [Blog](https://blog.tronlang.org)
- - [Documentation](https://docs.tronlang.org)
- - [Facebook Page](https://www.facebook.com/Tronpl)
-
+- [Official Website](https://tronlang.org)
+- [Blog](https://blog.tronlang.org)
+- [Documentation](https://docs.tronlang.org)
+- [Facebook Page](https://www.facebook.com/Tronpl)
 
 ## Installation
 
@@ -92,12 +83,11 @@ print "Hello, Tron!";
 ```
 
 and run the `npm start` command in the terminal
+
 ## Support
 
 For support, email tronlang@proton.me or pi_bmi@proton.me.
 
-
 ## Authors
 
 - [@418e](https://www.github.com/418e)
-

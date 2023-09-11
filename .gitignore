@@ -1,5 +1,6 @@
 /target
 *~
 notes.md
-/test
+/test/main.tron
+/test/index.tron
 /errors.md

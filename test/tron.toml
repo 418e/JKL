@@ -1,0 +1,8 @@
+name = "HelloTron"
+entry = "main"
+version = "1.0.2"
+authors = "418e"
+license = "MIT"
+decor = "default"
+pointer = "default"
+env = "prod"

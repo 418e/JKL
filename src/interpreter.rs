@@ -5,9 +5,9 @@ use crate::pathf;
 use crate::resolver::*;
 use crate::scanner::Token;
 use crate::scanner::*;
+use crate::settings;
 use crate::stmt::Stmt;
 use colored::Colorize;
-use config::Config;
 use std::collections::HashMap;
 use std::fs;
 use std::io;
@@ -43,14 +43,6 @@ impl Interpreter {
         }
     }
     pub fn interpret(&mut self, stmts: Vec<&Stmt>) -> Result<(), String> {
-        let settings = Config::builder()
-            .add_source(config::File::with_name(pathf(true)))
-            .add_source(config::Environment::with_prefix("APP"))
-            .build()
-            .unwrap();
-        let pointer = &settings
-            .try_deserialize::<HashMap<String, String>>()
-            .unwrap()["pointer"];
         for stmt in stmts {
             match stmt {
                 Stmt::Expression { expression } => {
@@ -58,28 +50,28 @@ impl Interpreter {
                 }
                 Stmt::Print { expression } => {
                     let value = expression.evaluate(self.environment.clone())?;
-                    if pointer == "default" {
+                    if settings("pointer") == "default" {
                         println!(" ➤ {}", value.to_string().green().to_string());
                     } else {
-                        println!(" {} {}", pointer, value.to_string().green().to_string());
+                        println!(" {} {}", settings("pointer"), value.to_string().green().to_string());
                     }
                 }
                 Stmt::Input { expression } => {
                     let value = expression.evaluate(self.environment.clone())?;
-                    if pointer == "default" {
+                    if settings("pointer") == "default" {
                         println!(" ➤ {}", value.to_string().yellow().to_string());
                     } else {
-                        println!(" {} {}", pointer, value.to_string().yellow().to_string());
+                        println!(" {} {}", settings("pointer"), value.to_string().yellow().to_string());
                     }
                     let mut input = String::new();
                     io::stdin().read_line(&mut input).unwrap();
                 }
                 Stmt::Errors { expression } => {
                     let value = expression.evaluate(self.environment.clone())?;
-                    if pointer == "default" {
+                    if settings("pointer") == "default" {
                         println!(" ➤ {}", value.to_string().red().to_string());
                     } else {
-                        println!(" {} {}", pointer, value.to_string().red().to_string());
+                        println!(" {} {}", settings("pointer"), value.to_string().red().to_string());
                     }
                     exit(1)
                 }

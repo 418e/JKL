@@ -15,6 +15,18 @@ use std::collections::HashMap;
 use std::env;
 use std::fs;
 use std::process::exit;
+
+pub fn settings(param: &str) -> String {
+    let settings = Config::builder()
+        .add_source(config::File::with_name(pathf(true)))
+        .add_source(config::Environment::with_prefix("APP"))
+        .build()
+        .unwrap();
+    let setting = &settings
+        .try_deserialize::<HashMap<String, String>>()
+        .unwrap()[&param.to_string()];
+    return setting.to_string();
+}
 pub fn pathf(param: bool) -> &'static str {
     let settings = Config::builder()
         .add_source(config::File::with_name("test/tron"))
@@ -49,47 +61,31 @@ pub fn run_string(contents: &str) -> Result<(), String> {
     run(&mut interpreter, contents)
 }
 fn run(interpreter: &mut Interpreter, contents: &str) -> Result<(), String> {
-    let settings = Config::builder()
-        .add_source(config::File::with_name(pathf(true)))
-        .add_source(config::Environment::with_prefix("APP"))
-        .build()
-        .unwrap();
-    let decor = &settings
-        .try_deserialize::<HashMap<String, String>>()
-        .unwrap()["decor"];
     let mut scanner = Scanner::new(contents);
     let tokens = scanner.scan_tokens()?;
     let mut parser = Parser::new(tokens);
     let stmts = parser.parse()?;
     let resolver = Resolver::new();
     let locals = resolver.resolve(&stmts.iter().collect())?;
-    if decor == "false" {
+    if settings("decor") == "false" {
         println!("\n");
-    } else if decor == "default" {
+    } else if settings("decor") == "default" {
         println!("\n ╔════════════《 📄 》════════════╗ \n");
     } else {
-        println!("\n ╚════════════《 {} 》════════════╝", decor);
+        println!("\n ╚════════════《 {} 》════════════╝", settings("decor"));
     }
     interpreter.resolve(locals);
     interpreter.interpret(stmts.iter().collect())?;
-    if decor == "false" {
+    if settings("decor") == "false" {
         println!("\n");
-    } else if decor == "default" {
+    } else if settings("decor") == "default" {
         println!("\n ╚════════════《 📄 》════════════╝ \n");
     } else {
-        println!("\n ╚════════════《 {} 》════════════╝", decor);
+        println!("\n ╚════════════《 {} 》════════════╝", settings("decor"));
     }
     return Ok(());
 }
 fn main() {
-    let settings = Config::builder()
-        .add_source(config::File::with_name(pathf(true)))
-        .add_source(config::Environment::with_prefix("APP"))
-        .build()
-        .unwrap();
-    let entry = &settings
-        .try_deserialize::<HashMap<String, String>>()
-        .unwrap()["entry"];
     let args: Vec<String> = env::args().collect();
     if args.len() == 2 {
         match run_file(&args[1]) {
@@ -100,7 +96,7 @@ fn main() {
             }
         }
     } else if args.len() == 1 {
-        match run_file(&entry) {
+        match run_file(&settings("entry")) {
             Ok(_) => exit(0),
             Err(msg) => {
                 println!("Error 108:\n{}", msg);

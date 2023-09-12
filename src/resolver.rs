@@ -9,7 +9,6 @@ enum FunctionType {
     Function,
     Method,
 }
-#[allow(dead_code)]
 pub struct Resolver {
     scopes: Vec<HashMap<String, bool>>,
     current_function: FunctionType,
@@ -242,6 +241,11 @@ impl Resolver {
                 operator: _,
                 right,
             } => self.resolve_expr(right),
+            Expr::SUnary {
+                id: _,
+                operator: _,
+                left,
+            } => self.resolve_expr(left),
             Expr::AnonFunction {
                 id: _,
                 paren: _,

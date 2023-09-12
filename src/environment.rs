@@ -9,10 +9,12 @@ pub struct Environment {
     pub enclosing: Option<Box<Environment>>,
 }
 fn clock_impl(_args: &Vec<LiteralValue>) -> LiteralValue {
+    
     let now = std::time::SystemTime::now()
         .duration_since(std::time::SystemTime::UNIX_EPOCH)
         .expect("Could not get system time")
         .as_millis();
+    println!("{}", now);
     LiteralValue::Number(now as f64 / 1000.0)
 }
 fn get_globals() -> Rc<RefCell<HashMap<String, LiteralValue>>> {
@@ -97,19 +99,5 @@ impl Environment {
                 true
             }
         }
-    }
-    #[allow(dead_code)]
-    pub fn dump(&self, indent: usize) -> String {
-        let mut result = String::new();
-        for (key, val) in self.values.borrow().iter() {
-            for _ in 0..indent {
-                result.push_str(" ");
-            }
-            result.push_str(&format!("{}: {:?}\n", key, val));
-        }
-        if let Some(env) = &self.enclosing {
-            result.push_str(&env.dump(indent + 2));
-        }
-        result
     }
 }

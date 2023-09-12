@@ -235,6 +235,11 @@ pub enum Expr {
         operator: Token,
         right: Box<Expr>,
     },
+    SUnary {
+        id: usize,
+        operator: Token,
+        left: Box<Expr>,
+    },
     Variable {
         id: usize,
         name: Token,
@@ -309,12 +314,16 @@ impl Expr {
                 operator: _,
                 right: _,
             } => *id,
+            Expr::SUnary {
+                id,
+                operator: _,
+                left: _,
+            } => *id,
             Expr::Variable { id, name: _ } => *id,
         }
     }
 }
 impl Expr {
-    #[allow(dead_code)]
     pub fn to_string(&self) -> String {
         match self {
             Expr::AnonFunction {
@@ -381,6 +390,15 @@ impl Expr {
                 let operator_str = operator.lexeme.clone();
                 let right_str = (*right).to_string();
                 format!("({} {})", operator_str, right_str)
+            }
+            Expr::SUnary {
+                id: _,
+                operator,
+                left,
+            } => {
+                let operator_str = operator.lexeme.clone();
+                let left_str = (*left).to_string();
+                format!("({} {})", operator_str, left_str)
             }
             Expr::Variable { id: _, name } => format!("(let {})", name.lexeme),
         }
@@ -520,6 +538,28 @@ impl Expr {
                 Ok(this)
             }
             Expr::Grouping { id: _, expression } => expression.evaluate(environment),
+            Expr::SUnary {
+                id: _,
+                operator,
+                left,
+            } => {
+                let left = left.evaluate(environment)?;
+                match (operator.token_type, &left) {
+                    (TokenType::Sin, Number(x)) => Ok(Number(x.sin())),
+                    (TokenType::Sin, _) => Err(format!(
+                        "Error 107: Sin not implemented for {}",
+                        left.to_type()
+                    )
+                    .red()
+                    .to_string()),
+                    (ttype, _) => Err(format!(
+                        "Error 107: {} is not a valid unary operator",
+                        ttype
+                    )
+                    .red()
+                    .to_string()),
+                }
+            }
             Expr::Unary {
                 id: _,
                 operator,

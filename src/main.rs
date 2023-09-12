@@ -61,12 +61,35 @@ pub fn run_string(contents: &str) -> Result<(), String> {
     run(&mut interpreter, contents)
 }
 fn run(interpreter: &mut Interpreter, contents: &str) -> Result<(), String> {
+    let start_time = std::time::SystemTime::now();
+
     let mut scanner = Scanner::new(contents);
     let tokens = scanner.scan_tokens()?;
     let mut parser = Parser::new(tokens);
     let stmts = parser.parse()?;
     let resolver = Resolver::new();
     let locals = resolver.resolve(&stmts.iter().collect())?;
+    if settings("experimental") == "true" {
+        if settings("warnings") != "false" {
+            println!(
+                "\n {} \n",
+                "⚠️ Warning! \n ⚠️ Warning! \n ⚠️ Warning! \n Experimental Features are enabled"
+                    .yellow()
+                    .to_string()
+            )
+        }
+    }
+    if settings("credits") == "true" {
+        if settings("warnings") != "false" {
+            println!(
+                "\n APP: {} \n Version: {}\n Author: {}\n License: {}",
+                settings("name").yellow().to_string(),
+                settings("version").yellow().to_string(),
+                settings("authors").yellow().to_string(),
+                settings("license").yellow().to_string()
+            )
+        }
+    }
     if settings("decor") == "false" {
         println!("\n");
     } else if settings("decor") == "default" {
@@ -82,6 +105,10 @@ fn run(interpreter: &mut Interpreter, contents: &str) -> Result<(), String> {
         println!("\n ╚════════════《 📄 》════════════╝ \n");
     } else {
         println!("\n ╚════════════《 {} 》════════════╝", settings("decor"));
+    }
+    let end_time = std::time::SystemTime::now().duration_since(start_time);
+    if settings("bench") == "true" {
+    println!("{:?}", end_time);
     }
     return Ok(());
 }

@@ -175,6 +175,7 @@ impl Scanner {
                 } else {
                     DoubleComma
                 };
+
                 self.add_token(token)
             }
             '^' => {
@@ -189,7 +190,15 @@ impl Scanner {
                 };
                 self.add_token(token)
             }
-            '.' => self.add_token(Dot),
+            '.' => {
+                let tkns: TokenType =
+                    if self.char_match('s') && self.char_match('i') && self.char_match('n') {
+                        Sin
+                    } else {
+                        Dot
+                    };
+                self.add_token(tkns)
+            }
             '@' => self.add_token(Random),
             '-' => {
                 let token = if self.char_match('-') {

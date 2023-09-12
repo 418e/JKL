@@ -432,7 +432,9 @@ impl Parser {
         }
         Ok(expr)
     }
+    
     fn unary(&mut self) -> Result<Expr, String> {
+        
         if self.match_tokens(&[
             Bang, Minus, Increment, Decrement, Sin, Cos, Tan, In, Round, Floor, Percent, ToDeg,
             ToRad, ASin, ACos, ATan, Parse, Num,
@@ -448,7 +450,25 @@ impl Parser {
             self.call()
         }
     }
+    #[allow(dead_code)]
+    fn sunary(&mut self) -> Result<Expr, String> {
+        
+        if self.match_tokens(&[
+            Sin
+        ]) {
+            let rhs = self.sunary()?;
+            let op = self.after();
+            Ok(SUnary {
+                id: self.get_id(),
+                operator: op,
+                left: Box::from(rhs),
+            })
+        } else {
+            self.call()
+        }
+    }
     fn call(&mut self) -> Result<Expr, String> {
+        
         let mut expr = self.primary()?;
         loop {
             if self.match_token(LeftParen) {
@@ -585,6 +605,9 @@ impl Parser {
     }
     fn previous(&mut self) -> Token {
         self.tokens[self.current - 1].clone()
+    }
+    fn after(&mut self) -> Token {
+        self.tokens[self.current + 1].clone()
     }
     fn is_at_end(&mut self) -> bool {
         self.peek().token_type == Eof

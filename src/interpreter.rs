@@ -34,14 +34,8 @@ impl Interpreter {
             environment: env,
         }
     }
-    #[allow(dead_code)]
-    pub fn for_anon(parent: Environment) -> Self {
-        let env = parent.enclose();
-        Self {
-            specials: HashMap::new(),
-            environment: env,
-        }
-    }
+   
+
     pub fn interpret(&mut self, stmts: Vec<&Stmt>) -> Result<(), String> {
         for stmt in stmts {
             match stmt {
@@ -53,7 +47,11 @@ impl Interpreter {
                     if settings("pointer") == "default" {
                         println!(" ➤ {}", value.to_string().green().to_string());
                     } else {
-                        println!(" {} {}", settings("pointer"), value.to_string().green().to_string());
+                        println!(
+                            " {} {}",
+                            settings("pointer"),
+                            value.to_string().green().to_string()
+                        );
                     }
                 }
                 Stmt::Input { expression } => {
@@ -61,7 +59,11 @@ impl Interpreter {
                     if settings("pointer") == "default" {
                         println!(" ➤ {}", value.to_string().yellow().to_string());
                     } else {
-                        println!(" {} {}", settings("pointer"), value.to_string().yellow().to_string());
+                        println!(
+                            " {} {}",
+                            settings("pointer"),
+                            value.to_string().yellow().to_string()
+                        );
                     }
                     let mut input = String::new();
                     io::stdin().read_line(&mut input).unwrap();
@@ -71,7 +73,11 @@ impl Interpreter {
                     if settings("pointer") == "default" {
                         println!(" ➤ {}", value.to_string().red().to_string());
                     } else {
-                        println!(" {} {}", settings("pointer"), value.to_string().red().to_string());
+                        println!(
+                            " {} {}",
+                            settings("pointer"),
+                            value.to_string().red().to_string()
+                        );
                     }
                     exit(1)
                 }
@@ -107,7 +113,7 @@ impl Interpreter {
                         chars.as_str()
                     }
                     match run_file(rem_first_and_last(&val)) {
-                        Ok(_) => exit(0),
+                        Ok(_) => {},
                         Err(msg) => {
                             println!("Error 108:\n{}", msg);
                             exit(1);

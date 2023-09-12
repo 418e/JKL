@@ -1,12 +1,26 @@
+<div align="center">
+
 ![Logo](https://tronlang.org/tron.svg)
+
+</div>
 
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
 
+<span>
+
 ![npm](https://img.shields.io/npm/v/tron-lang)
+
+</span>
+
+<div align="center">
 
 # Tron Programming Language
 
+
+
 An Open Source, Fast and Simple Programming Language written in Rust
+
+</div>
 
 ## Usage/Examples
 
@@ -40,7 +54,6 @@ if age < 18 {
 - [Official Website](https://tronlang.org)
 - [Blog](https://blog.tronlang.org)
 - [Documentation](https://docs.tronlang.org)
-- [Facebook Page](https://www.facebook.com/Tronpl)
 
 ## Installation
 
@@ -70,10 +83,16 @@ Create a new configuration file `tron.toml` in the root of the project:
 ```yml
 name = "ProjectName"
 entry = "main"
-version = "0.0.1"
+version = "1.0.0"
 authors = "YOU"
+license = "MIT"
 decor = "default"
 pointer = "default"
+env = "prod"
+experimental = "false"
+credits = "false"
+warnings = "true"
+bench = "false"
 ```
 
 create the `main.tron` file in the root of the project:
@@ -83,10 +102,10 @@ print "Hello, Tron!";
 ```
 
 and run the `npm start` command in the terminal
-
+dev
 ## Support
 
-For support, email tronlang@proton.me or pi_bmi@proton.me.
+For support, email `tronlang@proton.me` or `pi_bmi@proton.me`.
 
 ## Authors
 

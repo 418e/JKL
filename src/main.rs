@@ -17,16 +17,35 @@ use std::fs;
 use std::process::exit;
 
 pub fn settings(param: &str) -> String {
-    let settings = Config::builder()
-        .add_source(config::File::with_name(pathf(true)))
-        .add_source(config::Environment::with_prefix("APP"))
-        .build()
-        .unwrap();
-    let setting = &settings
-        .try_deserialize::<HashMap<String, String>>()
-        .unwrap()[&param.to_string()];
-    return setting.to_string();
+    let options = vec![
+        "name",
+        "entry",
+        "version",
+        "authors",
+        "license",
+        "decor",
+        "pointer",
+        "env",
+        "experimental",
+        "credits",
+        "warnings",
+    ];
+    if options.iter().any(|&i| i == param) {
+        let settings = Config::builder()
+            .add_source(config::File::with_name(pathf(true)))
+            .add_source(config::Environment::with_prefix("APP"))
+            .build()
+            .unwrap();
+
+        let setting = &settings
+            .try_deserialize::<HashMap<String, String>>()
+            .unwrap()[&param.to_string()];
+        return setting.to_string();
+    } else {
+        return "NotFound".to_string();
+    }
 }
+
 pub fn pathf(param: bool) -> &'static str {
     let settings = Config::builder()
         .add_source(config::File::with_name("test/tron"))
@@ -61,8 +80,6 @@ pub fn run_string(contents: &str) -> Result<(), String> {
     run(&mut interpreter, contents)
 }
 fn run(interpreter: &mut Interpreter, contents: &str) -> Result<(), String> {
-    let start_time = std::time::SystemTime::now();
-
     let mut scanner = Scanner::new(contents);
     let tokens = scanner.scan_tokens()?;
     let mut parser = Parser::new(tokens);
@@ -105,10 +122,6 @@ fn run(interpreter: &mut Interpreter, contents: &str) -> Result<(), String> {
         println!("\n ╚════════════《 📄 》════════════╝ \n");
     } else {
         println!("\n ╚════════════《 {} 》════════════╝", settings("decor"));
-    }
-    let end_time = std::time::SystemTime::now().duration_since(start_time);
-    if settings("bench") == "true" {
-    println!("{:?}", end_time);
     }
     return Ok(());
 }

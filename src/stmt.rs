@@ -34,6 +34,9 @@ pub enum Stmt {
         condition: Expr,
         body: Box<Stmt>,
     },
+    BenchStmt {
+        body: Box<Stmt>,
+    },
     Function {
         name: Token,
         params: Vec<Token>,
@@ -48,4 +51,3 @@ pub enum Stmt {
         value: Option<Expr>,
     },
 }
-

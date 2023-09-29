@@ -4,21 +4,17 @@
 
 </div>
 
-[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
 
-<span>
-
-![npm](https://img.shields.io/npm/v/tron-lang)
-
-</span>
 
 <div align="center">
 
 # Tron Programming Language
 
-
-
 An Open Source, Fast and Simple Programming Language written in Rust
+
+[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
+
+![npm](https://img.shields.io/npm/v/tron-lang)
 
 </div>
 
@@ -48,6 +44,8 @@ if age < 18 {
     run "adultsonly.tron";
 }
 ```
+
+[See More](https://github.com/418e/Tron-Examples)
 
 ## Acknowledgements
 
@@ -81,10 +79,10 @@ add the following code in the `package.json`:
 Create a new configuration file `tron.toml` in the root of the project:
 
 ```yml
-name = "ProjectName"
+name = "Tron"
 entry = "main"
-version = "1.0.0"
-authors = "YOU"
+version = "1.0.4"
+authors = "418e"
 license = "MIT"
 decor = "default"
 pointer = "default"
@@ -92,7 +90,6 @@ env = "prod"
 experimental = "false"
 credits = "false"
 warnings = "true"
-bench = "false"
 ```
 
 create the `main.tron` file in the root of the project:
@@ -102,7 +99,6 @@ print "Hello, Tron!";
 ```
 
 and run the `npm start` command in the terminal
-dev
 ## Support
 
 For support, email `tronlang@proton.me` or `pi_bmi@proton.me`.
@@ -110,3 +106,4 @@ For support, email `tronlang@proton.me` or `pi_bmi@proton.me`.
 ## Authors
 
 - [@418e](https://www.github.com/418e)
+

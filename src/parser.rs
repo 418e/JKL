@@ -127,6 +127,8 @@ impl Parser {
             self.if_statement()
         } else if self.match_token(While) {
             self.while_statement()
+        } else if self.match_token(Bench) {
+            self.bench_statement()
         } else if self.match_token(For) {
             self.for_statement()
         } else if self.match_token(Return) {
@@ -210,6 +212,14 @@ impl Parser {
             body: Box::new(body),
         })
     }
+
+    fn bench_statement(&mut self) -> Result<Stmt, String> {
+        let body = self.statement()?;
+        Ok(Stmt::BenchStmt {
+            body: Box::new(body),
+        })
+    }
+    
     fn if_statement(&mut self) -> Result<Stmt, String> {
         let predicate = self.expression()?;
         let then = Box::new(self.statement()?);
@@ -432,9 +442,8 @@ impl Parser {
         }
         Ok(expr)
     }
-    
+
     fn unary(&mut self) -> Result<Expr, String> {
-        
         if self.match_tokens(&[
             Bang, Minus, Increment, Decrement, Sin, Cos, Tan, In, Round, Floor, Percent, ToDeg,
             ToRad, ASin, ACos, ATan, Parse, Num,
@@ -452,10 +461,7 @@ impl Parser {
     }
     #[allow(dead_code)]
     fn sunary(&mut self) -> Result<Expr, String> {
-        
-        if self.match_tokens(&[
-            Sin
-        ]) {
+        if self.match_tokens(&[Sin]) {
             let rhs = self.sunary()?;
             let op = self.after();
             Ok(SUnary {
@@ -468,7 +474,6 @@ impl Parser {
         }
     }
     fn call(&mut self) -> Result<Expr, String> {
-        
         let mut expr = self.primary()?;
         loop {
             if self.match_token(LeftParen) {
@@ -537,13 +542,6 @@ impl Parser {
                 result = Variable {
                     id: self.get_id(),
                     name: self.previous(),
-                };
-            }
-            TokenType::This => {
-                self.advance();
-                result = Expr::This {
-                    id: self.get_id(),
-                    keyword: token,
                 };
             }
             Fun => {
@@ -619,9 +617,8 @@ impl Parser {
                 return;
             }
             match self.peek().token_type {
-                Fun | Var | For | If | Input | Errors | While | Print | Return | Import | Exits => {
-                    return
-                }
+                Fun | Var | For | If | Input | Errors | While | Bench | Print | Return | Import
+                | Exits => return,
                 _ => (),
             }
             self.advance();

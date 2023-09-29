@@ -226,10 +226,6 @@ pub enum Expr {
         name: Token,
         value: Box<Expr>,
     },
-    This {
-        id: usize,
-        keyword: Token,
-    },
     Unary {
         id: usize,
         operator: Token,
@@ -308,7 +304,6 @@ impl Expr {
                 name: _,
                 value: _,
             } => *id,
-            Expr::This { id, keyword: _ } => *id,
             Expr::Unary {
                 id,
                 operator: _,
@@ -381,7 +376,6 @@ impl Expr {
                 name.to_string(),
                 value.to_string()
             ),
-            Expr::This { id: _, keyword: _ } => format!("(this)"),
             Expr::Unary {
                 id: _,
                 operator,
@@ -389,7 +383,7 @@ impl Expr {
             } => {
                 let operator_str = operator.lexeme.clone();
                 let right_str = (*right).to_string();
-                format!("({} {})", operator_str, right_str)
+                format!("({}({}))", operator_str, right_str)
             }
             Expr::SUnary {
                 id: _,
@@ -398,7 +392,7 @@ impl Expr {
             } => {
                 let operator_str = operator.lexeme.clone();
                 let left_str = (*left).to_string();
-                format!("({} {})", operator_str, left_str)
+                format!("({}({}))", operator_str, left_str)
             }
             Expr::Variable { id: _, name } => format!("(let {})", name.lexeme),
         }
@@ -530,12 +524,6 @@ impl Expr {
                 )
                 .red()
                 .to_string())
-            }
-            Expr::This { id: _, keyword: _ } => {
-                let this = environment
-                    .get("this", self.get_id())
-                    .expect("Couldn't lookup 'this'");
-                Ok(this)
             }
             Expr::Grouping { id: _, expression } => expression.evaluate(environment),
             Expr::SUnary {

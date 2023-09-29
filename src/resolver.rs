@@ -7,7 +7,6 @@ use std::collections::HashMap;
 enum FunctionType {
     None,
     Function,
-    Method,
 }
 pub struct Resolver {
     scopes: Vec<HashMap<String, bool>>,
@@ -60,6 +59,9 @@ impl Resolver {
             }
             Stmt::WhileStmt { condition, body } => {
                 self.resolve_expr(condition)?;
+                self.resolve_internal(body.as_ref())?;
+            }
+            Stmt::BenchStmt { body } => {
                 self.resolve_internal(body.as_ref())?;
             }
         }
@@ -226,15 +228,6 @@ impl Resolver {
             } => {
                 self.resolve_expr(value)?;
                 self.resolve_expr(object)
-            }
-            Expr::This { id: _, keyword } => {
-                if self.current_function != FunctionType::Method {
-                    return Err("Error 117: Cannot use 'this' keyword outside of a class"
-                        .to_string()
-                        .red()
-                        .to_string());
-                }
-                self.resolve_local(keyword, expr.get_id())
             }
             Expr::Unary {
                 id: _,

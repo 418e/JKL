@@ -24,13 +24,13 @@ fn get_keywords_hashmap() -> HashMap<&'static str, TokenType> {
         ("print", Print),
         ("in", Input),
         ("panic", Errors),
-        ("run", Import),
+        ("include", Import),
         ("exit", Exits),
         ("return", Return),
-        ("this", This),
         ("true", True),
         ("let", Var),
         ("while", While),
+        ("bench", Bench)
     ])
 }
 pub struct Scanner {
@@ -454,10 +454,10 @@ pub enum TokenType {
     Input,
     Errors,
     Return,
-    This,
     True,
     Var,
     While,
+    Bench,
     Eof,
     Import,
     Exits,

@@ -34,7 +34,6 @@ impl Interpreter {
             environment: env,
         }
     }
-   
 
     pub fn interpret(&mut self, stmts: Vec<&Stmt>) -> Result<(), String> {
         for stmt in stmts {
@@ -113,7 +112,7 @@ impl Interpreter {
                         chars.as_str()
                     }
                     match run_file(rem_first_and_last(&val)) {
-                        Ok(_) => {},
+                        Ok(_) => {}
                         Err(msg) => {
                             println!("Error 108:\n{}", msg);
                             exit(1);
@@ -154,6 +153,13 @@ impl Interpreter {
                         self.interpret(statements)?;
                         flag = condition.evaluate(self.environment.clone())?;
                     }
+                }
+                Stmt::BenchStmt { body } => {
+                    let start_time = std::time::SystemTime::now();
+                    let statements = vec![body.as_ref()];
+                    self.interpret(statements)?;
+                    let end_time = std::time::SystemTime::now().duration_since(start_time);
+                    println!("{:?}", end_time);
                 }
                 Stmt::Function {
                     name,

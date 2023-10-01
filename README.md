@@ -71,34 +71,12 @@ add the following code in the `package.json`:
 
 ```json
   "scripts": {
-    "install": "cd node_modules/tron-lang \n cargo build",
+    "build": "cd node_modules/tron-lang \n chmod + x ./build.sh \n ./build.sh",
     "start": "cd node_modules/tron-lang \n cargo run"
   }
 ```
 
-Create a new configuration file `tron.toml` in the root of the project:
-
-```yml
-name = "Tron"
-entry = "main"
-version = "1.0.4"
-authors = "418e"
-license = "MIT"
-decor = "default"
-pointer = "default"
-env = "prod"
-experimental = "false"
-credits = "false"
-warnings = "true"
-```
-
-create the `main.tron` file in the root of the project:
-
-```rs
-print "Hello, Tron!";
-```
-
-and run the `npm start` command in the terminal
+Run `npm run build` and then `npm start` in the terminal.
 ## Support
 
 For support, email `tronlang@proton.me` or `pi_bmi@proton.me`.

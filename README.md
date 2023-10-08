@@ -51,7 +51,7 @@ if age < 18 {
 
 - [Official Website](https://tronlang.org)
 - [Blog](https://blog.tronlang.org)
-- [Documentation](https://docs.tronlang.org)
+- [Documentation](https://github.com/418e/Tron/wiki)
 
 ## Installation
 

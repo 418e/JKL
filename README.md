@@ -14,8 +14,6 @@ An Open Source, Fast and Simple Programming Language written in Rust
 
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
 
-![npm](https://img.shields.io/npm/v/tron-lang)
-
 </div>
 
 ## Usage/Examples
@@ -46,12 +44,6 @@ if age < 18 {
 ```
 
 [See More](https://github.com/418e/Tron-Examples)
-
-## Acknowledgements
-
-- [Official Website](https://tronlang.org)
-- [Blog](https://blog.tronlang.org)
-- [Documentation](https://github.com/418e/Tron/wiki)
 
 ## Installation
 
@@ -91,9 +83,11 @@ create `src/main.tron` and then run the following command in the cli
 ./tron
 ```
 
-## Support
+## Acknowledgements
 
-For support, email `tronlang@proton.me` or `pi_bmi@proton.me`.
+- [Official Website](https://tronlang.org)
+- [Blog](https://blog.tronlang.org)
+- [Documentation](https://github.com/418e/Tron/wiki)
 
 ## Authors
 

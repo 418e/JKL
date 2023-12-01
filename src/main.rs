@@ -48,7 +48,7 @@ pub fn settings(param: &str) -> String {
 
 pub fn pathf(param: bool) -> &'static str {
     let settings = Config::builder()
-        .add_source(config::File::with_name("test/tron"))
+        .add_source(config::File::with_name("tron"))
         .add_source(config::Environment::with_prefix("APP"))
         .build()
         .unwrap();
@@ -57,15 +57,15 @@ pub fn pathf(param: bool) -> &'static str {
         .unwrap()["env"];
     if envm == "dev" {
         if param {
-            return "test/tron.toml";
+            return "./tron.toml";
         } else {
             return "test/";
         }
     } else {
         if param {
-            return "../../tron.toml";
+            return "./tron.toml";
         } else {
-            return "../../";
+            return "src/";
         }
     }
 }

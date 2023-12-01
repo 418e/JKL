@@ -64,19 +64,33 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 If rust is already installed you are free to install Tron in your project:
 
 ```bash
-npm install tron-lang
+mkdir tron-project
+cd tron-project
+curl https://tronlang.org/tron-lang --output tron
 ```
 
-add the following code in the `package.json`:
+add the configuration file `tron.toml` and then
 
-```json
-  "scripts": {
-    "build": "cd node_modules/tron-lang \n chmod + x ./build.sh \n ./build.sh",
-    "start": "cd node_modules/tron-lang \n cargo run"
-  }
+```toml 
+name = "TronProject"
+entry = "main"
+version = "0.0.1"
+authors = "YOU"
+license = "MIT"
+decor = "default"
+pointer = "default"
+env = "prod"
+experimental = "false"
+credits = "false"
+warnings = "true"
 ```
 
-Run `npm run build` and then `npm start` in the terminal.
+create `src/main.tron` and then run the following command in the cli
+
+```bash
+./tron
+```
+
 ## Support
 
 For support, email `tronlang@proton.me` or `pi_bmi@proton.me`.

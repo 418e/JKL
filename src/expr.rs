@@ -11,11 +11,11 @@ use std::io;
 use std::rc::Rc;
 #[derive(Clone)]
 pub enum CallableImpl {
-    JekoFunction(JekoFunctionImpl),
+    TronFunction(TronFunctionImpl),
     NativeFunction(NativeFunctionImpl),
 }
 #[derive(Clone)]
-pub struct JekoFunctionImpl {
+pub struct TronFunctionImpl {
     pub name: String,
     pub arity: usize,
     pub parent_env: Environment,
@@ -48,8 +48,8 @@ impl PartialEq for LiteralValue {
         match (self, other) {
             (Number(x), Number(y)) => x == y,
             (
-                Callable(CallableImpl::JekoFunction(JekoFunctionImpl { name, arity, .. })),
-                Callable(CallableImpl::JekoFunction(JekoFunctionImpl {
+                Callable(CallableImpl::TronFunction(TronFunctionImpl { name, arity, .. })),
+                Callable(CallableImpl::TronFunction(TronFunctionImpl {
                     name: name2,
                     arity: arity2,
                     ..
@@ -71,6 +71,7 @@ impl PartialEq for LiteralValue {
         }
     }
 }
+
 fn unwrap_as_f64(literal: Option<scanner::LiteralValue>) -> f64 {
     match literal {
         Some(scanner::LiteralValue::FValue(x)) => x as f64,
@@ -91,7 +92,7 @@ impl LiteralValue {
             LiteralValue::True => "true".to_string(),
             LiteralValue::False => "false".to_string(),
             LiteralValue::Nil => "nil".to_string(),
-            LiteralValue::Callable(CallableImpl::JekoFunction(JekoFunctionImpl {
+            LiteralValue::Callable(CallableImpl::TronFunction(TronFunctionImpl {
                 name,
                 arity,
                 ..
@@ -408,7 +409,7 @@ impl Expr {
                 let arity = arguments.len();
                 let arguments: Vec<Token> = arguments.iter().map(|t| (*t).clone()).collect();
                 let body: Vec<Box<Stmt>> = body.iter().map(|b| (*b).clone()).collect();
-                let callable_impl = CallableImpl::JekoFunction(JekoFunctionImpl {
+                let callable_impl = CallableImpl::TronFunction(TronFunctionImpl {
                     name: "anon_funciton".to_string(),
                     arity,
                     parent_env: environment.clone(),
@@ -449,8 +450,8 @@ impl Expr {
             } => {
                 let callable: LiteralValue = (*callee).evaluate(environment.clone())?;
                 match callable {
-                    Callable(CallableImpl::JekoFunction(jekofun)) => {
-                        run_jeko_function(jekofun, arguments, environment)
+                    Callable(CallableImpl::TronFunction(tronfun)) => {
+                        run_tron_function(tronfun, arguments, environment)
                     }
                     Callable(CallableImpl::NativeFunction(nativefun)) => {
                         let mut evaluated_arguments = vec![];
@@ -773,16 +774,16 @@ impl Expr {
         }
     }
 }
-pub fn run_jeko_function(
-    jekofun: JekoFunctionImpl,
+pub fn run_tron_function(
+    tronfun: TronFunctionImpl,
     arguments: &Vec<Expr>,
     eval_env: Environment,
 ) -> Result<LiteralValue, String> {
-    if arguments.len() != jekofun.arity {
+    if arguments.len() != tronfun.arity {
         return Err(format!(
             "Error 108: Callable {} expected {} arguments but got {}",
-            jekofun.name,
-            jekofun.arity,
+            tronfun.name,
+            tronfun.arity,
             arguments.len()
         )
         .red()
@@ -793,13 +794,13 @@ pub fn run_jeko_function(
         let val = arg.evaluate(eval_env.clone())?;
         arg_vals.push(val);
     }
-    let fun_env = jekofun.parent_env.enclose();
+    let fun_env = tronfun.parent_env.enclose();
     for (i, val) in arg_vals.iter().enumerate() {
-        fun_env.define(jekofun.params[i].lexeme.clone(), (*val).clone());
+        fun_env.define(tronfun.params[i].lexeme.clone(), (*val).clone());
     }
     let mut int = Interpreter::with_env(fun_env);
-    for i in 0..(jekofun.body.len()) {
-        let result = int.interpret(vec![&jekofun.body[i]]);
+    for i in 0..(tronfun.body.len()) {
+        let result = int.interpret(vec![&tronfun.body[i]]);
         if let Err(e) = result {
             return Err(e.red().to_string());
         } else if let Some(value) = int.specials.get("return") {

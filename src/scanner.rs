@@ -291,6 +291,7 @@ impl Scanner {
         }
         Ok(())
     }
+    
     fn identifier(&mut self) {
         while is_alpha_numeric(self.peek()) {
             self.advance();

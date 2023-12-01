@@ -1,5 +1,5 @@
 use crate::environment::Environment;
-use crate::expr::{CallableImpl, JekoFunctionImpl, LiteralValue, NativeFunctionImpl};
+use crate::expr::{CallableImpl, LiteralValue, NativeFunctionImpl, TronFunctionImpl};
 use crate::parser::*;
 use crate::pathf;
 use crate::resolver::*;
@@ -167,7 +167,7 @@ impl Interpreter {
                     body: _,
                 } => {
                     let callable = self.make_function(stmt);
-                    let fun = LiteralValue::Callable(CallableImpl::JekoFunction(callable));
+                    let fun = LiteralValue::Callable(CallableImpl::TronFunction(callable));
                     self.environment.define(name.lexeme.clone(), fun);
                 }
                 Stmt::CmdFunction { name, cmd } => {
@@ -207,14 +207,14 @@ impl Interpreter {
         }
         Ok(())
     }
-    fn make_function(&self, fn_stmt: &Stmt) -> JekoFunctionImpl {
+    fn make_function(&self, fn_stmt: &Stmt) -> TronFunctionImpl {
         if let Stmt::Function { name, params, body } = fn_stmt {
             let arity = params.len();
             let params: Vec<Token> = params.iter().map(|t| (*t).clone()).collect();
             let body: Vec<Box<Stmt>> = body.iter().map(|b| (*b).clone()).collect();
             let name_clone = name.lexeme.clone();
             let parent_env = self.environment.clone();
-            let callable_impl = JekoFunctionImpl {
+            let callable_impl = TronFunctionImpl {
                 name: name_clone,
                 arity,
                 parent_env,

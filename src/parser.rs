@@ -64,6 +64,7 @@ impl Parser {
         }
         self.consume(LeftParen, &format!("Expected '(' after {kind:?} name"))?;
         let mut parameters = vec![];
+        
         if !self.check(RightParen) {
             loop {
                 if parameters.len() >= 255 {
@@ -93,6 +94,8 @@ impl Parser {
             body,
         })
     }
+
+
     fn var_declaration(&mut self) -> Result<Stmt, String> {
         let token = self.consume(Identifier, "Expected variable name")?;
         let initializer;
@@ -517,6 +520,7 @@ impl Parser {
             arguments,
         })
     }
+    
     fn primary(&mut self) -> Result<Expr, String> {
         let token = self.peek();
         let result;

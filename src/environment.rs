@@ -28,6 +28,7 @@ fn get_globals() -> Rc<RefCell<HashMap<String, LiteralValue>>> {
     env.insert("clock".to_string(), LiteralValue::Callable(callable_impl));
     Rc::new(RefCell::new(env))
 }
+
 impl Environment {
     pub fn new(locals: HashMap<usize, usize>) -> Self {
         Self {

@@ -80,7 +80,7 @@ pub fn run_string(contents: &str) -> Result<(), String> {
     run(&mut interpreter, contents)
 }
 fn run(interpreter: &mut Interpreter, contents: &str) -> Result<(), String> {
-    let mut scanner = Scanner::new(contents);
+    let scanner = Scanner::new(contents);
     let tokens = scanner.scan_tokens()?;
     let mut parser = Parser::new(tokens);
     let stmts = parser.parse()?;

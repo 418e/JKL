@@ -1,5 +1,5 @@
 use colored::Colorize;
-use std::collections::HashMap;
+use hashbrown::HashMap;
 use std::string::String;
 fn is_digit(ch: char) -> bool {
     ch as u8 >= '0' as u8 && ch as u8 <= '9' as u8
@@ -21,6 +21,8 @@ fn get_keywords_hashmap() -> HashMap<&'static str, TokenType> {
         ("if", If),
         ("null", Nil),
         ("or", Or),
+        ("nor", Nor),
+        ("xor", Xor),
         ("print", Print),
         ("in", Input),
         ("panic", Errors),
@@ -30,7 +32,7 @@ fn get_keywords_hashmap() -> HashMap<&'static str, TokenType> {
         ("true", True),
         ("let", Var),
         ("while", While),
-        ("bench", Bench)
+        ("bench", Bench),
     ])
 }
 pub struct Scanner {
@@ -52,30 +54,21 @@ impl Scanner {
             keywords: get_keywords_hashmap(),
         }
     }
-    pub fn scan_tokens(self: &mut Self) -> Result<Vec<Token>, String> {
-        let mut errors = vec![];
+    pub fn scan_tokens(mut self) -> Result<Vec<Token>, String> {
         while !self.is_at_end() {
             self.start = self.current;
             match self.scan_token() {
                 Ok(_) => (),
-                Err(msg) => errors.push(msg.red().to_string()),
+                Err(msg) => return Err(msg.red().to_string()),
             }
         }
         self.tokens.push(Token {
-            token_type: Eof,
+            token_type: TokenType::Eof,
             lexeme: "".to_string(),
             literal: None,
             line_number: self.line,
         });
-        if errors.len() > 0 {
-            let mut joined = "".to_string();
-            for error in errors {
-                joined.push_str(&error);
-                joined.push_str("\n");
-            }
-            return Err(joined);
-        }
-        Ok(self.tokens.clone())
+        Ok(self.tokens)
     }
     fn is_at_end(self: &Self) -> bool {
         self.current >= self.source.len()
@@ -91,91 +84,35 @@ impl Scanner {
             '%' => self.add_token(Percent),
             '$' => self.add_token(Dollar),
             ':' => {
-                let token = if self.char_match('s')
-                    && self.char_match('i')
-                    && self.char_match('n')
-                    && self.char_match('_')
-                {
+                let token = if self.chars_match("sin") {
                     Sin
-                } else if self.char_match('c')
-                    && self.char_match('o')
-                    && self.char_match('s')
-                    && self.char_match('_')
-                {
+                } else if self.chars_match("cos") {
                     Cos
-                } else if self.char_match('a')
-                    && self.char_match('s')
-                    && self.char_match('i')
-                    && self.char_match('n')
-                    && self.char_match('_')
-                {
+                } else if self.chars_match("asin") {
                     ASin
-                } else if self.char_match('a')
-                    && self.char_match('c')
-                    && self.char_match('o')
-                    && self.char_match('s')
-                    && self.char_match('_')
-                {
+                } else if self.chars_match("acos") {
                     ACos
-                } else if self.char_match('a')
-                    && self.char_match('t')
-                    && self.char_match('a')
-                    && self.char_match('n')
-                    && self.char_match('_')
-                {
+                } else if self.chars_match("atan") {
                     ATan
-                } else if self.char_match('t')
-                    && self.char_match('a')
-                    && self.char_match('n')
-                    && self.char_match('_')
-                {
+                } else if self.chars_match("tan") {
                     Tan
-                } else if self.char_match('r')
-                    && self.char_match('n')
-                    && self.char_match('d')
-                    && self.char_match('_')
-                {
+                } else if self.chars_match("rnd") {
                     Round
-                } else if self.char_match('f')
-                    && self.char_match('l')
-                    && self.char_match('r')
-                    && self.char_match('_')
-                {
+                } else if self.chars_match("flr") {
                     Floor
-                } else if self.char_match('t')
-                    && self.char_match('o')
-                    && self.char_match('d')
-                    && self.char_match('e')
-                    && self.char_match('g')
-                    && self.char_match('_')
-                {
+                } else if self.chars_match("todeg") {
                     ToDeg
-                } else if self.char_match('t')
-                    && self.char_match('o')
-                    && self.char_match('r')
-                    && self.char_match('a')
-                    && self.char_match('d')
-                    && self.char_match('_')
-                {
+                } else if self.chars_match("torad") {
                     ToRad
-                } else if self.char_match('i') && self.char_match('n') && self.char_match('_') {
+                } else if self.chars_match("in") {
                     In
-                } else if self.char_match('p')
-                    && self.char_match('a')
-                    && self.char_match('r')
-                    && self.char_match('_')
-                {
+                } else if self.chars_match("par") {
                     Parse
-                } else if self.char_match('n')
-                    && self.char_match('u')
-                    && self.char_match('m')
-                    && self.char_match('_')
-                {
+                } else if self.chars_match("num") {
                     Num
                 } else {
                     DoubleComma
                 };
-
                 self.add_token(token)
             }
             '^' => {
@@ -291,7 +228,6 @@ impl Scanner {
         }
         Ok(())
     }
-    
     fn identifier(&mut self) {
         while is_alpha_numeric(self.peek()) {
             self.advance();
@@ -374,6 +310,16 @@ impl Scanner {
             return true;
         }
     }
+    fn chars_match(self: &mut Self, chars: &str) -> bool {
+        if self.is_at_end() {
+            return false;
+        } else if !chars.contains(self.source.chars().nth(self.current).unwrap()) {
+            return false;
+        } else {
+            self.current += chars.len();
+            return true;
+        }
+    }
     fn advance(self: &mut Self) -> char {
         let c = self.source.chars().nth(self.current).unwrap();
         self.current += 1;
@@ -451,6 +397,8 @@ pub enum TokenType {
     If,
     Nil,
     Or,
+    Nor,
+    Xor,
     Print,
     Input,
     Errors,

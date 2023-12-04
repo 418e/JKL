@@ -1,6 +1,6 @@
 name = "Tron"
 entry = "main"
-version = "1.0.5"
+version = "1.0.6"
 authors = "418e"
 license = "MIT"
 decor = "default"

@@ -94,7 +94,7 @@ impl Interpreter {
                         run(&mut interpreter, contents)
                     }
                     fn run(interpreter: &mut Interpreter, contents: &str) -> Result<(), String> {
-                        let mut scanner = Scanner::new(contents);
+                        let scanner = Scanner::new(contents);
                         let tokens = scanner.scan_tokens()?;
                         let mut parser = Parser::new(tokens);
                         let stmts = parser.parse()?;
@@ -159,7 +159,15 @@ impl Interpreter {
                     let statements = vec![body.as_ref()];
                     self.interpret(statements)?;
                     let end_time = std::time::SystemTime::now().duration_since(start_time);
-                    println!("{:?}", end_time);
+                    if end_time.clone().unwrap().as_micros() < 10000 {
+                        println!("{:?}µs", end_time.unwrap().as_micros());
+                    } else if end_time.clone().unwrap().as_micros() > 10000 {
+                        println!("{:?}ms", end_time.unwrap().as_millis());
+                    } else if end_time.clone().unwrap().as_millis() > 10000 {
+                        println!("{:?}s", end_time.unwrap().as_secs_f32());
+                    } else {
+                        println!("{:?}µs", end_time.unwrap().as_micros());
+                    }
                 }
                 Stmt::Function {
                     name,

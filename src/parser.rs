@@ -64,7 +64,7 @@ impl Parser {
         }
         self.consume(LeftParen, &format!("Expected '(' after {kind:?} name"))?;
         let mut parameters = vec![];
-        
+
         if !self.check(RightParen) {
             loop {
                 if parameters.len() >= 255 {
@@ -94,7 +94,6 @@ impl Parser {
             body,
         })
     }
-
 
     fn var_declaration(&mut self) -> Result<Stmt, String> {
         let token = self.consume(Identifier, "Expected variable name")?;
@@ -222,7 +221,7 @@ impl Parser {
             body: Box::new(body),
         })
     }
-    
+
     fn if_statement(&mut self) -> Result<Stmt, String> {
         let predicate = self.expression()?;
         let then = Box::new(self.statement()?);
@@ -362,8 +361,36 @@ impl Parser {
         Ok(expr)
     }
     fn or(&mut self) -> Result<Expr, String> {
-        let mut expr = self.and()?;
+        let mut expr = self.nor()?;
         while self.match_token(Or) {
+            let operator = self.previous();
+            let right = self.and()?;
+            expr = Logical {
+                id: self.get_id(),
+                left: Box::new(expr),
+                operator,
+                right: Box::new(right),
+            };
+        }
+        Ok(expr)
+    }
+    fn nor(&mut self) -> Result<Expr, String> {
+        let mut expr = self.xor()?;
+        while self.match_token(Nor) {
+            let operator = self.previous();
+            let right = self.and()?;
+            expr = Logical {
+                id: self.get_id(),
+                left: Box::new(expr),
+                operator,
+                right: Box::new(right),
+            };
+        }
+        Ok(expr)
+    }
+    fn xor(&mut self) -> Result<Expr, String> {
+        let mut expr = self.and()?;
+        while self.match_token(Xor) {
             let operator = self.previous();
             let right = self.and()?;
             expr = Logical {
@@ -520,7 +547,7 @@ impl Parser {
             arguments,
         })
     }
-    
+
     fn primary(&mut self) -> Result<Expr, String> {
         let token = self.peek();
         let result;

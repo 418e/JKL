@@ -481,6 +481,24 @@ impl Expr {
                         right.evaluate(environment.clone())
                     }
                 }
+                TokenType::Xor => {
+                    let lhs_value = left.evaluate(environment.clone())?;
+                    let lhs_true = lhs_value.is_truthy();
+                    if lhs_true == True {
+                        Ok(False)
+                    } else {
+                        Ok(True)
+                    }
+                }
+                TokenType::Nor => {
+                    let lhs_value = left.evaluate(environment.clone())?;
+                    let lhs_true = lhs_value.is_truthy();
+                    if lhs_true == False {
+                        Ok(True)
+                    } else {
+                        Ok(False)
+                    }
+                }
                 TokenType::And => {
                     let lhs_value = left.evaluate(environment.clone())?;
                     let lhs_true = lhs_value.is_truthy();
@@ -566,6 +584,7 @@ impl Expr {
                     (Number(x), TokenType::CubicRoot) => {
                         Ok(Number(Roots::cbrt(&(*x as i64)) as f64))
                     }
+
                     (Number(x), TokenType::Random) => {
                         Ok(Number(rng.gen_range(0..*x as i64) as f64))
                     }
@@ -609,7 +628,7 @@ impl Expr {
                     .red()
                     .to_string()),
                     (_, TokenType::Decrement) => Err(format!(
-                        "Error 107: Minus not implemented for {}",
+                        "Error 107: Decrement not implemented for {}",
                         right.to_type()
                     )
                     .red()
@@ -719,20 +738,30 @@ impl Expr {
                     (Number(x), TokenType::Plus, StringValue(y)) => {
                         Ok(StringValue(format!("{}{}", x.to_string(), y)))
                     }
-                    (Number(x), TokenType::PlusEqual, Number(y)) => Ok(Number(x + y)),
                     (Number(x), TokenType::Minus, Number(y)) => Ok(Number(x - y)),
-                    (Number(x), TokenType::MinusEqual, Number(y)) => Ok(Number(x - y)),
                     (Number(x), TokenType::Star, Number(y)) => Ok(Number(x * y)),
                     (Number(x), TokenType::Slash, Number(y)) => Ok(Number(x / y)),
                     (Number(x), TokenType::Greater, Number(y)) => {
                         Ok(LiteralValue::from_bool(x > y))
                     }
+                    (StringValue(x), TokenType::Greater, StringValue(y)) => {
+                        Ok(LiteralValue::from_bool(x.len() > y.len()))
+                    }
                     (Number(x), TokenType::GreaterEqual, Number(y)) => {
                         Ok(LiteralValue::from_bool(x >= y))
                     }
+                    (StringValue(x), TokenType::GreaterEqual, StringValue(y)) => {
+                        Ok(LiteralValue::from_bool(x.len() >= y.len()))
+                    }
                     (Number(x), TokenType::Less, Number(y)) => Ok(LiteralValue::from_bool(x < y)),
+                    (StringValue(x), TokenType::Less, StringValue(y)) => {
+                        Ok(LiteralValue::from_bool(x.len() < y.len()))
+                    }
                     (Number(x), TokenType::LessEqual, Number(y)) => {
                         Ok(LiteralValue::from_bool(x <= y))
+                    }
+                    (StringValue(x), TokenType::LessEqual, StringValue(y)) => {
+                        Ok(LiteralValue::from_bool(x.len() <= y.len()))
                     }
                     (StringValue(_), op, Number(_)) => Err(format!(
                         "Error 107: {} is not defined for string and number",
@@ -746,23 +775,8 @@ impl Expr {
                     )
                     .red()
                     .to_string()),
-                    (StringValue(s1), TokenType::Plus, StringValue(s2)) => {
-                        Ok(StringValue(format!("{}{}", s1, s2)))
-                    }
                     (x, TokenType::BangEqual, y) => Ok(LiteralValue::from_bool(x != y)),
                     (x, TokenType::EqualEqual, y) => Ok(LiteralValue::from_bool(x == y)),
-                    (StringValue(s1), TokenType::Greater, StringValue(s2)) => {
-                        Ok(LiteralValue::from_bool(s1.len() > s2.len()))
-                    }
-                    (StringValue(s1), TokenType::GreaterEqual, StringValue(s2)) => {
-                        Ok(LiteralValue::from_bool(s1.len() >= s2.len()))
-                    }
-                    (StringValue(s1), TokenType::Less, StringValue(s2)) => {
-                        Ok(LiteralValue::from_bool(s1.len() < s2.len()))
-                    }
-                    (StringValue(s1), TokenType::LessEqual, StringValue(s2)) => {
-                        Ok(LiteralValue::from_bool(s1.len() <= s2.len()))
-                    }
                     (x, ttype, y) => Err(format!(
                         "Error 107: {} is not implemented for operands {:?} and {:?}",
                         ttype, x, y

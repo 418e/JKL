@@ -4,8 +4,6 @@
 
 </div>
 
-
-
 <div align="center">
 
 # Tron Programming Language
@@ -19,7 +17,7 @@ An Open Source, Fast and Simple Programming Language written in Rust
 ## Usage/Examples
 
 ```rust
-let name = :in_"Please enter your name: ";
+let name = :in("Please enter your name: ");
 print "Hello " + name;
 ```
 
@@ -32,7 +30,7 @@ print add(1,5);
 ```
 
 ```rs
-let age = :num_"Please enter your age: ";
+let age = :num("Please enter your age: ");
 
 if age < 18 {
     print "minor";
@@ -42,8 +40,6 @@ if age < 18 {
     run "adultsonly.tron";
 }
 ```
-
-[See More](https://github.com/418e/Tron-Examples)
 
 ## Installation
 
@@ -82,12 +78,6 @@ create `src/main.tron` and then run the following command in the cli
 ```bash
 ./tron
 ```
-
-## Acknowledgements
-
-- [Official Website](https://tronlang.org)
-- [Blog](https://blog.tronlang.org)
-- [Documentation](https://github.com/418e/Tron/wiki)
 
 ## Authors
 

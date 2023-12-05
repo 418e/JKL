@@ -60,7 +60,7 @@ impl Environment {
         self.locals.borrow().get(&expr_id).cloned()
     }
     fn get_internal(&self, name: &str, distance: Option<usize>) -> Option<LiteralValue> {
-        if let None = distance {
+        if distance.is_none() {
             match &self.enclosing {
                 None => self.values.borrow().get(name).cloned(),
                 Some(env) => env.get_internal(name, distance),
@@ -79,7 +79,7 @@ impl Environment {
         self.assign_internal(name, value, distance)
     }
     fn assign_internal(&self, name: &str, value: LiteralValue, distance: Option<usize>) -> bool {
-        if let None = distance {
+        if distance.is_none(){
             match &self.enclosing {
                 Some(env) => env.assign_internal(name, value, distance),
                 None => match self.values.borrow_mut().insert(name.to_string(), value) {

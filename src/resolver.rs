@@ -272,7 +272,7 @@ impl Resolver {
                 paren: _,
                 arguments: _,
             } => match callee.as_ref() {
-                Expr::Variable { id: _, name } => self.resolve_local(&name, resolve_id),
+                Expr::Variable { id: _, name } => self.resolve_local(name, resolve_id),
                 _ => panic!("Wrong type in resolve_expr_var"),
             },
             _ => panic!("Wrong type in resolve_expr_var"),

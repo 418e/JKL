@@ -9,7 +9,6 @@ use crate::interpreter::*;
 use crate::parser::*;
 use crate::resolver::*;
 use crate::scanner::*;
-use colored::Colorize;
 use config::Config;
 use std::collections::HashMap;
 use std::env;
@@ -61,18 +60,16 @@ pub fn pathf(param: bool) -> &'static str {
         } else {
             return "test/";
         }
+    } else if param {
+        return "./tron.toml";
     } else {
-        if param {
-            return "./tron.toml";
-        } else {
-            return "src/";
-        }
+        return "src/";
     }
 }
 pub fn run_file(path: &str) -> Result<(), String> {
     match fs::read_to_string(pathf(false).to_owned() + path + ".tron") {
-        Err(msg) => return Err(msg.to_string().yellow().to_string()),
-        Ok(contents) => return run_string(&contents),
+        Err(msg) => Err(msg.to_string()),
+        Ok(contents) => run_string(&contents),
     }
 }
 pub fn run_string(contents: &str) -> Result<(), String> {
@@ -86,26 +83,20 @@ fn run(interpreter: &mut Interpreter, contents: &str) -> Result<(), String> {
     let stmts = parser.parse()?;
     let resolver = Resolver::new();
     let locals = resolver.resolve(&stmts.iter().collect())?;
-    if settings("experimental") == "true" {
-        if settings("warnings") != "false" {
-            println!(
-                "\n {} \n",
-                "⚠️ Warning! \n ⚠️ Warning! \n ⚠️ Warning! \n Experimental Features are enabled"
-                    .yellow()
-                    .to_string()
-            )
-        }
+    if settings("experimental") == "true" && settings("warnings") != "false" {
+        println!(
+            "\n {} \n",
+            "\n ⚠️ Warning! \n ⚠️ Warning! \n ⚠️ Warning! \n Experimental Features are enabled \n \n"
+        )
     }
-    if settings("credits") == "true" {
-        if settings("warnings") != "false" {
-            println!(
-                "\n APP: {} \n Version: {}\n Author: {}\n License: {}",
-                settings("name").yellow().to_string(),
-                settings("version").yellow().to_string(),
-                settings("authors").yellow().to_string(),
-                settings("license").yellow().to_string()
-            )
-        }
+    if settings("credits") == "true" && settings("warnings") != "false" {
+        println!(
+            "\n APP: {} \n Version: {}\n Author: {}\n License: {}",
+            settings("name"),
+            settings("version"),
+            settings("authors"),
+            settings("license")
+        )
     }
     if settings("decor") == "false" {
         println!("\n");

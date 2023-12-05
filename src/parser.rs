@@ -37,7 +37,7 @@ impl Parser {
                 }
             }
         }
-        if errs.len() == 0 {
+        if errs.is_empty() {
             Ok(stmts)
         } else {
             Err(errs.join("\n"))
@@ -606,13 +606,11 @@ impl Parser {
     fn match_token(&mut self, typ: TokenType) -> bool {
         if self.is_at_end() {
             false
+        } else if self.peek().token_type == typ {
+            self.advance();
+            true
         } else {
-            if self.peek().token_type == typ {
-                self.advance();
-                true
-            } else {
-                false
-            }
+            false
         }
     }
     fn match_tokens(&mut self, typs: &[TokenType]) -> bool {

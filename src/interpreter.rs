@@ -56,13 +56,9 @@ impl Interpreter {
                 Stmt::Input { expression } => {
                     let value = expression.evaluate(self.environment.clone())?;
                     if settings("pointer") == "default" {
-                        println!(" ➤ {}", value.to_string().yellow().to_string());
+                        println!(" ➤ {}", value.to_string());
                     } else {
-                        println!(
-                            " {} {}",
-                            settings("pointer"),
-                            value.to_string().yellow().to_string()
-                        );
+                        println!(" {} {}", settings("pointer"), value.to_string());
                     }
                     let mut input = String::new();
                     io::stdin().read_line(&mut input).unwrap();
@@ -84,9 +80,9 @@ impl Interpreter {
                 Stmt::Import { expression } => {
                     let value = expression.evaluate(self.environment.clone())?;
                     fn run_file(path: &str) -> Result<(), String> {
-                        match fs::read_to_string(pathf(false).to_owned() + path) {
-                            Err(msg) => return Err(msg.to_string()),
-                            Ok(contents) => return run_string(&contents),
+                        match fs::read_to_string(pathf(false).to_owned() + path + ".tron") {
+                            Err(msg) => Err(msg.to_string()),
+                            Ok(contents) => run_string(&contents),
                         }
                     }
                     fn run_string(contents: &str) -> Result<(), String> {

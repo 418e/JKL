@@ -2,11 +2,11 @@ use colored::Colorize;
 use hashbrown::HashMap;
 use std::string::String;
 fn is_digit(ch: char) -> bool {
-    ch as u8 >= '0' as u8 && ch as u8 <= '9' as u8
+    ch as u8 >= b'0' && ch as u8 <= b'9'
 }
 fn is_alpha(ch: char) -> bool {
     let uch = ch as u8;
-    (uch >= 'a' as u8 && uch <= 'z' as u8) || (uch >= 'A' as u8 && uch <= 'Z' as u8) || (ch == '_')
+    (uch >= b'a' && uch <= b'z') || (uch >= b'A' && uch <= b'Z' ) || (ch == '_')
 }
 fn is_alpha_numeric(ch: char) -> bool {
     is_alpha(ch) || is_digit(ch)
@@ -70,10 +70,10 @@ impl Scanner {
         });
         Ok(self.tokens)
     }
-    fn is_at_end(self: &Self) -> bool {
+    fn is_at_end(&self) -> bool {
         self.current >= self.source.len()
     }
-    fn scan_token(self: &mut Self) -> Result<(), String> {
+    fn scan_token(&mut self) -> Result<(), String> {
         let c = self.advance();
         match c {
             '(' => self.add_token(LeftParen),
@@ -239,7 +239,7 @@ impl Scanner {
             self.add_token(Identifier);
         }
     }
-    fn number(self: &mut Self) -> Result<(), String> {
+    fn number(&mut self) -> Result<(), String> {
         while is_digit(self.peek()) {
             self.advance();
         }
@@ -261,13 +261,13 @@ impl Scanner {
         }
         Ok(())
     }
-    fn peek_next(self: &Self) -> char {
+    fn peek_next(&self) -> char {
         if self.current + 1 >= self.source.len() {
             return '\0';
         }
         self.source.chars().nth(self.current + 1).unwrap()
     }
-    fn string(self: &mut Self) -> Result<(), String> {
+    fn string(&mut self) -> Result<(), String> {
         while self.peek() != '"' && !self.is_at_end() {
             if self.peek() == '\n' {
                 self.line += 1;
@@ -278,7 +278,7 @@ impl Scanner {
             return Err("Error 120: Unterminated string"
                 .to_string()
                 .red()
-                .to_string());
+                  .to_string());
         }
         self.advance();
         let value = &self.source[self.start + 1..self.current - 1];
@@ -286,7 +286,7 @@ impl Scanner {
             && &self.source[self.current - 2..self.current - 1] == "}"
         {
             let vector = &self.source[self.start + 2..self.current - 2];
-            let parts = vector.split(",");
+            let parts = vector.split(',');
             for part in parts {
                 println!("{}", part);
             }
@@ -294,13 +294,13 @@ impl Scanner {
         self.add_token_lit(StringLit, Some(StringValue(value.to_string())));
         Ok(())
     }
-    fn peek(self: &Self) -> char {
+    fn peek(&self) -> char {
         if self.is_at_end() {
             return '\0';
         }
         self.source.chars().nth(self.current).unwrap()
     }
-    fn char_match(self: &mut Self, ch: char) -> bool {
+    fn char_match(&mut self, ch: char) -> bool {
         if self.is_at_end() {
             return false;
         } else if self.source.chars().nth(self.current).unwrap() != ch {
@@ -310,7 +310,7 @@ impl Scanner {
             return true;
         }
     }
-    fn chars_match(self: &mut Self, chars: &str) -> bool {
+    fn chars_match(&mut self, chars: &str) -> bool {
         if self.is_at_end() {
             return false;
         } else if !chars.contains(self.source.chars().nth(self.current).unwrap()) {
@@ -320,20 +320,20 @@ impl Scanner {
             return true;
         }
     }
-    fn advance(self: &mut Self) -> char {
+    fn advance(&mut self) -> char {
         let c = self.source.chars().nth(self.current).unwrap();
         self.current += 1;
         c
     }
-    fn add_token(self: &mut Self, token_type: TokenType) {
+    fn add_token(&mut self, token_type: TokenType) {
         self.add_token_lit(token_type, None);
     }
-    fn add_token_lit(self: &mut Self, token_type: TokenType, literal: Option<LiteralValue>) {
+    fn add_token_lit(&mut self, token_type: TokenType, literal: Option<LiteralValue>) {
         let text = self.source[self.start..self.current].to_string();
         self.tokens.push(Token {
-            token_type: token_type,
+            token_type,
             lexeme: text,
-            literal: literal,
+            literal,
             line_number: self.line,
         });
     }
@@ -431,7 +431,7 @@ pub struct Token {
     pub line_number: usize,
 }
 impl Token {
-    pub fn to_string(self: &Self) -> String {
+    pub fn to_string(&self) -> String {
         format!("{} {} {:?}", self.token_type, self.lexeme, self.literal)
     }
 }

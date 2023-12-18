@@ -43,43 +43,24 @@ if age < 18 {
 
 ## Installation
 
-Before starting the installation, please make sure that you have already installed [Rust](https://www.rust-lang.org/tools/install).
+```bash
+curl -o tron https://tronlang.org/tron-lang
+sudo mv tron /usr/local/bin/
+sudo chmod +x /usr/local/bin/tron
+```
+
+
+## Initializing Project
+```
+mkdir tronproject
+cd tronproject
+tron config
+```
+
+create `main.tron` and then run the following command in the cli
 
 ```bash
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+tron main.tron
 ```
 
-If rust is already installed you are free to install Tron in your project:
-
-```bash
-mkdir tron-project
-cd tron-project
-curl https://tronlang.org/tron-lang --output tron
-```
-
-add the configuration file `tron.toml` and then
-
-```toml 
-name = "TronProject"
-entry = "main"
-version = "0.0.1"
-authors = "YOU"
-license = "MIT"
-decor = "default"
-pointer = "default"
-env = "prod"
-experimental = "false"
-credits = "false"
-warnings = "true"
-```
-
-create `src/main.tron` and then run the following command in the cli
-
-```bash
-./tron
-```
-
-## Authors
-
-- [@418e](https://www.github.com/418e)
-
+Enjoy!

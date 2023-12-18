@@ -9,6 +9,7 @@ use std::cmp::{Eq, PartialEq};
 use std::hash::{Hash, Hasher};
 use std::io;
 use std::rc::Rc;
+
 #[derive(Clone)]
 pub enum CallableImpl {
     TronFunction(TronFunctionImpl),
@@ -604,12 +605,25 @@ impl Expr {
                     (StringValue(x), TokenType::Parse) => Ok(LiteralValue::Number(
                         x.trim().parse().expect("Expected a number"),
                     )),
+                    (StringValue(_), TokenType::Type) => {
+                        Ok(LiteralValue::StringValue("String".to_string()))
+                    }
+                    (Number(_), TokenType::Type) => {
+                        Ok(LiteralValue::StringValue("Number".to_string()))
+                    }
+
+                    (True, TokenType::Type) => {
+                        Ok(LiteralValue::StringValue("Boolean".to_string()))
+                    }
+                    (False, TokenType::Type) => {
+                        Ok(LiteralValue::StringValue("Boolean".to_string()))
+                    }
+                    (Nil, TokenType::Type) => {
+                        Ok(LiteralValue::StringValue("Null".to_string()))
+                    }
                     (Number(x), TokenType::Sin) => Ok(Number(x.sin())),
-                    (Number(x), TokenType::ASin) => Ok(Number(x.asin())),
                     (Number(x), TokenType::Cos) => Ok(Number(x.cos())),
-                    (Number(x), TokenType::ACos) => Ok(Number(x.acos())),
                     (Number(x), TokenType::Tan) => Ok(Number(x.tan())),
-                    (Number(x), TokenType::ATan) => Ok(Number(x.atan())),
                     (Number(x), TokenType::Round) => Ok(Number(x.round())),
                     (Number(x), TokenType::Floor) => Ok(Number(x.floor())),
                     (Number(x), TokenType::Percent) => Ok(Number(*x / 100 as f64)),

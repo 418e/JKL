@@ -1,7 +1,6 @@
 use crate::environment::Environment;
 use crate::expr::{CallableImpl, LiteralValue, NativeFunctionImpl, TronFunctionImpl};
 use crate::parser::*;
-use crate::pathf;
 use crate::resolver::*;
 use crate::scanner::Token;
 use crate::scanner::*;
@@ -80,7 +79,13 @@ impl Interpreter {
                 Stmt::Import { expression } => {
                     let value = expression.evaluate(self.environment.clone())?;
                     fn run_file(path: &str) -> Result<(), String> {
-                        match fs::read_to_string(pathf(false).to_owned() + path + ".tron") {
+                        let absolute_path = if path.starts_with("/") {
+                            path.to_string()
+                        } else {
+                            let current_dir = std::env::current_dir().unwrap();
+                            current_dir.join(path).to_str().unwrap().to_string()
+                        };
+                        match fs::read_to_string(&absolute_path) {
                             Err(msg) => Err(msg.to_string()),
                             Ok(contents) => run_string(&contents),
                         }

@@ -6,7 +6,7 @@ fn is_digit(ch: char) -> bool {
 }
 fn is_alpha(ch: char) -> bool {
     let uch = ch as u8;
-    (uch >= b'a' && uch <= b'z') || (uch >= b'A' && uch <= b'Z' ) || (ch == '_')
+    (uch >= b'a' && uch <= b'z') || (uch >= b'A' && uch <= b'Z') || (ch == '_')
 }
 fn is_alpha_numeric(ch: char) -> bool {
     is_alpha(ch) || is_digit(ch)
@@ -88,21 +88,17 @@ impl Scanner {
                     Sin
                 } else if self.chars_match("cos") {
                     Cos
-                } else if self.chars_match("asin") {
-                    ASin
-                } else if self.chars_match("acos") {
-                    ACos
-                } else if self.chars_match("atan") {
-                    ATan
+                } else if self.chars_match("typ") {
+                    Type
                 } else if self.chars_match("tan") {
                     Tan
                 } else if self.chars_match("rnd") {
                     Round
                 } else if self.chars_match("flr") {
                     Floor
-                } else if self.chars_match("todeg") {
+                } else if self.chars_match("deg") {
                     ToDeg
-                } else if self.chars_match("torad") {
+                } else if self.chars_match("rad") {
                     ToRad
                 } else if self.chars_match("in") {
                     In
@@ -113,6 +109,7 @@ impl Scanner {
                 } else {
                     DoubleComma
                 };
+                println!("{}", token);
                 self.add_token(token)
             }
             '^' => {
@@ -278,7 +275,7 @@ impl Scanner {
             return Err("Error 120: Unterminated string"
                 .to_string()
                 .red()
-                  .to_string());
+                .to_string());
         }
         self.advance();
         let value = &self.source[self.start + 1..self.current - 1];
@@ -311,13 +308,11 @@ impl Scanner {
         }
     }
     fn chars_match(&mut self, chars: &str) -> bool {
-        if self.is_at_end() {
-            return false;
-        } else if !chars.contains(self.source.chars().nth(self.current).unwrap()) {
-            return false;
-        } else {
+        if !self.is_at_end() && chars.contains(self.source.chars().nth(self.current).unwrap()) {
             self.current += chars.len();
             return true;
+        }  else {
+            return false;
         }
     }
     fn advance(&mut self) -> char {
@@ -360,12 +355,10 @@ pub enum TokenType {
     Sin,
     Cos,
     Tan,
-    ASin,
-    ACos,
-    ATan,
     Round,
     Floor,
     Parse,
+    Type,
     In,
     Num,
     ToDeg,

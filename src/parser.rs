@@ -137,6 +137,8 @@ impl Parser {
             self.for_statement()
         } else if self.match_token(Return) {
             self.return_statement()
+        } else if self.match_token(Break) {
+            self.break_statement()
         } else {
             self.expression_statement()
         }
@@ -151,6 +153,11 @@ impl Parser {
         }
         self.consume(Semicolon, "Expected ';' after return value;")?;
         Ok(Stmt::ReturnStmt { keyword, value })
+    }
+    fn break_statement(&mut self) -> Result<Stmt, String> {
+        let keyword = self.previous();
+        self.consume(Semicolon, "Expected ';' after return value;")?;
+        Ok(Stmt::BreakStmt { keyword })
     }
     fn for_statement(&mut self) -> Result<Stmt, String> {
         let initializer;
@@ -227,15 +234,24 @@ impl Parser {
     fn if_statement(&mut self) -> Result<Stmt, String> {
         let predicate = self.expression()?;
         let then = Box::new(self.statement()?);
+        let mut elif_branches = Vec::new();
+
+        while self.match_token(Elif) {
+            let elif_predicate = self.expression()?;
+            let elif_stmt = Box::new(self.statement()?);
+            elif_branches.push((elif_predicate, elif_stmt));
+        }
+
         let els = if self.match_token(Else) {
-            let stm = self.statement()?;
-            Some(Box::new(stm))
+            Some(Box::new(self.statement()?))
         } else {
             None
         };
+
         Ok(Stmt::IfStmt {
             predicate,
             then,
+            elif_branches,
             els,
         })
     }
@@ -665,7 +681,7 @@ impl Parser {
             }
             match self.peek().token_type {
                 Fun | Var | For | If | Input | Errors | While | Bench | Print | Return | Import
-                | Try | Exits => return,
+                | Try | Exits | Break => return,
                 _ => (),
             }
             self.advance();

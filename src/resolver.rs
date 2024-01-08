@@ -8,9 +8,15 @@ enum FunctionType {
     None,
     Function,
 }
+#[derive(Copy, Clone, PartialEq)]
+enum LoopType {
+    None,
+    Loop,
+}
 pub struct Resolver {
     scopes: Vec<HashMap<String, bool>>,
     current_function: FunctionType,
+    current_loop: LoopType,
     locals: HashMap<usize, usize>,
 }
 impl Resolver {
@@ -18,6 +24,7 @@ impl Resolver {
         Self {
             scopes: vec![],
             current_function: FunctionType::None,
+            current_loop: LoopType::None,
             locals: HashMap::new(),
         }
     }
@@ -38,6 +45,7 @@ impl Resolver {
             Stmt::IfStmt {
                 predicate: _,
                 then: _,
+                elif_branches: _,
                 els: _,
             } => self.resolve_if_stmt(stmt)?,
             Stmt::TryStmt { tri, catch } => {
@@ -63,7 +71,21 @@ impl Resolver {
             }
             Stmt::WhileStmt { condition, body } => {
                 self.resolve_expr(condition)?;
+                let previous_loop = self.current_loop;
+                self.current_loop = LoopType::Loop; // Set the current loop state to Loop
                 self.resolve_internal(body.as_ref())?;
+                self.current_loop = previous_loop; // Restore the previous loop state
+            }
+
+            Stmt::BreakStmt { keyword: _ } => {
+                if self.current_loop == LoopType::None {
+                    return Err(
+                        "Error 115: Break statement is not allowed outside of a loop"
+                            .to_string()
+                            .red()
+                            .to_string(),
+                    );
+                }
             }
             Stmt::BenchStmt { body } => {
                 self.resolve_internal(body.as_ref())?;
@@ -122,17 +144,24 @@ impl Resolver {
         if let Stmt::IfStmt {
             predicate,
             then,
+            elif_branches,
             els,
         } = stmt
         {
             self.resolve_expr(predicate)?;
             self.resolve_internal(then.as_ref())?;
+
+            for (elif_predicate, elif_stmt) in elif_branches {
+                self.resolve_expr(elif_predicate)?;
+                self.resolve_internal(elif_stmt.as_ref())?;
+            }
+
             if let Some(els) = els {
                 self.resolve_internal(els.as_ref())?;
             }
             Ok(())
         } else {
-            panic!("Wrong type in resolve if stmt");
+            panic!("Wrong type in resolve_if_stmt");
         }
     }
     fn resolve_function_helper(

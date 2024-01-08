@@ -35,6 +35,8 @@ fn get_keywords_hashmap() -> HashMap<&'static str, TokenType> {
         ("bench", Bench),
         ("catch", Catch),
         ("try", Try),
+        ("elif", Elif),
+        ("break", Break),
     ])
 }
 pub struct Scanner {
@@ -390,6 +392,7 @@ pub enum TokenType {
     Fun,
     For,
     If,
+    Elif,
     Try,
     Catch,
     Nil,
@@ -407,6 +410,7 @@ pub enum TokenType {
     Eof,
     Import,
     Exits,
+    Break,
 }
 use TokenType::*;
 impl std::fmt::Display for TokenType {

@@ -141,15 +141,28 @@ impl Interpreter {
                 Stmt::IfStmt {
                     predicate,
                     then,
+                    elif_branches,
                     els,
                 } => {
                     let truth_value = predicate.evaluate(self.environment.clone())?;
                     if truth_value.is_truthy() == LiteralValue::True {
-                        let statements = vec![then.as_ref()];
-                        self.interpret(statements)?;
-                    } else if let Some(els_stmt) = els {
-                        let statements = vec![els_stmt.as_ref()];
-                        self.interpret(statements)?;
+                        self.interpret(vec![then.as_ref()])?;
+                    } else {
+                        let mut executed_branch = false;
+                        for (elif_predicate, elif_stmt) in elif_branches {
+                            let elif_truth_value =
+                                elif_predicate.evaluate(self.environment.clone())?;
+                            if elif_truth_value.is_truthy() == LiteralValue::True {
+                                self.interpret(vec![elif_stmt.as_ref()])?;
+                                executed_branch = true;
+                                break;
+                            }
+                        }
+                        if !executed_branch {
+                            if let Some(els_stmt) = els {
+                                self.interpret(vec![els_stmt.as_ref()])?;
+                            }
+                        }
                     }
                 }
                 Stmt::TryStmt { tri, catch } => {
@@ -164,11 +177,14 @@ impl Interpreter {
                     }
                 }
                 Stmt::WhileStmt { condition, body } => {
-                    let mut flag = condition.evaluate(self.environment.clone())?;
-                    while flag.is_truthy() == LiteralValue::True {
-                        let statements = vec![body.as_ref()];
-                        self.interpret(statements)?;
-                        flag = condition.evaluate(self.environment.clone())?;
+                    while condition.evaluate(self.environment.clone())?.is_truthy()
+                        == LiteralValue::True
+                    {
+                        match self.interpret(vec![body.as_ref()]) {
+                            Ok(_) => {}
+                            Err(e) if e == "break" => break, // Check for a "break" error to exit the loop
+                            Err(e) => return Err(e),         // Propagate other errors
+                        }
                     }
                 }
                 Stmt::BenchStmt { body } => {
@@ -227,6 +243,9 @@ impl Interpreter {
                         eval_val = LiteralValue::Nil;
                     }
                     self.specials.insert("return".to_string(), eval_val);
+                }
+                Stmt::BreakStmt { .. } => {
+                    return Err("break".to_string());
                 }
             };
         }

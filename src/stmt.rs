@@ -28,6 +28,7 @@ pub enum Stmt {
     IfStmt {
         predicate: Expr,
         then: Box<Stmt>,
+        elif_branches: Vec<(Expr, Box<Stmt>)>,
         els: Option<Box<Stmt>>,
     },
     TryStmt {
@@ -53,5 +54,8 @@ pub enum Stmt {
     ReturnStmt {
         keyword: Token,
         value: Option<Expr>,
+    },
+    BreakStmt {
+        keyword: Token,
     },
 }

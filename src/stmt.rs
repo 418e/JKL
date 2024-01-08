@@ -30,6 +30,10 @@ pub enum Stmt {
         then: Box<Stmt>,
         els: Option<Box<Stmt>>,
     },
+    TryStmt {
+        tri: Box<Stmt>,
+        catch: Box<Stmt>,
+    },
     WhileStmt {
         condition: Expr,
         body: Box<Stmt>,

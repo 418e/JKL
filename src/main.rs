@@ -9,62 +9,60 @@ use crate::interpreter::*;
 use crate::parser::*;
 use crate::resolver::*;
 use crate::scanner::*;
-use config::Config;
+use config::{Config, File, Environment};
 use std::collections::HashMap;
 use std::env;
 use std::fs;
 use std::process::exit;
 
-pub fn settings(param: &str) -> String {
-    let options = vec![
-        "name",
-        "entry",
-        "version",
-        "authors",
-        "license",
-        "decor",
-        "pointer",
-        "env",
-        "experimental",
-        "credits",
-        "warnings",
+fn settings(param: &str) -> String {
+    let options = [
+        "name", "entry", "version", "authors", "license",
+        "decor", "pointer", "env", "experimental", "credits", "warnings",
     ];
-    if options.iter().any(|&i| i == param) {
-        let settings = Config::builder()
-            .add_source(config::File::with_name(pathf(true)))
-            .add_source(config::Environment::with_prefix("APP"))
-            .build()
-            .unwrap();
 
-        let setting = &settings
-            .try_deserialize::<HashMap<String, String>>()
-            .unwrap()[&param.to_string()];
-        return setting.to_string();
-    } else {
-        return "NotFound".to_string();
+    if options.contains(&param) {
+        let settings = Config::builder()
+            .add_source(File::with_name(pathf(true)))
+            .add_source(Environment::with_prefix("APP"))
+            .build();
+
+        match settings {
+            Ok(settings) => {
+                if let Ok(setting) = settings.try_deserialize::<HashMap<String, String>>() {
+                    if let Some(value) = setting.get(param) {
+                        return value.clone();
+                    }
+                }
+            }
+            Err(_) => return "Error".to_string(),
+        }
     }
+    "NotFound".to_string()
 }
 
 fn pathf(param: bool) -> &'static str {
     let settings = Config::builder()
-        .add_source(config::File::with_name("tron"))
-        .add_source(config::Environment::with_prefix("APP"))
-        .build()
-        .unwrap();
-    let envm = &settings
-        .try_deserialize::<HashMap<String, String>>()
-        .unwrap()["env"];
-    if envm == "dev" {
-        if param {
-            return "./tron.toml";
-        } else {
-            return "test/";
+        .add_source(File::with_name("tron"))
+        .add_source(Environment::with_prefix("APP"))
+        .build();
+
+    if let Ok(settings) = settings {
+        if let Ok(env_map) = settings.try_deserialize::<HashMap<String, String>>() {
+            if let Some(envm) = env_map.get("env") {
+                if envm == "dev" && param {
+                    return "./tron.toml";
+                } else if envm == "dev" && !param {
+                    return "test/";
+                } else if param {
+                    return "./tron.toml";
+                } else {
+                    return "src/";
+                }
+            }
         }
-    } else if param {
-        return "./tron.toml";
-    } else {
-        return "src/";
     }
+    "./tron.toml"
 }
 pub fn run_file(path: &str) -> Result<(), String> {
     let absolute_path = if path.starts_with("/") {
@@ -134,7 +132,7 @@ fn main() {
                 version = "0.0.1"
                 authors = "YOU"
                 license = "MIT"
-                decor = "default"
+                decor = "false"
                 pointer = "default"
                 env = "prod"
                 experimental = "false"

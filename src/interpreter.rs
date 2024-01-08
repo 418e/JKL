@@ -42,14 +42,12 @@ impl Interpreter {
                 }
                 Stmt::Print { expression } => {
                     let value = expression.evaluate(self.environment.clone())?;
-                    if settings("pointer") == "default" {
-                        println!(" ➤ {}", value.to_string().green().to_string());
+                    let pointer_setting = settings("pointer");
+
+                    if pointer_setting == "default" {
+                        println!(" ➤ {}", value.to_string().green());
                     } else {
-                        println!(
-                            " {} {}",
-                            settings("pointer"),
-                            value.to_string().green().to_string()
-                        );
+                        println!(" {} {}", pointer_setting, value.to_string().green());
                     }
                 }
                 Stmt::Input { expression } => {
@@ -78,40 +76,47 @@ impl Interpreter {
                 Stmt::Exits {} => exit(1),
                 Stmt::Import { expression } => {
                     let value = expression.evaluate(self.environment.clone())?;
-                    fn run_file(path: &str) -> Result<(), String> {
-                        let absolute_path = if path.starts_with("/") {
+                    let val = value.to_string();
+
+                    // Extract path removing the enclosing quotes
+                    fn rem_first_and_last(value: &str) -> &str {
+                        &value[1..value.len() - 1]
+                    }
+
+                    let run_file = |path: &str| -> Result<(), String> {
+                        let absolute_path = if path.starts_with('/') {
                             path.to_string()
                         } else {
-                            let current_dir = std::env::current_dir().unwrap();
-                            current_dir.join(path).to_str().unwrap().to_string()
+                            let current_dir = std::env::current_dir().map_err(|e| e.to_string())?;
+                            current_dir
+                                .join(path)
+                                .to_str()
+                                .ok_or("Invalid path")?
+                                .to_string()
                         };
-                        match fs::read_to_string(&absolute_path) {
-                            Err(msg) => Err(msg.to_string()),
-                            Ok(contents) => run_string(&contents),
-                        }
-                    }
+
+                        let contents =
+                            fs::read_to_string(&absolute_path).map_err(|e| e.to_string())?;
+                        run_string(&contents)
+                    };
+
                     fn run_string(contents: &str) -> Result<(), String> {
                         let mut interpreter = Interpreter::new();
                         run(&mut interpreter, contents)
                     }
                     fn run(interpreter: &mut Interpreter, contents: &str) -> Result<(), String> {
                         let scanner = Scanner::new(contents);
-                        let tokens = scanner.scan_tokens()?;
+                        let tokens = scanner.scan_tokens().map_err(|e| e.to_string())?;
                         let mut parser = Parser::new(tokens);
-                        let stmts = parser.parse()?;
+                        let stmts: Vec<Stmt> = parser.parse().map_err(|e| e.to_string())?;
+                        let stmts_refs: Vec<&Stmt> = stmts.iter().collect();
                         let resolver = Resolver::new();
-                        let locals = resolver.resolve(&stmts.iter().collect())?;
+                        let locals = resolver.resolve(&stmts_refs)?;
                         interpreter.resolve(locals);
-                        interpreter.interpret(stmts.iter().collect())?;
-                        return Ok(());
+                        interpreter.interpret(stmts_refs)?;
+                        Ok(())
                     }
-                    let val: String = value.to_string();
-                    fn rem_first_and_last(value: &str) -> &str {
-                        let mut chars = value.chars();
-                        chars.next();
-                        chars.next_back();
-                        chars.as_str()
-                    }
+
                     match run_file(rem_first_and_last(&val)) {
                         Ok(_) => {}
                         Err(msg) => {
@@ -145,6 +150,17 @@ impl Interpreter {
                     } else if let Some(els_stmt) = els {
                         let statements = vec![els_stmt.as_ref()];
                         self.interpret(statements)?;
+                    }
+                }
+                Stmt::TryStmt { tri, catch } => {
+                    let result = self.interpret(vec![tri.as_ref()]);
+                    match result {
+                        Ok(_) => {
+                            self.interpret(vec![tri.as_ref()])?;
+                        }
+                        Err(_) => {
+                            self.interpret(vec![catch.as_ref()])?;
+                        }
                     }
                 }
                 Stmt::WhileStmt { condition, body } => {

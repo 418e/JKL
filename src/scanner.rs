@@ -33,6 +33,8 @@ fn get_keywords_hashmap() -> HashMap<&'static str, TokenType> {
         ("let", Var),
         ("while", While),
         ("bench", Bench),
+        ("catch", Catch),
+        ("try", Try),
     ])
 }
 pub struct Scanner {
@@ -311,7 +313,7 @@ impl Scanner {
         if !self.is_at_end() && chars.contains(self.source.chars().nth(self.current).unwrap()) {
             self.current += chars.len();
             return true;
-        }  else {
+        } else {
             return false;
         }
     }
@@ -388,6 +390,8 @@ pub enum TokenType {
     Fun,
     For,
     If,
+    Try,
+    Catch,
     Nil,
     Or,
     Nor,

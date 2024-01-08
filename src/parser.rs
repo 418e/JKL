@@ -127,6 +127,8 @@ impl Parser {
             self.block_statement()
         } else if self.match_token(If) {
             self.if_statement()
+        } else if self.match_token(Try) {
+            self.try_statement()
         } else if self.match_token(While) {
             self.while_statement()
         } else if self.match_token(Bench) {
@@ -236,6 +238,22 @@ impl Parser {
             then,
             els,
         })
+    }
+    fn try_statement(&mut self) -> Result<Stmt, String> {
+        let tri = self.statement()?;
+        let catch = if self.match_token(Catch) {
+            let stm = self.statement()?;
+            Some(Box::new(stm))
+        } else {
+            None
+        };
+        match catch {
+            Some(catch_stmt) => Ok(Stmt::TryStmt {
+                tri: Box::new(tri),
+                catch: catch_stmt,
+            }),
+            None => Err("Expected 'catch' clause in try statement".to_string()),
+        }
     }
     fn block_statement(&mut self) -> Result<Stmt, String> {
         let mut statements = vec![];
@@ -476,7 +494,7 @@ impl Parser {
     fn unary(&mut self) -> Result<Expr, String> {
         if self.match_tokens(&[
             Bang, Minus, Increment, Decrement, Sin, Cos, Tan, In, Round, Floor, Percent, ToDeg,
-            ToRad, Parse, Num, Type
+            ToRad, Parse, Num, Type,
         ]) {
             let op = self.previous();
             let rhs = self.unary()?;
@@ -647,7 +665,7 @@ impl Parser {
             }
             match self.peek().token_type {
                 Fun | Var | For | If | Input | Errors | While | Bench | Print | Return | Import
-                | Exits => return,
+                | Try | Exits => return,
                 _ => (),
             }
             self.advance();

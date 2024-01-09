@@ -17,7 +17,7 @@ An Open Source, Fast and Simple Programming Language written in Rust
 ## Usage/Examples
 
 ```rust
-let name = :in("Please enter your name: ");
+let name = input("name please.");
 print "Hello " + name;
 ```
 

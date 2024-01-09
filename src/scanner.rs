@@ -89,35 +89,7 @@ impl Scanner {
             ',' => self.add_token(Comma),
             '%' => self.add_token(Percent),
             '$' => self.add_token(Dollar),
-            ':' => {
-                let token = if self.chars_match("sin") {
-                    Sin
-                } else if self.chars_match("cos") {
-                    Cos
-                } else if self.chars_match("typ") {
-                    Type
-                } else if self.chars_match("tan") {
-                    Tan
-                } else if self.chars_match("rnd") {
-                    Round
-                } else if self.chars_match("flr") {
-                    Floor
-                } else if self.chars_match("deg") {
-                    ToDeg
-                } else if self.chars_match("rad") {
-                    ToRad
-                } else if self.chars_match("in") {
-                    In
-                } else if self.chars_match("par") {
-                    Parse
-                } else if self.chars_match("num") {
-                    Num
-                } else {
-                    DoubleComma
-                };
-                println!("{}", token);
-                self.add_token(token)
-            }
+            ':' => self.add_token(DoubleComma),
             '^' => {
                 let token = if self.char_match('^') { Cube } else { Power };
                 self.add_token(token)
@@ -311,14 +283,6 @@ impl Scanner {
         } else {
             self.current += 1;
             return true;
-        }
-    }
-    fn chars_match(&mut self, chars: &str) -> bool {
-        if !self.is_at_end() && chars.contains(self.source.chars().nth(self.current).unwrap()) {
-            self.current += chars.len();
-            return true;
-        } else {
-            return false;
         }
     }
     fn advance(&mut self) -> char {

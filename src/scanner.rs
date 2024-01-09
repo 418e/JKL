@@ -84,6 +84,8 @@ impl Scanner {
             ')' => self.add_token(RightParen),
             '{' => self.add_token(LeftBrace),
             '}' => self.add_token(RightBrace),
+            '[' => self.add_token(LeftBracket),
+            ']' => self.add_token(RightBracket),
             ',' => self.add_token(Comma),
             '%' => self.add_token(Percent),
             '$' => self.add_token(Dollar),
@@ -343,6 +345,8 @@ pub enum TokenType {
     RightParen,
     LeftBrace,
     RightBrace,
+    LeftBracket,
+    RightBracket,
     Comma,
     DoubleComma,
     Dot,
@@ -417,6 +421,12 @@ impl std::fmt::Display for TokenType {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(f, "{:?}", self)
     }
+}
+
+#[derive(Debug, Clone)]
+pub struct ArrayElement {
+    #[allow(dead_code)]
+    token: Token,
 }
 #[derive(Debug, Clone)]
 pub enum LiteralValue {

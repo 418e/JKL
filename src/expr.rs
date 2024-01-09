@@ -699,6 +699,9 @@ impl Expr {
                     (Number(x), TokenType::Plus, StringValue(y)) => {
                         Ok(StringValue(format!("{}{}", x.to_string(), y)))
                     }
+                    (StringValue(x), TokenType::Plus, StringValue(y)) => {
+                        Ok(StringValue(format!("{}{}", x.to_string(), y)))
+                    }
                     (Number(x), TokenType::Minus, Number(y)) => Ok(Number(x - y)),
                     (Number(x), TokenType::Star, Number(y)) => Ok(Number(x * y)),
                     (Number(x), TokenType::Slash, Number(y)) => Ok(Number(x / y)),

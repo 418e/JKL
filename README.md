@@ -52,10 +52,9 @@ sudo chmod +x /usr/local/bin/tron
 
 
 ## Initializing Project
-```
-mkdir tronproject
-cd tronproject
-tron config
+
+```rs
+print "Hello, world!";
 ```
 
 create `main.tron` and then run the following command in the cli

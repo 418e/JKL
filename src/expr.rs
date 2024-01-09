@@ -7,7 +7,6 @@ use num::integer::Roots;
 use rand::Rng;
 use std::cmp::{Eq, PartialEq};
 use std::hash::{Hash, Hasher};
-use std::io;
 use std::rc::Rc;
 
 #[derive(Clone)]
@@ -508,6 +507,22 @@ impl Expr {
                     Callable(CallableImpl::TronFunction(tronfun)) => {
                         run_tron_function(tronfun, arguments, environment)
                     }
+                    LiteralValue::Number(num) => {
+                        if let Expr::Literal {
+                            value: LiteralValue::StringValue(method_name),
+                            ..
+                        } = &arguments[0]
+                        {
+                            match method_name.as_str() {
+                                "sin" => Ok(LiteralValue::Number(num.sin())),
+                                // Add other internal functions here
+                                _ => Err("Error: Unknown method".to_string()),
+                            }
+                        } else {
+                            Err("Error: First argument of method call must be a method name"
+                                .to_string())
+                        }
+                    }
                     Callable(CallableImpl::NativeFunction(nativefun)) => {
                         let mut evaluated_arguments = vec![];
                         for argument in arguments {
@@ -650,42 +665,6 @@ impl Expr {
                     (Number(x), TokenType::Random) => {
                         Ok(Number(rng.gen_range(0..*x as i64) as f64))
                     }
-                    (StringValue(x), TokenType::In) => {
-                        println!("{}", x.to_string());
-                        let mut input = String::new();
-                        io::stdin().read_line(&mut input).unwrap();
-                        Ok(StringValue(format!("{}", input)))
-                    }
-                    (StringValue(x), TokenType::Num) => {
-                        println!("{}", x.to_string());
-                        let mut input = String::new();
-                        io::stdin().read_line(&mut input).unwrap();
-                        let inputs: f64 = input.trim().parse().expect("Expected a number");
-                        Ok(LiteralValue::Number(inputs))
-                    }
-                    (StringValue(x), TokenType::Parse) => Ok(LiteralValue::Number(
-                        x.trim().parse().expect("Expected a number"),
-                    )),
-                    (StringValue(_), TokenType::Type) => {
-                        Ok(LiteralValue::StringValue("String".to_string()))
-                    }
-                    (Number(_), TokenType::Type) => {
-                        Ok(LiteralValue::StringValue("Number".to_string()))
-                    }
-
-                    (True, TokenType::Type) => Ok(LiteralValue::StringValue("Boolean".to_string())),
-                    (False, TokenType::Type) => {
-                        Ok(LiteralValue::StringValue("Boolean".to_string()))
-                    }
-                    (Nil, TokenType::Type) => Ok(LiteralValue::StringValue("Null".to_string())),
-                    (Number(x), TokenType::Sin) => Ok(Number(x.sin())),
-                    (Number(x), TokenType::Cos) => Ok(Number(x.cos())),
-                    (Number(x), TokenType::Tan) => Ok(Number(x.tan())),
-                    (Number(x), TokenType::Round) => Ok(Number(x.round())),
-                    (Number(x), TokenType::Floor) => Ok(Number(x.floor())),
-                    (Number(x), TokenType::Percent) => Ok(Number(*x / 100 as f64)),
-                    (Number(x), TokenType::ToDeg) => Ok(Number(x.to_degrees())),
-                    (Number(x), TokenType::ToRad) => Ok(Number(x.to_radians())),
                     (_, TokenType::Minus) => Err(format!(
                         "Error 107: Minus not implemented for {}",
                         right.to_type()
@@ -728,56 +707,8 @@ impl Expr {
                     )
                     .red()
                     .to_string()),
-                    (_, TokenType::In) => Err(format!(
-                        "Error 107: In not implemented for {}",
-                        right.to_type()
-                    )
-                    .red()
-                    .to_string()),
-                    (_, TokenType::Num) => Err(format!(
-                        "Error 107: Num not implemented for {}",
-                        right.to_type()
-                    )
-                    .red()
-                    .to_string()),
-                    (_, TokenType::Parse) => Err(format!(
-                        "Error 107: Parse not implemented for {}",
-                        right.to_type()
-                    )
-                    .red()
-                    .to_string()),
-                    (_, TokenType::Sin) => Err(format!(
-                        "Error 107: Sin not implemented for {}",
-                        right.to_type()
-                    )
-                    .red()
-                    .to_string()),
-                    (_, TokenType::Cos) => Err(format!(
-                        "Error 107: Cos not implemented for {}",
-                        right.to_type()
-                    )
-                    .red()
-                    .to_string()),
-                    (_, TokenType::Tan) => Err(format!(
-                        "Error 107: Tan not implemented for {}",
-                        right.to_type()
-                    )
-                    .red()
-                    .to_string()),
                     (_, TokenType::Percent) => Err(format!(
                         "Error 107: Percent not implemented for {}",
-                        right.to_type()
-                    )
-                    .red()
-                    .to_string()),
-                    (_, TokenType::Round) => Err(format!(
-                        "Error 107: Round not implemented for {}",
-                        right.to_type()
-                    )
-                    .red()
-                    .to_string()),
-                    (_, TokenType::Floor) => Err(format!(
-                        "Error 107: Floor not implemented for {}",
                         right.to_type()
                     )
                     .red()

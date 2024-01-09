@@ -6,6 +6,7 @@ mod parser;
 mod resolver;
 mod scanner;
 mod stmt;
+mod libs;
 use crate::interpreter::*;
 use crate::parser::*;
 use crate::resolver::*;
@@ -49,7 +50,7 @@ fn main() {
     if args.len() == 2 {
         let command = &args[1];
         if command == "version" {
-                println!("v1.3.1")
+                println!("v2.0.0")
         } else {
             let filename = command;
             let path_buf = path.join(filename);
@@ -60,7 +61,7 @@ fn main() {
                     match run_file(input) {
                         Ok(_) => exit(0),
                         Err(msg) => {
-                            println!("Error 108:\n{}", msg);
+                            println!("Error:\n{}", msg);
                             exit(1);
                         }
                     }
@@ -72,7 +73,7 @@ fn main() {
             }
         }
     } else {
-        println!("Usage: tron <filename> or tron config");
+        println!("Usage: tron <filename> or tron version");
         exit(64);
     }
 }

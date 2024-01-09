@@ -1,7 +1,6 @@
 use crate::expr::Expr;
 use crate::scanner::Token;
 use crate::stmt::Stmt;
-use colored::Colorize;
 use std::collections::HashMap;
 #[derive(Copy, Clone, PartialEq)]
 enum FunctionType {
@@ -59,12 +58,7 @@ impl Resolver {
             Stmt::Exits {} => (),
             Stmt::ReturnStmt { keyword: _, value } => {
                 if self.current_function == FunctionType::None {
-                    return Err(
-                        "Error 115: Return statement is not allowed outside of a function"
-                            .to_string()
-                            .red()
-                            .to_string(),
-                    );
+                    panic!("\n Return statement is not allowed outside of a function");
                 } else if let Some(value) = value {
                     self.resolve_expr(value)?;
                 }
@@ -72,19 +66,14 @@ impl Resolver {
             Stmt::WhileStmt { condition, body } => {
                 self.resolve_expr(condition)?;
                 let previous_loop = self.current_loop;
-                self.current_loop = LoopType::Loop; // Set the current loop state to Loop
+                self.current_loop = LoopType::Loop;
                 self.resolve_internal(body.as_ref())?;
-                self.current_loop = previous_loop; // Restore the previous loop state
+                self.current_loop = previous_loop;
             }
 
             Stmt::BreakStmt { keyword: _ } => {
                 if self.current_loop == LoopType::None {
-                    return Err(
-                        "Error 115: Break statement is not allowed outside of a loop"
-                            .to_string()
-                            .red()
-                            .to_string(),
-                    );
+                    panic!("\n Break statement is not allowed outside of a loop");
                 }
             }
             Stmt::BenchStmt { body } => {
@@ -110,7 +99,7 @@ impl Resolver {
                 self.resolve_many(&statements.iter().map(|b| b.as_ref()).collect())?;
                 self.end_scope();
             }
-            _ => panic!("Wrong type"),
+            _ => panic!("\n Wrong type"),
         }
         Ok(())
     }
@@ -123,7 +112,7 @@ impl Resolver {
             self.declare(name)?;
             self.define(name);
         } else {
-            panic!("Wrong type in resolve var");
+            panic!("\n Wrong type in resolve var");
         }
         Ok(())
     }
@@ -137,7 +126,7 @@ impl Resolver {
                 fn_type,
             )
         } else {
-            panic!("Wrong type in resolve function");
+            panic!("\n Wrong type in resolve function");
         }
     }
     fn resolve_if_stmt(&mut self, stmt: &Stmt) -> Result<(), String> {
@@ -161,7 +150,7 @@ impl Resolver {
             }
             Ok(())
         } else {
-            panic!("Wrong type in resolve_if_stmt");
+            panic!("\n Wrong type in resolve_if_stmt");
         }
     }
     fn resolve_function_helper(
@@ -193,10 +182,7 @@ impl Resolver {
         if self.scopes.is_empty() {
             return Ok(());
         } else if self.scopes[size - 1].contains_key(&name.lexeme.clone()) {
-            return Err("Error 116: A variable with this name is already in scope"
-                .to_string()
-                .red()
-                .to_string());
+            panic!("\n A variable with this name is already in scope");
         }
         self.scopes[size - 1].insert(name.lexeme.clone(), false);
         Ok(())
@@ -290,12 +276,7 @@ impl Resolver {
             Expr::Variable { id: _, name } => {
                 if !self.scopes.is_empty() {
                     if let Some(false) = self.scopes[self.scopes.len() - 1].get(&name.lexeme) {
-                        return Err(
-                            "Error 116: Can't read local variable in its own initializer"
-                                .to_string()
-                                .red()
-                                .to_string(),
-                        );
+                        panic!("\n  Can't read local variable in its own initializer");
                     }
                 }
                 self.resolve_local(name, resolve_id)
@@ -307,9 +288,9 @@ impl Resolver {
                 arguments: _,
             } => match callee.as_ref() {
                 Expr::Variable { id: _, name } => self.resolve_local(name, resolve_id),
-                _ => panic!("Wrong type in resolve_expr_var"),
+                _ => panic!("\n Wrong type in resolve_expr_var"),
             },
-            _ => panic!("Wrong type in resolve_expr_var"),
+            _ => panic!("\n Wrong type in resolve_expr_var"),
         }
     }
     fn resolve_local(&mut self, name: &Token, resolve_id: usize) -> Result<(), String> {
@@ -331,7 +312,7 @@ impl Resolver {
             self.resolve_expr(value.as_ref())?;
             self.resolve_local(name, resolve_id)?;
         } else {
-            panic!("Wrong type in resolve assign");
+            panic!("\n Wrong type in resolve assign");
         }
         Ok(())
     }

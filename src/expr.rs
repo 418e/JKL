@@ -76,13 +76,13 @@ impl PartialEq for LiteralValue {
 fn unwrap_as_f64(literal: Option<scanner::LiteralValue>) -> f64 {
     match literal {
         Some(scanner::LiteralValue::FValue(x)) => x as f64,
-        _ => panic!("Could not unwrap as f64"),
+        _ => panic!("\n Could not unwrap as f64"),
     }
 }
 fn unwrap_as_string(literal: Option<scanner::LiteralValue>) -> String {
     match literal {
         Some(scanner::LiteralValue::StringValue(s)) => s.clone(),
-        _ => panic!("Could not unwrap as string"),
+        _ => panic!("\n Could not unwrap as string"),
     }
 }
 impl LiteralValue {
@@ -124,7 +124,7 @@ impl LiteralValue {
             TokenType::False => Self::False,
             TokenType::True => Self::True,
             TokenType::Nil => Self::Nil,
-            _ => panic!("Could not create LiteralValue from {:?}", token),
+            _ => panic!("\n Could not create LiteralValue from {:?}", token),
         }
     }
     pub fn from_bool(b: bool) -> Self {
@@ -160,7 +160,7 @@ impl LiteralValue {
             True => False,
             False => True,
             Nil => True,
-            Callable(_) => panic!("Cannot use Callable as a falsy value"),
+            Callable(_) => panic!("\n Cannot use Callable as a falsy value"),
         }
     }
     pub fn is_truthy(&self) -> LiteralValue {
@@ -189,7 +189,7 @@ impl LiteralValue {
             True => True,
             False => False,
             Nil => False,
-            Callable(_) => panic!("Cannot use Callable as a truthy value"),
+            Callable(_) => panic!("\n Cannot use Callable as a truthy value"),
         }
     }
 }
@@ -439,11 +439,11 @@ impl Expr {
                         if let LiteralValue::ArrayValue(arr) = array {
                             let idx = index_num as usize;
                             return arr.get(idx).cloned().ok_or_else(|| {
-                                format!("Error 108: Array index out of bounds: {}", idx)
+                                panic!("\n Array index out of bounds");
                             });
                         }
                     }
-                    Err("Error 109: Invalid array indexing operation".to_string())
+                    panic!("\n Invalid array indexing operation");
                 } else {
                     let mut array_elements = Vec::new();
                     for element_expr in elements.iter() {
@@ -460,22 +460,19 @@ impl Expr {
                 if assign_success {
                     Ok(new_value)
                 } else {
-                    Err(
-                        format!("Error 100: Variable {} has not been declared", name.lexeme)
-                            .red()
-                            .to_string(),
-                    )
+                    panic!(
+                        "\n Variable {} has not been declared",
+                        name.lexeme.to_string()
+                    );
                 }
             }
             Expr::Variable { id: _, name } => match environment.get(&name.lexeme, self.get_id()) {
                 Some(value) => Ok(value.clone()),
-                None => Err(format!(
-                    "Error 100: Variable '{}' has not been declared at distance {:?}",
+                None => panic!(
+                    "Variable '{}' has not been declared at distance {:?}",
                     name.lexeme,
                     environment.get_distance(self.get_id())
-                )
-                .red()
-                .to_string()),
+                ),
             },
             Expr::Call {
                 id: _,
@@ -488,22 +485,6 @@ impl Expr {
                     Callable(CallableImpl::TronFunction(tronfun)) => {
                         run_tron_function(tronfun, arguments, environment)
                     }
-                    LiteralValue::Number(num) => {
-                        if let Expr::Literal {
-                            value: LiteralValue::StringValue(method_name),
-                            ..
-                        } = &arguments[0]
-                        {
-                            match method_name.as_str() {
-                                "sin" => Ok(LiteralValue::Number(num.sin())),
-                                // Add other internal functions here
-                                _ => Err("Error: Unknown method".to_string()),
-                            }
-                        } else {
-                            Err("Error: First argument of method call must be a method name"
-                                .to_string())
-                        }
-                    }
                     Callable(CallableImpl::NativeFunction(nativefun)) => {
                         let mut evaluated_arguments = vec![];
                         for argument in arguments {
@@ -511,9 +492,7 @@ impl Expr {
                         }
                         Ok((nativefun.fun)(&evaluated_arguments))
                     }
-                    other => Err(format!("Error 102: {} is not callable", other.to_type())
-                        .red()
-                        .to_string()),
+                    other => panic!("\n Error 102: {} is not callable", other.to_type()),
                 }
             }
             Expr::Literal { id: _, value } => Ok((*value).clone()),
@@ -559,11 +538,7 @@ impl Expr {
                         right.evaluate(environment.clone())
                     }
                 }
-                ttype => Err(
-                    format!("Error 103: Invalid token in logical expression: {}", ttype)
-                        .red()
-                        .to_string(),
-                ),
+                ttype => panic!("\n Invalid token in logical expression: {}", ttype),
             },
             Expr::Get {
                 id: _,
@@ -582,7 +557,7 @@ impl Expr {
                             .cloned()
                             .ok_or_else(|| format!("Index out of bounds: {}", index))
                     }
-                    _ => Err(format!("Trying to index a non-array value")),
+                    _ => panic!("\n Trying to index a non-array value"),
                 }
             }
 
@@ -593,14 +568,12 @@ impl Expr {
                 value,
             } => {
                 let obj_value = object.evaluate(environment.clone())?;
-                Err(format!(
-                    "Error 105: Cannot set property on type {} /  {:?} / {:?}",
+                panic!(
+                    "Cannot set property on type {} /  {:?} / {:?}",
                     obj_value.to_type(),
                     name,
                     value
                 )
-                .red()
-                .to_string())
             }
             Expr::Grouping { id: _, expression } => expression.evaluate(environment),
             Expr::Unary {
@@ -624,61 +597,32 @@ impl Expr {
                     (Number(x), TokenType::Random) => {
                         Ok(Number(rng.gen_range(0..*x as i64) as f64))
                     }
-                    (_, TokenType::Minus) => Err(format!(
-                        "Error 107: Minus not implemented for {}",
-                        right.to_type()
-                    )
-                    .red()
-                    .to_string()),
-                    (_, TokenType::Increment) => Err(format!(
-                        "Error 107: Increment not implemented for {}",
-                        right.to_type()
-                    )
-                    .red()
-                    .to_string()),
-                    (_, TokenType::Decrement) => Err(format!(
-                        "Error 107: Decrement not implemented for {}",
-                        right.to_type()
-                    )
-                    .red()
-                    .to_string()),
-                    (_, TokenType::Power) => Err(format!(
-                        "Error 107: Power not implemented for {}",
-                        right.to_type()
-                    )
-                    .red()
-                    .to_string()),
-                    (_, TokenType::Cube) => Err(format!(
-                        "Error 107: Cube not implemented for {}",
-                        right.to_type()
-                    )
-                    .red()
-                    .to_string()),
-                    (_, TokenType::Root) => Err(format!(
-                        "Error 107: Root not implemented for {}",
-                        right.to_type()
-                    )
-                    .red()
-                    .to_string()),
-                    (_, TokenType::CubicRoot) => Err(format!(
-                        "Error 107: CubicRoot not implemented for {}",
-                        right.to_type()
-                    )
-                    .red()
-                    .to_string()),
-                    (_, TokenType::Percent) => Err(format!(
-                        "Error 107: Percent not implemented for {}",
-                        right.to_type()
-                    )
-                    .red()
-                    .to_string()),
+                    (_, TokenType::Minus) => {
+                        panic!("\n Minus not implemented for {}", right.to_type())
+                    }
+                    (_, TokenType::Increment) => {
+                        panic!("\n Increment not implemented for {}", right.to_type())
+                    }
+                    (_, TokenType::Decrement) => {
+                        panic!("\n Decrement not implemented for {}", right.to_type())
+                    }
+                    (_, TokenType::Power) => {
+                        panic!("\n Power not implemented for {}", right.to_type())
+                    }
+                    (_, TokenType::Cube) => {
+                        panic!("\n Cube not implemented for {}", right.to_type())
+                    }
+                    (_, TokenType::Root) => {
+                        panic!("\n Root not implemented for {}", right.to_type())
+                    }
+                    (_, TokenType::CubicRoot) => {
+                        panic!("\n CubicRoot not implemented for {}", right.to_type())
+                    }
+                    (_, TokenType::Percent) => {
+                        panic!("\n Percent not implemented for {}", right.to_type())
+                    }
                     (any, TokenType::Bang) => Ok(any.is_falsy()),
-                    (_, ttype) => Err(format!(
-                        "Error 107: {} is not a valid unary operator",
-                        ttype
-                    )
-                    .red()
-                    .to_string()),
+                    (_, ttype) => panic!("\n {} is not a valid unary operator", ttype),
                 }
             }
             Expr::Binary {
@@ -727,26 +671,18 @@ impl Expr {
                     (StringValue(x), TokenType::LessEqual, StringValue(y)) => {
                         Ok(LiteralValue::from_bool(x.len() <= y.len()))
                     }
-                    (StringValue(_), op, Number(_)) => Err(format!(
-                        "Error 107: {} is not defined for string and number",
-                        op
-                    )
-                    .red()
-                    .to_string()),
-                    (Number(_), op, StringValue(_)) => Err(format!(
-                        "Error 107: {} is not defined for string and number",
-                        op
-                    )
-                    .red()
-                    .to_string()),
+                    (StringValue(_), op, Number(_)) => {
+                        panic!("\n {} is not defined for string and number", op)
+                    }
+                    (Number(_), op, StringValue(_)) => {
+                        panic!("\n {} is not defined for string and number", op)
+                    }
                     (x, TokenType::BangEqual, y) => Ok(LiteralValue::from_bool(x != y)),
                     (x, TokenType::EqualEqual, y) => Ok(LiteralValue::from_bool(x == y)),
-                    (x, ttype, y) => Err(format!(
-                        "Error 107: {} is not implemented for operands {:?} and {:?}",
+                    (x, ttype, y) => panic!(
+                        "{} is not implemented for operands {:?} and {:?}",
                         ttype, x, y
-                    )
-                    .red()
-                    .to_string()),
+                    ),
                 }
             }
         }
@@ -758,14 +694,12 @@ pub fn run_tron_function(
     eval_env: Environment,
 ) -> Result<LiteralValue, String> {
     if arguments.len() != tronfun.arity {
-        return Err(format!(
-            "Error 108: Callable {} expected {} arguments but got {}",
+        panic!(
+            " Callable {} expected {} arguments but got {}",
             tronfun.name,
             tronfun.arity,
             arguments.len()
-        )
-        .red()
-        .to_string());
+        );
     }
     let mut arg_vals = vec![];
     for arg in arguments {

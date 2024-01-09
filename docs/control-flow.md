@@ -9,9 +9,9 @@ When you want to implement following logic: if `something` happens do `this`, yo
 ```rs
 let i = 10;
 
-if i > 5 {
+if i > 5 do
     print "i is more than 5";
-}
+end
 
 // i is more than 5
 ```
@@ -21,11 +21,11 @@ In the example above, if `i` is more than `5`, "i is more than 5" will be printe
 ```rs
 let i = 3;
 
-if i > 5 {
+if i > 5 do
     print "i is more than 5";
-} else {
-    print "i isn't more than 5"
-}
+end else do
+    print "i isn't more than 5";
+end
 
 // i isnt't more than 5
 ```
@@ -35,13 +35,13 @@ Sometimes, you have to check multiple variations, to avoid writing if statement 
 ```rs
 let i = 0;
 
-if i > 0 {
+if i > 0 do
     print "i is more than 0";
-} elif i == 0 {
+end else if i == 0 do
     print "i equals 0";
-} else {
+end else do
     print "i is less than 0";
-}
+end
 
 // i equals 0
 ```
@@ -53,10 +53,10 @@ If you can create loops using `while`:
 ```rs
 let i = 0;
 
-while i < 6 {
+while i < 6 do
     print i;
     i = i + 1;
-}
+end
 
 // 0
 // 1
@@ -72,19 +72,19 @@ while `statement` is true codeblock is executing. You can also break the loop us
 let i = 0;
 let j = 3;
 
-while i < 6{
+while i < 6 do
     print i;
 
-    if i == j {
+    if i == j do
         break;
-    }
+    end
 
     i = i + 1;
-}
+end
 
 // 0
 // 1
-// 2
+// 3
 ```
 
 ## For loop
@@ -92,11 +92,9 @@ while i < 6{
 There also another way to create loop:
 
 ```rs
-let i = 0;
-
-for i; i < 5; i = i + i {
-    print i;
-}
+for let i = 0; i < 5; i = i + 1 do
+   print i;
+end
 ```
 
 For loops work in the following way:

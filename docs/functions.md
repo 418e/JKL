@@ -3,17 +3,17 @@
 Functions are defined in Tron using `fn` keywoard with following syntax:
 
 ```rs
-fn functionname(arguments){
+fn functionname(arguments) start
     codeblock
-}
+end
 ```
 
 For example:
 
 ```rs
-fn myFunction(){
+fn myFunction() start
     print 5;
-}
+end
 ```
 
 ## Calling funcitons
@@ -21,9 +21,9 @@ fn myFunction(){
 When function `myFunction` is called, "5" will be printed. Functions are called by writting function name with closed brackets:
 
 ```rs
-fn myFunction(){
+fn myFunction() start
     print 5;
-}
+end
 
 myFunction();
 
@@ -35,9 +35,9 @@ myFunction();
 Functions return values using `return` keyword:
 
 ```rs
-fn myFunction(){
+fn myFunction() start
     return 5;
-}
+end
 
 print myFunction();
 
@@ -51,9 +51,9 @@ Every time `myFunction()` is called, it will return "5";
 Arguments are placed inside brackets and are separated by comma (`,`):
 
 ```rs
-fn sum(x, y){
+fn sum(x, y) do
     return x + y;
-}
+end
 
 print sum(1, 2);
 

@@ -5,32 +5,32 @@ Sometimes project gets larger, and containing all the code inside one file becom
 ```rs
 // say.tron
 
-print "hello world!";
+fn say(string) do
+    print string;
+end
 ```
 
 ```rs
 // main.tron
+include "say.tron";
 
-include "/say.tron";
-
-print "hello to you to";
+say("Hello world!")
 
 // hello world!
-// hello to you to
 ```
 
-No mater where you use `include` it will execute content inside it:
+It is highly recomended to write `include` statement at the top of the file.
 
 ```rs
 // main.tron
 
-print "hello to you to";
 
-include "/say.tron";
+say("Hello world!")
+
+include "say.tron";
 
 
-// hello to you to
-// hello world!
+// say isn't declared
 ```
 
 read next: [Input/Output](./IO.md)

@@ -36,6 +36,7 @@ pub enum LiteralValue {
     True,
     False,
     Nil,
+    ArrayValue(Vec<LiteralValue>),
     Callable(CallableImpl),
 }
 use LiteralValue::*;
@@ -89,6 +90,7 @@ impl LiteralValue {
     pub fn to_string(&self) -> String {
         match self {
             LiteralValue::Number(x) => x.to_string(),
+            LiteralValue::ArrayValue(x) => format!("\"{:?}\"", x),
             LiteralValue::StringValue(x) => format!("\"{}\"", x),
             LiteralValue::True => "true".to_string(),
             LiteralValue::False => "false".to_string(),
@@ -109,6 +111,7 @@ impl LiteralValue {
         match self {
             LiteralValue::Number(_) => "Number",
             LiteralValue::StringValue(_) => "String",
+            LiteralValue::ArrayValue(_) => "Array",
             LiteralValue::True => "Boolean",
             LiteralValue::False => "Boolean",
             LiteralValue::Nil => "nil",
@@ -148,6 +151,13 @@ impl LiteralValue {
                     False
                 }
             }
+            ArrayValue(x) => {
+                if x.len() == 0 {
+                    True
+                } else {
+                    False
+                }
+            }
             True => False,
             False => True,
             Nil => True,
@@ -170,6 +180,13 @@ impl LiteralValue {
                     True
                 }
             }
+            ArrayValue(x) => {
+                if x.len() == 0 {
+                    False
+                } else {
+                    True
+                }
+            }
             True => True,
             False => False,
             Nil => False,
@@ -185,6 +202,10 @@ pub enum Expr {
         paren: Token,
         arguments: Vec<Token>,
         body: Vec<Box<Stmt>>,
+    },
+    Array {
+        id: usize,
+        elements: Vec<Box<Expr>>,
     },
     Assign {
         id: usize,
@@ -270,6 +291,7 @@ impl Expr {
                 arguments: _,
                 body: _,
             } => *id,
+            Expr::Array { id, elements: _ } => *id,
             Expr::Assign {
                 id,
                 name: _,
@@ -329,6 +351,14 @@ impl Expr {
                 arguments,
                 body: _,
             } => format!("anon/{}", arguments.len()),
+            Expr::Array { id: _, elements } => {
+                let elements_str = elements
+                    .iter()
+                    .map(|e| e.to_string())
+                    .collect::<Vec<_>>()
+                    .join(", ");
+                format!("[{}]", elements_str)
+            }
             Expr::Assign { id: _, name, value } => format!("({name:?} = {}", value.to_string()),
             Expr::Binary {
                 id: _,
@@ -399,6 +429,7 @@ impl Expr {
             Expr::Variable { id: _, name } => format!("(let {})", name.lexeme),
         }
     }
+
     pub fn evaluate(&self, environment: Environment) -> Result<LiteralValue, String> {
         match self {
             Expr::AnonFunction {
@@ -418,6 +449,29 @@ impl Expr {
                     body,
                 });
                 Ok(Callable(callable_impl))
+            }
+            Expr::Array { id: _, elements } => {
+                if elements.len() == 2 {
+                    // This is an array indexing operation
+                    let array = elements[0].evaluate(environment.clone())?;
+                    let index = elements[1].evaluate(environment.clone())?;
+                    if let LiteralValue::Number(index_num) = index {
+                        if let LiteralValue::ArrayValue(arr) = array {
+                            let idx = index_num as usize;
+                            return arr.get(idx).cloned().ok_or_else(|| {
+                                format!("Error 108: Array index out of bounds: {}", idx)
+                            });
+                        }
+                    }
+                    Err("Error 109: Invalid array indexing operation".to_string())
+                } else {
+                    let mut array_elements = Vec::new();
+                    for element_expr in elements.iter() {
+                        let evaluated = element_expr.evaluate(environment.clone())?;
+                        array_elements.push(evaluated);
+                    }
+                    Ok(LiteralValue::ArrayValue(array_elements))
+                }
             }
             Expr::Assign { id: _, name, value } => {
                 let new_value = (*value).evaluate(environment.clone())?;
@@ -520,15 +574,22 @@ impl Expr {
                 object,
                 name,
             } => {
-                let obj_value = object.evaluate(environment.clone())?;
-                Err(format!(
-                    "Error 105: Cannot access property on type {} / {:?}",
-                    obj_value.to_type(),
-                    name
-                )
-                .red()
-                .to_string())
+                let object_evaluated = object.evaluate(environment)?;
+                match object_evaluated {
+                    LiteralValue::ArrayValue(elements) => {
+                        let index = name
+                            .lexeme
+                            .parse::<usize>()
+                            .map_err(|_| format!("Invalid array index: {}", name.lexeme))?;
+                        elements
+                            .get(index)
+                            .cloned()
+                            .ok_or_else(|| format!("Index out of bounds: {}", index))
+                    }
+                    _ => Err(format!("Trying to index a non-array value")),
+                }
             }
+
             Expr::Set {
                 id: _,
                 object,
@@ -612,15 +673,11 @@ impl Expr {
                         Ok(LiteralValue::StringValue("Number".to_string()))
                     }
 
-                    (True, TokenType::Type) => {
-                        Ok(LiteralValue::StringValue("Boolean".to_string()))
-                    }
+                    (True, TokenType::Type) => Ok(LiteralValue::StringValue("Boolean".to_string())),
                     (False, TokenType::Type) => {
                         Ok(LiteralValue::StringValue("Boolean".to_string()))
                     }
-                    (Nil, TokenType::Type) => {
-                        Ok(LiteralValue::StringValue("Null".to_string()))
-                    }
+                    (Nil, TokenType::Type) => Ok(LiteralValue::StringValue("Null".to_string())),
                     (Number(x), TokenType::Sin) => Ok(Number(x.sin())),
                     (Number(x), TokenType::Cos) => Ok(Number(x.cos())),
                     (Number(x), TokenType::Tan) => Ok(Number(x.tan())),

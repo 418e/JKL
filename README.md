@@ -30,15 +30,16 @@ print add(1,5);
 ```
 
 ```rs
-let age = :num("Please enter your age: ");
+  let x = 0;
 
-if age < 18 {
-    print "minor";
-    exit;
-} else {
-    print "adult";
-    run "adultsonly.tron";
-}
+  if x > 0 {
+    print "x > 0";
+  } elif x < 0 {
+    print "x < 0";
+  } else {
+    print "x = 0";
+  }
+
 ```
 
 ## Installation
@@ -63,4 +64,4 @@ create `main.tron` and then run the following command in the cli
 tron main.tron
 ```
 
-Enjoy!
+Happy hacking!

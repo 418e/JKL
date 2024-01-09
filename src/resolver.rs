@@ -216,6 +216,12 @@ impl Resolver {
                 name: _,
                 value: _,
             } => self.resolve_expr_assign(expr, expr.get_id()),
+            Expr::Array { id: _, elements } => {
+                for element in elements {
+                    self.resolve_expr(element)?;
+                }
+                Ok(())
+            }
             Expr::Binary {
                 id: _,
                 left,

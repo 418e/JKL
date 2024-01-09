@@ -581,7 +581,25 @@ impl Parser {
             arguments,
         })
     }
+    fn parse_array(&mut self) -> Result<Expr, String> {
+        let mut elements = Vec::new();
+        let array_id = self.get_id();
+        self.advance();
+        while !self.check(TokenType::RightBracket) && !self.is_at_end() {
+            let element = self.expression()?;
+            elements.push(Box::new(element));
 
+            if !self.match_token(TokenType::Comma) {
+                break;
+            }
+        }
+        self.consume(TokenType::RightBracket, "Expect ']' after array elements.")?;
+
+        Ok(Expr::Array {
+            id: array_id,
+            elements,
+        })
+    }
     fn primary(&mut self) -> Result<Expr, String> {
         let token = self.peek();
         let result;
@@ -589,26 +607,38 @@ impl Parser {
             LeftParen => {
                 self.advance();
                 let expr = self.expression()?;
-                self.consume(RightParen, "Expected ')'")?;
-                result = Grouping {
+                self.consume(RightParen, "Expected ')' after expression")?;
+                result = Expr::Grouping {
                     id: self.get_id(),
-                    expression: Box::from(expr),
+                    expression: Box::new(expr),
                 };
             }
             False | True | Nil | Number | StringLit => {
                 self.advance();
-                result = Literal {
+                result = Expr::Literal {
                     id: self.get_id(),
                     value: LiteralValue::from_token(token),
-                }
-            }
-            Identifier => {
-                self.advance();
-                result = Variable {
-                    id: self.get_id(),
-                    name: self.previous(),
                 };
             }
+            TokenType::LeftBracket => {
+                return self.parse_array();
+            }
+Identifier => {
+    self.advance();
+    let mut expr = Expr::Variable {
+        id: self.get_id(),
+        name: self.previous(),
+    };
+    if self.match_token(LeftBracket) {
+        let index = self.expression()?;
+        self.consume(RightBracket, "Expected ']' after index")?;
+        expr = Expr::Array {
+            id: self.get_id(),
+            elements: vec![Box::new(expr), Box::new(index)],
+        };
+    }
+    result = expr;
+}
             Fun => {
                 self.advance();
                 result = self.function_expression()?;
@@ -617,7 +647,7 @@ impl Parser {
                 return Err("Error 113: Expected expression"
                     .to_string()
                     .red()
-                    .to_string())
+                    .to_string());
             }
         }
         Ok(result)

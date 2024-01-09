@@ -273,11 +273,6 @@ impl Resolver {
                 operator: _,
                 right,
             } => self.resolve_expr(right),
-            Expr::SUnary {
-                id: _,
-                operator: _,
-                left,
-            } => self.resolve_expr(left),
             Expr::AnonFunction {
                 id: _,
                 paren: _,

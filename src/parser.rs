@@ -11,6 +11,24 @@ pub struct Parser {
 enum FunctionKind {
     Function,
 }
+
+const NATIVE_FUNCTIONS: [&str; 14] = [
+    "sin",
+    "cos",
+    "tan",
+    "round",
+    "floor",
+    "to_degrees",
+    "to_radians",
+    "input",
+    "typeof",
+    "len",
+    "push",
+    "join",
+    "pop",
+    "shift",
+];
+
 impl Parser {
     pub fn new(tokens: Vec<Token>) -> Self {
         Self {
@@ -54,6 +72,9 @@ impl Parser {
     }
     fn function(&mut self, kind: FunctionKind) -> Result<Stmt, String> {
         let name = self.consume(Identifier, &format!("Expected {kind:?} name"))?;
+        if NATIVE_FUNCTIONS.contains(&name.lexeme.as_str()) {
+            return Err("Cannot redefine a native function.".to_string());
+        }
         if self.match_token(Gets) {
             let cmd_body = self.consume(StringLit, "Expected command body")?;
             self.consume(Semicolon, "Expected ';' after command body")?;
@@ -523,20 +544,6 @@ impl Parser {
             self.call()
         }
     }
-    #[allow(dead_code)]
-    fn sunary(&mut self) -> Result<Expr, String> {
-        if self.match_tokens(&[Sin]) {
-            let rhs = self.sunary()?;
-            let op = self.after();
-            Ok(SUnary {
-                id: self.get_id(),
-                operator: op,
-                left: Box::from(rhs),
-            })
-        } else {
-            self.call()
-        }
-    }
     fn call(&mut self) -> Result<Expr, String> {
         let mut expr = self.primary()?;
         loop {
@@ -623,22 +630,22 @@ impl Parser {
             TokenType::LeftBracket => {
                 return self.parse_array();
             }
-Identifier => {
-    self.advance();
-    let mut expr = Expr::Variable {
-        id: self.get_id(),
-        name: self.previous(),
-    };
-    if self.match_token(LeftBracket) {
-        let index = self.expression()?;
-        self.consume(RightBracket, "Expected ']' after index")?;
-        expr = Expr::Array {
-            id: self.get_id(),
-            elements: vec![Box::new(expr), Box::new(index)],
-        };
-    }
-    result = expr;
-}
+            Identifier => {
+                self.advance();
+                let mut expr = Expr::Variable {
+                    id: self.get_id(),
+                    name: self.previous(),
+                };
+                if self.match_token(LeftBracket) {
+                    let index = self.expression()?;
+                    self.consume(RightBracket, "Expected ']' after index")?;
+                    expr = Expr::Array {
+                        id: self.get_id(),
+                        elements: vec![Box::new(expr), Box::new(index)],
+                    };
+                }
+                result = expr;
+            }
             Fun => {
                 self.advance();
                 result = self.function_expression()?;
@@ -696,9 +703,6 @@ Identifier => {
     }
     fn previous(&mut self) -> Token {
         self.tokens[self.current - 1].clone()
-    }
-    fn after(&mut self) -> Token {
-        self.tokens[self.current + 1].clone()
     }
     fn is_at_end(&mut self) -> bool {
         self.peek().token_type == Eof

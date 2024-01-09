@@ -1,5 +1,6 @@
 use crate::environment::Environment;
 use crate::expr::{CallableImpl, LiteralValue, NativeFunctionImpl, TronFunctionImpl};
+use crate::natives::*;
 use crate::parser::*;
 use crate::resolver::*;
 use crate::scanner::Token;
@@ -13,136 +14,10 @@ use std::io;
 use std::process::exit;
 use std::process::Command;
 use std::rc::Rc;
+
 pub struct Interpreter {
     pub specials: HashMap<String, LiteralValue>,
     pub environment: Environment,
-}
-
-fn native_sin(args: &Vec<LiteralValue>) -> LiteralValue {
-    if args.len() != 1 {
-        return LiteralValue::StringValue("sin function takes exactly one argument".to_string());
-    }
-    match &args[0] {
-        LiteralValue::Number(angle) => LiteralValue::Number(angle.to_radians().sin()),
-        _ => LiteralValue::StringValue("sin function requires a numeric argument".to_string()),
-    }
-}
-fn native_asin(args: &Vec<LiteralValue>) -> LiteralValue {
-    if args.len() != 1 {
-        return LiteralValue::StringValue("asin function takes exactly one argument".to_string());
-    }
-    match &args[0] {
-        LiteralValue::Number(angle) => LiteralValue::Number(angle.to_radians().asin()),
-        _ => LiteralValue::StringValue("asin function requires a numeric argument".to_string()),
-    }
-}
-fn native_cos(args: &Vec<LiteralValue>) -> LiteralValue {
-    if args.len() != 1 {
-        return LiteralValue::StringValue("cos function takes exactly one argument".to_string());
-    }
-    match &args[0] {
-        LiteralValue::Number(angle) => LiteralValue::Number(angle.to_radians().cos()),
-        _ => LiteralValue::StringValue("cos function requires a numeric argument".to_string()),
-    }
-}
-fn native_acos(args: &Vec<LiteralValue>) -> LiteralValue {
-    if args.len() != 1 {
-        return LiteralValue::StringValue("acos function takes exactly one argument".to_string());
-    }
-    match &args[0] {
-        LiteralValue::Number(angle) => LiteralValue::Number(angle.to_radians().acos()),
-        _ => LiteralValue::StringValue("acos function requires a numeric argument".to_string()),
-    }
-}
-fn native_tan(args: &Vec<LiteralValue>) -> LiteralValue {
-    if args.len() != 1 {
-        return LiteralValue::StringValue("tan function takes exactly one argument".to_string());
-    }
-    match &args[0] {
-        LiteralValue::Number(angle) => LiteralValue::Number(angle.to_radians().tan()),
-        _ => LiteralValue::StringValue("tan function requires a numeric argument".to_string()),
-    }
-}
-fn native_atan(args: &Vec<LiteralValue>) -> LiteralValue {
-    if args.len() != 1 {
-        return LiteralValue::StringValue("atan function takes exactly one argument".to_string());
-    }
-    match &args[0] {
-        LiteralValue::Number(angle) => LiteralValue::Number(angle.to_radians().atan()),
-        _ => LiteralValue::StringValue("atan function requires a numeric argument".to_string()),
-    }
-}
-fn native_round(args: &Vec<LiteralValue>) -> LiteralValue {
-    if args.len() != 1 {
-        return LiteralValue::StringValue("round function takes exactly one argument".to_string());
-    }
-    match &args[0] {
-        LiteralValue::Number(n) => LiteralValue::Number(n.round()),
-        _ => LiteralValue::StringValue("round function requires a numeric argument".to_string()),
-    }
-}
-fn native_floor(args: &Vec<LiteralValue>) -> LiteralValue {
-    if args.len() != 1 {
-        return LiteralValue::StringValue("floor function takes exactly one argument".to_string());
-    }
-    match &args[0] {
-        LiteralValue::Number(n) => LiteralValue::Number(n.floor()),
-        _ => LiteralValue::StringValue("floor function requires a numeric argument".to_string()),
-    }
-}
-fn native_todgrees(args: &Vec<LiteralValue>) -> LiteralValue {
-    if args.len() != 1 {
-        return LiteralValue::StringValue(
-            "to_degrees function takes exactly one argument".to_string(),
-        );
-    }
-    match &args[0] {
-        LiteralValue::Number(n) => LiteralValue::Number(n.to_degrees()),
-        _ => {
-            LiteralValue::StringValue("to_degrees function requires a numeric argument".to_string())
-        }
-    }
-}
-fn native_toradians(args: &Vec<LiteralValue>) -> LiteralValue {
-    if args.len() != 1 {
-        return LiteralValue::StringValue(
-            "to_radians function takes exactly one argument".to_string(),
-        );
-    }
-    match &args[0] {
-        LiteralValue::Number(n) => LiteralValue::Number(n.to_radians()),
-        _ => {
-            LiteralValue::StringValue("to_radians function requires a numeric argument".to_string())
-        }
-    }
-}
-fn native_input(args: &Vec<LiteralValue>) -> LiteralValue {
-    if args.len() != 1 {
-        return LiteralValue::StringValue("input function takes exactly one argument".to_string());
-    }
-    match &args[0] {
-        LiteralValue::StringValue(n) => {
-            println!("{}", n.to_string());
-            let mut input = String::new();
-            io::stdin().read_line(&mut input).unwrap();
-            LiteralValue::StringValue(format!("{}", input))
-        }
-        _ => LiteralValue::StringValue("input function requires a string argument".to_string()),
-    }
-}
-fn native_typeof(args: &Vec<LiteralValue>) -> LiteralValue {
-    if args.len() != 1 {
-        return LiteralValue::StringValue("typeof function takes exactly one argument".to_string());
-    }
-    match &args[0] {
-        LiteralValue::Number(_n) => LiteralValue::StringValue("number".to_string()),
-        LiteralValue::StringValue(_n) => LiteralValue::StringValue("string".to_string()),
-        LiteralValue::Nil => LiteralValue::StringValue("null".to_string()),
-        LiteralValue::False => LiteralValue::StringValue("boolean".to_string()),
-        LiteralValue::True => LiteralValue::StringValue("boolean".to_string()),
-        LiteralValue::ArrayValue(_n) => LiteralValue::StringValue("array".to_string()),
-        _ => LiteralValue::StringValue("input function requires a string argument".to_string()),
-    }
 }
 
 impl Interpreter {
@@ -250,6 +125,47 @@ impl Interpreter {
                 fun: Rc::new(native_input as fn(&Vec<LiteralValue>) -> LiteralValue),
             })),
         );
+        interpreter.environment.define(
+            "len".to_string(),
+            LiteralValue::Callable(CallableImpl::NativeFunction(NativeFunctionImpl {
+                name: "len".to_string(),
+                arity: 1,
+                fun: Rc::new(native_len as fn(&Vec<LiteralValue>) -> LiteralValue),
+            })),
+        );
+        interpreter.environment.define(
+            "push".to_string(),
+            LiteralValue::Callable(CallableImpl::NativeFunction(NativeFunctionImpl {
+                name: "push".to_string(),
+                arity: 1,
+                fun: Rc::new(native_push as fn(&Vec<LiteralValue>) -> LiteralValue),
+            })),
+        );
+        interpreter.environment.define(
+            "join".to_string(),
+            LiteralValue::Callable(CallableImpl::NativeFunction(NativeFunctionImpl {
+                name: "join".to_string(),
+                arity: 1,
+                fun: Rc::new(native_join as fn(&Vec<LiteralValue>) -> LiteralValue),
+            })),
+        );
+        interpreter.environment.define(
+            "pop".to_string(),
+            LiteralValue::Callable(CallableImpl::NativeFunction(NativeFunctionImpl {
+                name: "pop".to_string(),
+                arity: 1,
+                fun: Rc::new(native_pop as fn(&Vec<LiteralValue>) -> LiteralValue),
+            })),
+        );
+        interpreter.environment.define(
+            "shift".to_string(),
+            LiteralValue::Callable(CallableImpl::NativeFunction(NativeFunctionImpl {
+                name: "shift".to_string(),
+                arity: 1,
+                fun: Rc::new(native_shift as fn(&Vec<LiteralValue>) -> LiteralValue),
+            })),
+        );
+
         interpreter
     }
     pub fn resolve(&mut self, locals: HashMap<usize, usize>) {

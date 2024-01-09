@@ -5,7 +5,6 @@ use crate::parser::*;
 use crate::resolver::*;
 use crate::scanner::Token;
 use crate::scanner::*;
-use crate::settings;
 use crate::stmt::Stmt;
 use colored::Colorize;
 use std::collections::HashMap;
@@ -186,35 +185,17 @@ impl Interpreter {
                 }
                 Stmt::Print { expression } => {
                     let value = expression.evaluate(self.environment.clone())?;
-                    let pointer_setting = settings("pointer");
-
-                    if pointer_setting == "default" {
-                        println!(" ➤ {}", value.to_string().green());
-                    } else {
-                        println!(" {} {}", pointer_setting, value.to_string().green());
-                    }
+                    println!(" ➤ {}", value.to_string().green());
                 }
                 Stmt::Input { expression } => {
                     let value = expression.evaluate(self.environment.clone())?;
-                    if settings("pointer") == "default" {
-                        println!(" ➤ {}", value.to_string());
-                    } else {
-                        println!(" {} {}", settings("pointer"), value.to_string());
-                    }
+                    println!(" ➤ {}", value.to_string());
                     let mut input = String::new();
                     io::stdin().read_line(&mut input).unwrap();
                 }
                 Stmt::Errors { expression } => {
                     let value = expression.evaluate(self.environment.clone())?;
-                    if settings("pointer") == "default" {
-                        println!(" ➤ {}", value.to_string().red().to_string());
-                    } else {
-                        println!(
-                            " {} {}",
-                            settings("pointer"),
-                            value.to_string().red().to_string()
-                        );
-                    }
+                    println!(" ➤ {}", value.to_string().red().to_string());
                     exit(1)
                 }
                 Stmt::Exits {} => exit(1),

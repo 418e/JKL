@@ -13,6 +13,8 @@ fn is_alpha_numeric(ch: char) -> bool {
 }
 fn get_keywords_hashmap() -> HashMap<&'static str, TokenType> {
     HashMap::from([
+        ("do", Start),
+        ("end", End),
         ("and", And),
         ("else", Else),
         ("false", False),
@@ -24,7 +26,7 @@ fn get_keywords_hashmap() -> HashMap<&'static str, TokenType> {
         ("nor", Nor),
         ("xor", Xor),
         ("print", Print),
-        ("in", Input),
+        ("input", Input),
         ("panic", Errors),
         ("include", Import),
         ("exit", Exits),
@@ -35,7 +37,7 @@ fn get_keywords_hashmap() -> HashMap<&'static str, TokenType> {
         ("bench", Bench),
         ("catch", Catch),
         ("try", Try),
-        ("elif", Elif),
+        ("else if", Elif),
         ("break", Break),
     ])
 }
@@ -89,7 +91,7 @@ impl Scanner {
             ',' => self.add_token(Comma),
             '%' => self.add_token(Percent),
             '$' => self.add_token(Dollar),
-            ':' => self.add_token(DoubleComma),
+            ':' => self.add_token(Colon),
             '^' => {
                 let token = if self.char_match('^') { Cube } else { Power };
                 self.add_token(token)
@@ -183,7 +185,9 @@ impl Scanner {
                 }
             }
             ' ' | '\r' | '\t' => {}
-            '\n' => self.line += 1,
+            '\n' => {
+                self.line += 1;
+            }
             '"' => self.string()?,
             '\'' => self.string()?,
             c => {
@@ -192,12 +196,7 @@ impl Scanner {
                 } else if is_alpha(c) {
                     self.identifier();
                 } else {
-                    return Err(format!(
-                        "Error 119: Unrecognized char at line {}: {}",
-                        self.line, c
-                    )
-                    .red()
-                    .to_string());
+                    panic!("\n Unrecognized char at line {}: {}", self.line, c);
                 }
             }
         }
@@ -229,9 +228,7 @@ impl Scanner {
         match value {
             Ok(value) => self.add_token_lit(Number, Some(FValue(value))),
             Err(_) => {
-                return Err(format!("Error 120: Could not parse number: {}", substring)
-                    .red()
-                    .to_string())
+                panic!("\n Could not parse number: {}", substring)
             }
         }
         Ok(())
@@ -250,10 +247,7 @@ impl Scanner {
             self.advance();
         }
         if self.is_at_end() {
-            return Err("Error 120: Unterminated string"
-                .to_string()
-                .red()
-                .to_string());
+            panic!("\n Unterminated string");
         }
         self.advance();
         let value = &self.source[self.start + 1..self.current - 1];
@@ -305,6 +299,8 @@ impl Scanner {
 }
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum TokenType {
+    Start,
+    End,
     LeftParen,
     RightParen,
     LeftBrace,
@@ -312,7 +308,7 @@ pub enum TokenType {
     LeftBracket,
     RightBracket,
     Comma,
-    DoubleComma,
+    Colon,
     Dot,
     Minus,
     Plus,

@@ -1,5 +1,6 @@
 use crate::environment::Environment;
 use crate::expr::{CallableImpl, LiteralValue, NativeFunctionImpl, TronFunctionImpl};
+use crate::libs::*;
 use crate::natives::*;
 use crate::parser::*;
 use crate::resolver::*;
@@ -8,7 +9,6 @@ use crate::scanner::*;
 use crate::stmt::Stmt;
 use colored::Colorize;
 use std::collections::HashMap;
-use std::fs;
 use std::io;
 use std::process::exit;
 use std::process::Command;
@@ -26,88 +26,6 @@ impl Interpreter {
             environment: Environment::new(HashMap::new()),
         };
 
-        interpreter.environment.define(
-            "sin".to_string(),
-            LiteralValue::Callable(CallableImpl::NativeFunction(NativeFunctionImpl {
-                name: "sin".to_string(),
-                arity: 1,
-                fun: Rc::new(native_sin as fn(&Vec<LiteralValue>) -> LiteralValue),
-            })),
-        );
-        interpreter.environment.define(
-            "asin".to_string(),
-            LiteralValue::Callable(CallableImpl::NativeFunction(NativeFunctionImpl {
-                name: "asin".to_string(),
-                arity: 1,
-                fun: Rc::new(native_asin as fn(&Vec<LiteralValue>) -> LiteralValue),
-            })),
-        );
-        interpreter.environment.define(
-            "cos".to_string(),
-            LiteralValue::Callable(CallableImpl::NativeFunction(NativeFunctionImpl {
-                name: "cos".to_string(),
-                arity: 1,
-                fun: Rc::new(native_cos as fn(&Vec<LiteralValue>) -> LiteralValue),
-            })),
-        );
-        interpreter.environment.define(
-            "acos".to_string(),
-            LiteralValue::Callable(CallableImpl::NativeFunction(NativeFunctionImpl {
-                name: "acos".to_string(),
-                arity: 1,
-                fun: Rc::new(native_acos as fn(&Vec<LiteralValue>) -> LiteralValue),
-            })),
-        );
-        interpreter.environment.define(
-            "tan".to_string(),
-            LiteralValue::Callable(CallableImpl::NativeFunction(NativeFunctionImpl {
-                name: "tan".to_string(),
-                arity: 1,
-                fun: Rc::new(native_tan as fn(&Vec<LiteralValue>) -> LiteralValue),
-            })),
-        );
-        interpreter.environment.define(
-            "atan".to_string(),
-            LiteralValue::Callable(CallableImpl::NativeFunction(NativeFunctionImpl {
-                name: "atan".to_string(),
-                arity: 1,
-                fun: Rc::new(native_atan as fn(&Vec<LiteralValue>) -> LiteralValue),
-            })),
-        );
-        interpreter.environment.define(
-            "round".to_string(),
-            LiteralValue::Callable(CallableImpl::NativeFunction(NativeFunctionImpl {
-                name: "round".to_string(),
-                arity: 1,
-                fun: Rc::new(native_round as fn(&Vec<LiteralValue>) -> LiteralValue),
-            })),
-        );
-        interpreter.environment.define(
-            "floor".to_string(),
-            LiteralValue::Callable(CallableImpl::NativeFunction(NativeFunctionImpl {
-                name: "floor".to_string(),
-                arity: 1,
-                fun: Rc::new(native_floor as fn(&Vec<LiteralValue>) -> LiteralValue),
-            })),
-        );
-
-        interpreter.environment.define(
-            "to_degrees".to_string(),
-            LiteralValue::Callable(CallableImpl::NativeFunction(NativeFunctionImpl {
-                name: "to_degrees".to_string(),
-                arity: 1,
-                fun: Rc::new(native_todgrees as fn(&Vec<LiteralValue>) -> LiteralValue),
-            })),
-        );
-
-        interpreter.environment.define(
-            "to_radians".to_string(),
-            LiteralValue::Callable(CallableImpl::NativeFunction(NativeFunctionImpl {
-                name: "to_radians".to_string(),
-                arity: 1,
-                fun: Rc::new(native_toradians as fn(&Vec<LiteralValue>) -> LiteralValue),
-            })),
-        );
         interpreter.environment.define(
             "typeof".to_string(),
             LiteralValue::Callable(CallableImpl::NativeFunction(NativeFunctionImpl {
@@ -130,38 +48,6 @@ impl Interpreter {
                 name: "len".to_string(),
                 arity: 1,
                 fun: Rc::new(native_len as fn(&Vec<LiteralValue>) -> LiteralValue),
-            })),
-        );
-        interpreter.environment.define(
-            "push".to_string(),
-            LiteralValue::Callable(CallableImpl::NativeFunction(NativeFunctionImpl {
-                name: "push".to_string(),
-                arity: 1,
-                fun: Rc::new(native_push as fn(&Vec<LiteralValue>) -> LiteralValue),
-            })),
-        );
-        interpreter.environment.define(
-            "join".to_string(),
-            LiteralValue::Callable(CallableImpl::NativeFunction(NativeFunctionImpl {
-                name: "join".to_string(),
-                arity: 1,
-                fun: Rc::new(native_join as fn(&Vec<LiteralValue>) -> LiteralValue),
-            })),
-        );
-        interpreter.environment.define(
-            "pop".to_string(),
-            LiteralValue::Callable(CallableImpl::NativeFunction(NativeFunctionImpl {
-                name: "pop".to_string(),
-                arity: 1,
-                fun: Rc::new(native_pop as fn(&Vec<LiteralValue>) -> LiteralValue),
-            })),
-        );
-        interpreter.environment.define(
-            "shift".to_string(),
-            LiteralValue::Callable(CallableImpl::NativeFunction(NativeFunctionImpl {
-                name: "shift".to_string(),
-                arity: 1,
-                fun: Rc::new(native_shift as fn(&Vec<LiteralValue>) -> LiteralValue),
             })),
         );
 
@@ -202,51 +88,24 @@ impl Interpreter {
                 Stmt::Import { expression } => {
                     let value = expression.evaluate(self.environment.clone())?;
                     let val = value.to_string();
+                    let path = std::env::current_dir().unwrap();
+                    let path_buf = path.join(val.trim_matches('"').trim_start_matches('/'));
 
-                    // Extract path removing the enclosing quotes
-                    fn rem_first_and_last(value: &str) -> &str {
-                        &value[1..value.len() - 1]
-                    }
-
-                    let run_file = |path: &str| -> Result<(), String> {
-                        let absolute_path = if path.starts_with('/') {
-                            path.to_string()
-                        } else {
-                            let current_dir = std::env::current_dir().map_err(|e| e.to_string())?;
-                            current_dir
-                                .join(path)
-                                .to_str()
-                                .ok_or("Invalid path")?
-                                .to_string()
-                        };
-
-                        let contents =
-                            fs::read_to_string(&absolute_path).map_err(|e| e.to_string())?;
-                        run_string(&contents)
-                    };
-
-                    fn run_string(contents: &str) -> Result<(), String> {
-                        let mut interpreter = Interpreter::new();
-                        run(&mut interpreter, contents)
-                    }
-                    fn run(interpreter: &mut Interpreter, contents: &str) -> Result<(), String> {
-                        let scanner = Scanner::new(contents);
-                        let tokens = scanner.scan_tokens().map_err(|e| e.to_string())?;
-                        let mut parser = Parser::new(tokens);
-                        let stmts: Vec<Stmt> = parser.parse().map_err(|e| e.to_string())?;
-                        let stmts_refs: Vec<&Stmt> = stmts.iter().collect();
-                        let resolver = Resolver::new();
-                        let locals = resolver.resolve(&stmts_refs)?;
-                        interpreter.resolve(locals);
-                        interpreter.interpret(stmts_refs)?;
-                        Ok(())
-                    }
-
-                    match run_file(rem_first_and_last(&val)) {
-                        Ok(_) => {}
-                        Err(msg) => {
-                            println!("Error 108:\n{}", msg);
-                            exit(1);
+                    match val.as_str() {
+                        "\"#math\"" => include_math_natives(&mut self.environment),
+                        "\"#array\"" => include_array_natives(&mut self.environment),
+                        _ => {
+                            if std::path::Path::new(&path_buf).exists() {
+                                // Load and execute the library file
+                                let lib_contents = std::fs::read_to_string(&path_buf)
+                                    .map_err(|e| e.to_string())?;
+                                self.execute_lib(&lib_contents)?;
+                            } else {
+                                return Err(format!(
+                                    "Library not found: {:?}",
+                                    std::path::Path::new(&path_buf)
+                                ));
+                            }
                         }
                     }
                 }
@@ -307,8 +166,8 @@ impl Interpreter {
                     {
                         match self.interpret(vec![body.as_ref()]) {
                             Ok(_) => {}
-                            Err(e) if e == "break" => break, // Check for a "break" error to exit the loop
-                            Err(e) => return Err(e),         // Propagate other errors
+                            Err(e) if e == "break" => break,
+                            Err(e) => return Err(e),
                         }
                     }
                 }
@@ -392,7 +251,19 @@ impl Interpreter {
             };
             callable_impl
         } else {
-            panic!("Tried to make a function from a non-function statement");
+            panic!("\n Tried to make a function from a non-function statement");
         }
+    }
+    fn execute_lib(&mut self, lib_contents: &str) -> Result<(), String> {
+        // Parse and execute the library contents
+        let scanner = Scanner::new(lib_contents);
+        let tokens = scanner.scan_tokens().map_err(|e| e.to_string())?;
+        let mut parser = Parser::new(tokens);
+        let stmts = parser.parse().map_err(|e| e.to_string())?;
+        let stmts_refs: Vec<&Stmt> = stmts.iter().collect();
+        let resolver = Resolver::new();
+        let locals = resolver.resolve(&stmts_refs)?;
+        self.resolve(locals);
+        self.interpret(stmts_refs)
     }
 }

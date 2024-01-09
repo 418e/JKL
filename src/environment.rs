@@ -9,7 +9,6 @@ pub struct Environment {
     pub enclosing: Option<Box<Environment>>,
 }
 fn clock_impl(_args: &Vec<LiteralValue>) -> LiteralValue {
-    
     let now = std::time::SystemTime::now()
         .duration_since(std::time::SystemTime::UNIX_EPOCH)
         .expect("Could not get system time")
@@ -70,7 +69,7 @@ impl Environment {
             if distance == 0 {
                 self.values.borrow().get(name).cloned()
             } else {
-                match &self.enclosing { None => panic!("Tried to resolve a variable that was defined deeper than the current environment depth"), Some(env) => { assert!(distance > 0); env.get_internal(name, Some(distance - 1)) } }
+                match &self.enclosing { None => panic!("\n Tried to resolve a variable that was defined deeper than the current environment depth"), Some(env) => { assert!(distance > 0); env.get_internal(name, Some(distance - 1)) } }
             }
         }
     }
@@ -79,7 +78,7 @@ impl Environment {
         self.assign_internal(name, value, distance)
     }
     fn assign_internal(&self, name: &str, value: LiteralValue, distance: Option<usize>) -> bool {
-        if distance.is_none(){
+        if distance.is_none() {
             match &self.enclosing {
                 Some(env) => env.assign_internal(name, value, distance),
                 None => match self.values.borrow_mut().insert(name.to_string(), value) {
@@ -94,7 +93,7 @@ impl Environment {
                 true
             } else {
                 match &self.enclosing {
-                    None => panic!("Tried to define a variable in a too deep level"),
+                    None => panic!("\n Tried to define a variable in a too deep level"),
                     Some(env) => env.assign_internal(name, value, Some(distance - 1)),
                 };
                 true

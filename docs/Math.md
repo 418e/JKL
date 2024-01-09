@@ -76,6 +76,8 @@ let cubicroot = &&8;
 ### trigonometry
 
 ```rs
+include "#math";
+
 let sinus = sin(30);
 let arcsinus = asin(30);
 let cosinus = cos(45);
@@ -94,6 +96,8 @@ let percentage = %45;
 ### conversions
 
 ```rs
+include "#math";
+
 let round = round(0.5);
 // returns 1
 let floor = floor(0.5);

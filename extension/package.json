@@ -1,0 +1,43 @@
+{
+  "name": "tron-lang",
+  "displayName": "Tron Programming Language",
+  "publisher": "tronlang",
+  "description": "Fast and Simple open-source programming language",
+  "repository": "https://github.com/418e/tron",
+  "homepage": "https://tronlang.org",
+  "version": "2.0.0",
+  "license": "MIT",
+  "icon": "tron.png",
+  "engines": {
+    "vscode": "1.85.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "tron",
+        "icon": {
+          "dark": "./tron-2.png",
+          "light": "./tron.png"
+        },
+        "aliases": [
+          "tron",
+          "tronlang"
+        ],
+        "extensions": [
+          ".tron"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "tron",
+        "scopeName": "source.tron",
+        "path": "./syntaxes/tron.tmLanguage.json"
+      }
+    ]
+  }
+}

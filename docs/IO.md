@@ -7,10 +7,10 @@ I/O is essential part of every programming language. Taking user inputs and maki
 
 There are two ways you can take user input in tron:
 
-### `in` statement
+### `input` statement
 
 ```rs
-in "Your name please.";
+input "Your name please.";
 ```
 
 It prints "Your name please." and asks user to enter text in the terminal. Bad part about this statement is that it doesnt save the data user inputs.

@@ -22,9 +22,9 @@ print "Hello " + name;
 ```
 
 ```rust
-fn add(a,b){
+fn add(a,b) do
   return a + b;
-}
+end
 
 print add(1,5);
 ```
@@ -32,13 +32,13 @@ print add(1,5);
 ```rs
   let x = 0;
 
-  if x > 0 {
+  if x > 0 do
     print "x > 0";
-  } elif x < 0 {
+  end elif x < 0 do
     print "x < 0";
-  } else {
+  end else do
     print "x = 0";
-  }
+  end
 
 ```
 
@@ -50,6 +50,20 @@ sudo mv tron /usr/local/bin/
 sudo chmod +x /usr/local/bin/tron
 ```
 
+## Extension
+
+Install from [marketplace](https://marketplace.visualstudio.com/items?itemName=TronLang.tron-lang), or type `tronlang` in vscode extension search window.
+
+### features
+
+- syntax highlighting
+- basic completion
+- `.tron` icon
+
+soon:
+
+- autocompletion
+- better pattern matching
 
 ## Initializing Project
 

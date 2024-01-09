@@ -77,7 +77,7 @@ impl Parser {
         }
         if self.match_token(Gets) {
             let cmd_body = self.consume(StringLit, "Expected command body")?;
-            self.consume(Semicolon, "Expected ';' after command body")?;
+            self.consume(Semicolon, "Expected Semicolon after command body")?;
             return Ok(Stmt::CmdFunction {
                 name,
                 cmd: cmd_body.lexeme,
@@ -90,11 +90,11 @@ impl Parser {
             loop {
                 if parameters.len() >= 255 {
                     let location = self.peek().line_number;
-                    return Err(format!(
-                        "Error 111: Line {location}: Cant have more than 255 arguments"
-                    )
-                    .red()
-                    .to_string());
+                    return Err(
+                        format!("Line {location}: Cant have more than 255 arguments")
+                            .red()
+                            .to_string(),
+                    );
                 }
                 let param = self.consume(Identifier, "Expected parameter name")?;
                 parameters.push(param);
@@ -104,10 +104,10 @@ impl Parser {
             }
         }
         self.consume(RightParen, "Expected ')' after parameters.")?;
-        self.consume(LeftBrace, &format!("Expected '{{' before {kind:?} body."))?;
+        self.consume(Start, &format!("Expected 'start' before {kind:?} body."))?;
         let body = match self.block_statement()? {
             Stmt::Block { statements } => statements,
-            _ => panic!("Block statement parsed something that was not a block"),
+            _ => panic!("\n Block statement parsed something that was not a block"),
         };
         Ok(Stmt::Function {
             name,
@@ -134,7 +134,9 @@ impl Parser {
         })
     }
     fn statement(&mut self) -> Result<Stmt, String> {
-        if self.match_token(Print) {
+        if self.match_token(Start) {
+            self.block_statement()
+        } else if self.match_token(Print) {
             self.print_statement()
         } else if self.match_token(Input) {
             self.inputs_statement()
@@ -144,8 +146,6 @@ impl Parser {
             self.exits_statement()
         } else if self.match_token(Import) {
             self.import_statement()
-        } else if self.match_token(LeftBrace) {
-            self.block_statement()
         } else if self.match_token(If) {
             self.if_statement()
         } else if self.match_token(Try) {
@@ -177,7 +177,7 @@ impl Parser {
     }
     fn break_statement(&mut self) -> Result<Stmt, String> {
         let keyword = self.previous();
-        self.consume(Semicolon, "Expected ';' after return value;")?;
+        self.consume(Semicolon, "Expected Semicolon after return value")?;
         Ok(Stmt::BreakStmt { keyword })
     }
     fn for_statement(&mut self) -> Result<Stmt, String> {
@@ -294,11 +294,11 @@ impl Parser {
     }
     fn block_statement(&mut self) -> Result<Stmt, String> {
         let mut statements = vec![];
-        while !self.check(RightBrace) && !self.is_at_end() {
+        while !self.check(End) && !self.is_at_end() {
             let decl = self.declaration()?;
             statements.push(Box::new(decl));
         }
-        self.consume(RightBrace, "Expected '}' after a block")?;
+        self.consume(End, "Expected 'end' after a block")?;
         Ok(Stmt::Block { statements })
     }
     fn print_statement(&mut self) -> Result<Stmt, String> {
@@ -340,11 +340,7 @@ impl Parser {
             loop {
                 if parameters.len() >= 255 {
                     let location = self.peek().line_number;
-                    return Err(format!(
-                        "Error 111: Line {location}: Cant have more than 255 arguments"
-                    )
-                    .red()
-                    .to_string());
+                    panic!("\n Line {location}: Cant have more than 255 arguments");
                 }
                 let param = self.consume(Identifier, "Expected parameter name")?;
                 parameters.push(param);
@@ -358,12 +354,12 @@ impl Parser {
             "Expected ')' after anonymous function parameters",
         )?;
         self.consume(
-            LeftBrace,
-            "Expected '{' after anonymous function declaration",
+            Start,
+            "Expected 'start' after anonymous function declaration",
         )?;
         let body = match self.block_statement()? {
             Stmt::Block { statements } => statements,
-            _ => panic!("Block statement parsed something that was not a block"),
+            _ => panic!("\n Block statement parsed something that was not a block"),
         };
         Ok(Expr::AnonFunction {
             id: self.get_id(),
@@ -392,10 +388,7 @@ impl Parser {
                     name,
                     value: Box::new(value),
                 }),
-                _ => Err("Error 112: Invalid assignment target."
-                    .to_string()
-                    .red()
-                    .to_string()),
+                _ => Err("Invalid assignment target.".to_string().red().to_string()),
             }
         } else {
             Ok(expr)
@@ -570,11 +563,11 @@ impl Parser {
                 arguments.push(arg);
                 if arguments.len() >= 255 {
                     let location = self.peek().line_number;
-                    return Err(format!(
-                        "Error 111: Line {location}: Cant have more than 255 arguments"
-                    )
-                    .red()
-                    .to_string());
+                    return Err(
+                        format!("Line {location}: Cant have more than 255 arguments")
+                            .red()
+                            .to_string(),
+                    );
                 } else if !self.match_token(Comma) {
                     break;
                 }
@@ -651,10 +644,7 @@ impl Parser {
                 result = self.function_expression()?;
             }
             _ => {
-                return Err("Error 113: Expected expression"
-                    .to_string()
-                    .red()
-                    .to_string());
+                return Err("Expected expression".to_string().red().to_string());
             }
         }
         Ok(result)

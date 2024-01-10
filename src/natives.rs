@@ -1,4 +1,4 @@
-use rand::Rng;
+// use rand::Rng;
 
 use crate::expr::LiteralValue;
 use std::io;
@@ -97,129 +97,129 @@ pub fn native_toradians(args: &Vec<LiteralValue>) -> LiteralValue {
         }
     }
 }
-pub fn native_pow(args: &Vec<LiteralValue>) -> LiteralValue {
-    if args.len() != 2 {
-        panic!("pow function takes 2 arguments");
-    }
-    match (&args[0], &args[1]) {
-        (LiteralValue::Number(base), LiteralValue::Number(exp)) => {
-            LiteralValue::Number(base.powf(*exp))
-        }
-        _ => panic!("pow function requires numeric arguments"),
-    }
-}
-pub fn native_random(args: &Vec<LiteralValue>) -> LiteralValue {
-    if args.len() != 2 {
-        panic!("random function takes 2 arguments");
-    }
-    match (&args[0], &args[1]) {
-        (LiteralValue::Number(min), LiteralValue::Number(max)) => {
-            if min > max {
-                panic!("random function requires the first argument to be less than or equal to the second argument");
-            }
-            let mut rng = rand::thread_rng();
-            LiteralValue::Number(rng.gen_range(*min..*max))
-        }
-        _ => panic!("random function requires numeric arguments"),
-    }
-}
+// pub fn native_pow(args: &Vec<LiteralValue>) -> LiteralValue {
+//     if args.len() != 2 {
+//         panic!("pow function takes 2 arguments");
+//     }
+//     match (&args[0], &args[1]) {
+//         (LiteralValue::Number(base), LiteralValue::Number(exp)) => {
+//             LiteralValue::Number(base.powf(*exp))
+//         }
+//         _ => panic!("pow function requires numeric arguments"),
+//     }
+// }
+// pub fn native_random(args: &Vec<LiteralValue>) -> LiteralValue {
+//     if args.len() != 2 {
+//         panic!("random function takes 2 arguments");
+//     }
+//     match (&args[0], &args[1]) {
+//         (LiteralValue::Number(min), LiteralValue::Number(max)) => {
+//             if min > max {
+//                 panic!("random function requires the first argument to be less than or equal to the second argument");
+//             }
+//             let mut rng = rand::thread_rng();
+//             LiteralValue::Number(rng.gen_range(*min..*max))
+//         }
+//         _ => panic!("random function requires numeric arguments"),
+//     }
+// }
 
-pub fn native_min(args: &Vec<LiteralValue>) -> LiteralValue {
-    if args.is_empty() {
-        panic!("min function requires at least one argument");
-    }
-    let mut min_value = match &args[0] {
-        LiteralValue::Number(num) => *num,
-        _ => panic!("min function requires numeric arguments"),
-    };
-    for arg in args.iter().skip(1) {
-        match arg {
-            LiteralValue::Number(num) => {
-                if num < &min_value {
-                    min_value = *num;
-                }
-            }
-            _ => panic!("min function requires numeric arguments"),
-        }
-    }
-    LiteralValue::Number(min_value)
-}
+// pub fn native_min(args: &Vec<LiteralValue>) -> LiteralValue {
+//     if args.is_empty() {
+//         panic!("min function requires at least one argument");
+//     }
+//     let mut min_value = match &args[0] {
+//         LiteralValue::Number(num) => *num,
+//         _ => panic!("min function requires numeric arguments"),
+//     };
+//     for arg in args.iter().skip(1) {
+//         match arg {
+//             LiteralValue::Number(num) => {
+//                 if num < &min_value {
+//                     min_value = *num;
+//                 }
+//             }
+//             _ => panic!("min function requires numeric arguments"),
+//         }
+//     }
+//     LiteralValue::Number(min_value)
+// }
 
-pub fn native_max(args: &Vec<LiteralValue>) -> LiteralValue {
-    if args.is_empty() {
-        panic!("max function requires at least one argument");
-    }
-    let mut max_value = match &args[0] {
-        LiteralValue::Number(num) => *num,
-        _ => panic!("max function requires numeric arguments"),
-    };
-    for arg in args.iter().skip(1) {
-        match arg {
-            LiteralValue::Number(num) => {
-                if num > &max_value {
-                    max_value = *num;
-                }
-            }
-            _ => panic!("max function requires numeric arguments"),
-        }
-    }
-    LiteralValue::Number(max_value)
-}
+// pub fn native_max(args: &Vec<LiteralValue>) -> LiteralValue {
+//     if args.is_empty() {
+//         panic!("max function requires at least one argument");
+//     }
+//     let mut max_value = match &args[0] {
+//         LiteralValue::Number(num) => *num,
+//         _ => panic!("max function requires numeric arguments"),
+//     };
+//     for arg in args.iter().skip(1) {
+//         match arg {
+//             LiteralValue::Number(num) => {
+//                 if num > &max_value {
+//                     max_value = *num;
+//                 }
+//             }
+//             _ => panic!("max function requires numeric arguments"),
+//         }
+//     }
+//     LiteralValue::Number(max_value)
+// }
 
-pub fn native_log(args: &Vec<LiteralValue>) -> LiteralValue {
-    if args.len() != 1 {
-        panic!("log function takes exactly one argument");
-    }
-    match &args[0] {
-        LiteralValue::Number(num) => {
-            if *num <= 0.0 {
-                panic!("log function argument must be greater than 0");
-            }
-            LiteralValue::Number(num.ln())
-        }
-        _ => panic!("log function requires a numeric argument"),
-    }
-}
+// pub fn native_log(args: &Vec<LiteralValue>) -> LiteralValue {
+//     if args.len() != 1 {
+//         panic!("log function takes exactly one argument");
+//     }
+//     match &args[0] {
+//         LiteralValue::Number(num) => {
+//             if *num <= 0.0 {
+//                 panic!("log function argument must be greater than 0");
+//             }
+//             LiteralValue::Number(num.ln())
+//         }
+//         _ => panic!("log function requires a numeric argument"),
+//     }
+// }
 
-pub fn native_log2(args: &Vec<LiteralValue>) -> LiteralValue {
-    if args.len() != 1 {
-        panic!("log2 function takes exactly one argument");
-    }
-    match &args[0] {
-        LiteralValue::Number(num) => {
-            if *num <= 0.0 {
-                panic!("log2 function argument must be greater than 0");
-            }
-            LiteralValue::Number(num.log2())
-        }
-        _ => panic!("log2 function requires a numeric argument"),
-    }
-}
+// pub fn native_log2(args: &Vec<LiteralValue>) -> LiteralValue {
+//     if args.len() != 1 {
+//         panic!("log2 function takes exactly one argument");
+//     }
+//     match &args[0] {
+//         LiteralValue::Number(num) => {
+//             if *num <= 0.0 {
+//                 panic!("log2 function argument must be greater than 0");
+//             }
+//             LiteralValue::Number(num.log2())
+//         }
+//         _ => panic!("log2 function requires a numeric argument"),
+//     }
+// }
 
-pub fn native_log10(args: &Vec<LiteralValue>) -> LiteralValue {
-    if args.len() != 1 {
-        panic!("log10 function takes exactly one argument");
-    }
-    match &args[0] {
-        LiteralValue::Number(num) => {
-            if *num <= 0.0 {
-                panic!("log10 function argument must be greater than 0");
-            }
-            LiteralValue::Number(num.log10())
-        }
-        _ => panic!("log10 function requires a numeric argument"),
-    }
-}
+// pub fn native_log10(args: &Vec<LiteralValue>) -> LiteralValue {
+//     if args.len() != 1 {
+//         panic!("log10 function takes exactly one argument");
+//     }
+//     match &args[0] {
+//         LiteralValue::Number(num) => {
+//             if *num <= 0.0 {
+//                 panic!("log10 function argument must be greater than 0");
+//             }
+//             LiteralValue::Number(num.log10())
+//         }
+//         _ => panic!("log10 function requires a numeric argument"),
+//     }
+// }
 
-pub fn native_ceil(args: &Vec<LiteralValue>) -> LiteralValue {
-    if args.len() != 1 {
-        panic!("\n ceil function takes exactly one argument");
-    }
-    match &args[0] {
-        LiteralValue::Number(n) => LiteralValue::Number(n.ceil()),
-        _ => panic!("\n ceil function requires a numeric argument"),
-    }
-}
+// pub fn native_ceil(args: &Vec<LiteralValue>) -> LiteralValue {
+//     if args.len() != 1 {
+//         panic!("\n ceil function takes exactly one argument");
+//     }
+//     match &args[0] {
+//         LiteralValue::Number(n) => LiteralValue::Number(n.ceil()),
+//         _ => panic!("\n ceil function requires a numeric argument"),
+//     }
+// }
 
 pub fn native_input(args: &Vec<LiteralValue>) -> LiteralValue {
     if args.len() != 1 {

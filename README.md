@@ -34,7 +34,7 @@ print add(1,5);
 
   if x > 0 do
     print "x > 0";
-  end elif x < 0 do
+  end else if x < 0 do
     print "x < 0";
   end else do
     print "x = 0";

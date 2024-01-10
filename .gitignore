@@ -1,8 +1,6 @@
-/target
+/src/target
 *~
-notes.md
-/test/main.tron
-/test/index.tron
-/errors.md
-/cli/target
-/extension/node_modules
+/notes.md
+/test
+/target
+/.vscode

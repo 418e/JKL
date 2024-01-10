@@ -13,32 +13,133 @@ fn is_alpha_numeric(ch: char) -> bool {
 }
 fn get_keywords_hashmap() -> HashMap<&'static str, TokenType> {
     HashMap::from([
+        // start
         ("do", Start),
+        ("doing", Start),
+        ("start", Start),
+        ("begin", Start),
+        // end
         ("end", End),
+        ("done", End),
+        ("stop", End),
+        // and
         ("and", And),
+        // else
         ("else", Else),
+        ("otherwise", Else),
+        ("if nor", Else),
+        // false
         ("false", False),
+        ("falsy", False),
+        ("negative", False),
+        ("no", False),
+        // for
         ("for", For),
+        // functions
         ("fn", Fun),
+        ("fun", Fun),
+        ("function", Fun),
+        ("def", Fun),
+        ("define", Fun),
+        // if
         ("if", If),
+        // null
         ("null", Nil),
+        ("nil", Nil),
+        // or
         ("or", Or),
+        // nor
         ("nor", Nor),
+        // xor
         ("xor", Xor),
+        // print
         ("print", Print),
+        ("say", Print),
+        ("shout", Print),
+        ("log", Print),
+        ("out", Print),
+        ("output", Print),
+        ("tell", Print),
+        // input
         ("input", Input),
+        ("in", Input),
+        ("inp", Input),
+        // panic
         ("panic", Errors),
+        ("alarm", Errors),
+        ("throw", Errors),
+        ("error", Errors),
+        ("err", Errors),
+        // include
         ("include", Import),
+        ("import", Import),
+        ("require", Import),
+        ("use", Import),
+        ("payload", Import),
+        ("unload", Import),
+        ("lib", Import),
+        // exit
         ("exit", Exits),
+        ("kill", Exits),
+        ("terminate", Exits),
+        // return
         ("return", Return),
+        ("respond", Return),
+        ("append", Return),
+        // true
         ("true", True),
+        ("affirmative", True),
+        ("yes", True),
+        // variable
         ("let", Var),
+        ("var", Var),
+        ("const", Var),
+        ("state", Var),
+        ("declare", Var),
+        ("dec", Var),
+        // while
         ("while", While),
+        ("loop", While),
+        // bench
         ("bench", Bench),
+        ("test", Bench),
+        ("measure", Bench),
+        ("time", Bench),
+        // catch
         ("catch", Catch),
+        // try
         ("try", Try),
+        // elif
         ("else if", Elif),
+        ("elif", Elif),
+        ("what if", Elif),
+        ("whatif", Elif),
+        // break
         ("break", Break),
+        // plus
+        ("plus", Plus),
+        // minus
+        ("minus", Minus),
+        // mutliplication
+        ("multiply", Star),
+        ("multiplied by", Star),
+        // divide
+        ("divide", Slash),
+        ("divided by", Slash),
+        // increase
+        ("increase", Increment),
+        ("incr", Increment),
+        // decrease
+        ("decrease", Decrement),
+        ("decr", Decrement),
+        // equal, assign
+        ("equal", Equal),
+        ("equals", Equal),
+        ("assign", Equal),
+        ("is", Equal),
+        ("are", Equal),
+        ("assigned to", Equal),
+        ("assign", Equal),
     ])
 }
 pub struct Scanner {
@@ -84,14 +185,14 @@ impl Scanner {
         match c {
             '(' => self.add_token(LeftParen),
             ')' => self.add_token(RightParen),
-            '{' => self.add_token(LeftBrace),
-            '}' => self.add_token(RightBrace),
+            '{' => self.add_token(Start),
+            '}' => self.add_token(End),
             '[' => self.add_token(LeftBracket),
             ']' => self.add_token(RightBracket),
             ',' => self.add_token(Comma),
             '%' => self.add_token(Percent),
-            '$' => self.add_token(Dollar),
-            ':' => self.add_token(Colon),
+            '$' => self.add_token(Var),
+            ':' => self.add_token(Start),
             '^' => {
                 let token = if self.char_match('^') { Cube } else { Power };
                 self.add_token(token)
@@ -104,16 +205,24 @@ impl Scanner {
                 };
                 self.add_token(token)
             }
-            '.' => {
-                let tkns: TokenType =
-                    if self.char_match('s') && self.char_match('i') && self.char_match('n') {
-                        Sin
-                    } else {
-                        Dot
-                    };
-                self.add_token(tkns)
-            }
+            '.' => self.add_token(End),
+            '#' => loop {
+                if self.peek() == '\n' || self.is_at_end() {
+                    break;
+                }
+                self.advance();
+            },
             '@' => self.add_token(Random),
+            '?' => {
+                let token = if self.char_match('>') {
+                    Else
+                } else if self.char_match('>') {
+                    Elif
+                } else {
+                    If
+                };
+                self.add_token(token);
+            }
             '-' => {
                 let token = if self.char_match('-') {
                     Decrement
@@ -148,7 +257,7 @@ impl Scanner {
                 let token = if self.char_match('=') {
                     EqualEqual
                 } else if self.char_match('>') {
-                    Pipe
+                    Return
                 } else {
                     Equal
                 };
@@ -303,12 +412,9 @@ pub enum TokenType {
     End,
     LeftParen,
     RightParen,
-    LeftBrace,
-    RightBrace,
     LeftBracket,
     RightBracket,
     Comma,
-    Colon,
     Dot,
     Minus,
     Plus,
@@ -319,7 +425,6 @@ pub enum TokenType {
     Root,
     Random,
     Percent,
-    Dollar,
     Sin,
     Cos,
     Tan,

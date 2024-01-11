@@ -1,8 +1,7 @@
-use crate::expr::*;
 use crate::environment::*;
+use crate::expr::*;
 use crate::natives::*;
 use std::rc::Rc;
-
 
 pub fn include_array_natives(environment: &mut Environment) {
     environment.define(
@@ -40,7 +39,7 @@ pub fn include_array_natives(environment: &mut Environment) {
 }
 
 pub fn include_math_natives(environment: &mut Environment) {
-     environment.define(
+    environment.define(
         "sin".to_string(),
         LiteralValue::Callable(CallableImpl::NativeFunction(NativeFunctionImpl {
             name: "sin".to_string(),
@@ -102,6 +101,78 @@ pub fn include_math_natives(environment: &mut Environment) {
             name: "floor".to_string(),
             arity: 1,
             fun: Rc::new(native_floor as fn(&Vec<LiteralValue>) -> LiteralValue),
+        })),
+    );
+    environment.define(
+        "ceil".to_string(),
+        LiteralValue::Callable(CallableImpl::NativeFunction(NativeFunctionImpl {
+            name: "ceil".to_string(),
+            arity: 1,
+            fun: Rc::new(native_ceil as fn(&Vec<LiteralValue>) -> LiteralValue),
+        })),
+    );
+    environment.define(
+        "pow".to_string(),
+        LiteralValue::Callable(CallableImpl::NativeFunction(NativeFunctionImpl {
+            name: "pow".to_string(),
+            arity: 2,
+            fun: Rc::new(native_pow as fn(&Vec<LiteralValue>) -> LiteralValue),
+        })),
+    );
+    environment.define(
+        "root".to_string(),
+        LiteralValue::Callable(CallableImpl::NativeFunction(NativeFunctionImpl {
+            name: "root".to_string(),
+            arity: 2,
+            fun: Rc::new(native_root as fn(&Vec<LiteralValue>) -> LiteralValue),
+        })),
+    );
+    environment.define(
+        "random".to_string(),
+        LiteralValue::Callable(CallableImpl::NativeFunction(NativeFunctionImpl {
+            name: "random".to_string(),
+            arity: 2,
+            fun: Rc::new(native_random as fn(&Vec<LiteralValue>) -> LiteralValue),
+        })),
+    );
+    environment.define(
+        "min".to_string(),
+        LiteralValue::Callable(CallableImpl::NativeFunction(NativeFunctionImpl {
+            name: "min".to_string(),
+            arity: 1,
+            fun: Rc::new(native_min as fn(&Vec<LiteralValue>) -> LiteralValue),
+        })),
+    );
+    environment.define(
+        "max".to_string(),
+        LiteralValue::Callable(CallableImpl::NativeFunction(NativeFunctionImpl {
+            name: "max".to_string(),
+            arity: 1,
+            fun: Rc::new(native_max as fn(&Vec<LiteralValue>) -> LiteralValue),
+        })),
+    );
+    environment.define(
+        "log".to_string(),
+        LiteralValue::Callable(CallableImpl::NativeFunction(NativeFunctionImpl {
+            name: "log".to_string(),
+            arity: 1,
+            fun: Rc::new(native_log as fn(&Vec<LiteralValue>) -> LiteralValue),
+        })),
+    );
+    environment.define(
+        "log2".to_string(),
+        LiteralValue::Callable(CallableImpl::NativeFunction(NativeFunctionImpl {
+            name: "log2".to_string(),
+            arity: 1,
+            fun: Rc::new(native_log2 as fn(&Vec<LiteralValue>) -> LiteralValue),
+        })),
+    );
+    environment.define(
+        "log10".to_string(),
+        LiteralValue::Callable(CallableImpl::NativeFunction(NativeFunctionImpl {
+            name: "log10".to_string(),
+            arity: 1,
+            fun: Rc::new(native_log10 as fn(&Vec<LiteralValue>) -> LiteralValue),
         })),
     );
 

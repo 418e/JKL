@@ -1,7 +1,9 @@
 use crate::expr::{Expr, Expr::*, LiteralValue};
+use crate::panic;
 use crate::scanner::{Token, TokenType, TokenType::*};
 use crate::stmt::Stmt;
 use colored::Colorize;
+use std::process::exit;
 pub struct Parser {
     tokens: Vec<Token>,
     current: usize,
@@ -107,7 +109,10 @@ impl Parser {
         self.consume(Start, &format!("Expected 'start' before {kind:?} body."))?;
         let body = match self.block_statement()? {
             Stmt::Block { statements } => statements,
-            _ => panic!("\n Block statement parsed something that was not a block"),
+            _ => {
+                panic("\n Block statement parsed something that was not a block");
+                exit(1)
+            }
         };
         Ok(Stmt::Function {
             name,
@@ -523,8 +528,7 @@ impl Parser {
 
     fn unary(&mut self) -> Result<Expr, String> {
         if self.match_tokens(&[
-            Bang, Minus, Increment, Decrement, Sin, Cos, Tan, In, Round, Floor, Percent, ToDeg,
-            ToRad, Parse, Num, Type,
+            Bang, Minus, Increment, Decrement, Percent,
         ]) {
             let op = self.previous();
             let rhs = self.unary()?;
@@ -656,9 +660,8 @@ impl Parser {
             let token = self.previous();
             Ok(token)
         } else {
-            Err(format!("Line {}: {}", token.line_number, msg)
-                .red()
-                .to_string())
+            panic(&format!("\nLine {}: {}", token.line_number, msg).red());
+            exit(1)
         }
     }
     fn check(&mut self, typ: TokenType) -> bool {

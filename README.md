@@ -1,112 +1,126 @@
 <div align="center">
 
-![Logo](https://tronlang.org/tron.svg)
+![Tron Logo](https://tronlang.org/tron.svg)
 
-</div>
+# Welcome to Tron Programming Language
 
-<div align="center">
-
-# Tron Programming Language
-
-An Open Source, Fast and Sweet Programming Language written in Rust
+An open-source, fast, and expressive programming language crafted with ❤️ in Rust.
 
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
 
 </div>
 
-In the Tron (_since `v2.1.0`_) you have mutliple choices when it comes to syntax. Which means that, different keywords might represent same thing, for example: `function`, `fn`, `fun`, `def` and `define`, all define function, you can use any one of them and will work.
+## Introduction
 
-## Keywords
+Tron is a modern programming language that prioritizes developer comfort and flexibility. With Tron, you can choose from a variety of syntax options to express your ideas in the way that feels most natural to you. Whether you prefer concise function declarations or more descriptive ones, Tron adapts to your style.
 
-|    name     |                           keywords                            |          example          |
-| :---------: | :-----------------------------------------------------------: | :-----------------------: |
-|  function   |                fn, fun, function, def, define                 |  fn add(){ print "hi"; }  |
-| block start |               `{`, do, start, doing, begin, `:`               | def add(): say "hi"; end. |
-|  block end  |                   `}`, end, done, stop, `.`                   | def add(): say "hi"; end. |
-|     if      |                            if, `?`                            |                           |
-|    else     |                else, otherwise, if, nor, `?>`                 |                           |
-|    elif     |              else if, elif, what if, whatif, ?>>              |                           |
-|    true     |                    affirmative, true, yes                     |                           |
-|    false    |                  negative, false, falsy, no                   |                           |
-|    null     |                           null, nil                           |                           |
-|    print    |           print, say, shout, log, out, output, tell           |                           |
-|    input    |                        input, in, inp                         |                           |
-|    error    |               panic, alaram, throw, error, err                |                           |
-|   import    |      include, import, require, use, payload, unload, lib      |                           |
-|    exit     |                     exit, kill, terminate                     |                           |
-|   return    |                    return, respond, append                    |                           |
-|  variable   |           let, var, const, state, declare, dec, `$`           |                           |
-|    while    |                          while, loop                          |                           |
-|    bench    |                  bench, test, measure, time                   |                           |
-|    plus     |                           plus, `+`                           |                           |
-|    minus    |                          minus, `-`                           |                           |
-|  multiply   |                 multiply, multiplied by, `*`                  |                           |
-|   divide    |                    divide, divided by, `/`                    |                           |
-|   assign    | `=`, `assign`, `equal`, `equals`, `is`, `are`, `assigned to`, |                           |
-|  comments   |                            // or #                            |                           |
+## Features
 
-## Usage/Examples
+- **Multiple Syntax Choices**: Use different keywords to represent the same concept, allowing you to write code that aligns with your preferences.
+- **Fast Execution**: Compiled with Rust's performance in mind, Tron programs run swiftly and efficiently.
+- **Open Source**: Tron is developed openly on GitHub, and we welcome contributions from the community.
 
-```rust
-let name = input("name please.");
-print "Hello " + name;
-```
+## Quick Start
 
-```rust
-fn add(a,b) do
-  return a + b;
-end
+To get started with Tron, install the Tron interpreter on your system and create your first Tron program:
+bash curl -o tron https://tronlang.org/tron-lang sudo mv tron /usr/local/bin/ sudo chmod +x /usr/local/bin/tron
 
-print add(1,5);
-```
+Create a file named `main.tron` with the following content:
 
-```rs
-  let x = 0;
-
-  if x > 0 do
-    print "x > 0";
-  end else if x < 0 do
-    print "x < 0";
-  end else do
-    print "x = 0";
-  end
-```
-
-**\*note!**- you could use any syntax from above\*
-
-## Installation
-
-```bash
-curl -o tron https://tronlang.org/tron-lang
-sudo mv tron /usr/local/bin/
-sudo chmod +x /usr/local/bin/tron
-```
-
-## Extension
-
-Install from [marketplace](https://marketplace.visualstudio.com/items?itemName=TronLang.tron-lang), or type `tronlang` in vscode extension search window.
-
-### features
-
-- syntax highlighting
-- basic completion
-- `.tron` icon
-
-soon:
-
-- autocompletion
-- better pattern matching
-
-## Initializing Project
-
-```rs
+```tron
 print "Hello, world!";
 ```
 
-create `main.tron` and then run the following command in the cli
+Run your program with:
 
 ```bash
 tron main.tron
 ```
 
-Happy hacking!
+You should see the output:
+
+```
+Hello, world!
+```
+
+## Examples
+
+Here are some examples to show you the flexibility of Tron's syntax:
+
+```rs
+// Function declaration can be done in multiple ways
+fn greet() {
+  print "Hello";
+}
+
+fun greet() do
+  print "Hello";
+end
+
+function greet() start
+   print "Hello";
+stop
+
+def greet():
+  say "Hello";
+.
+
+define greet() {
+  out "Hello";
+}
+// you can even choose, what kind of brackets you want to use
+```
+
+```rs
+// Conditional statements with different keywords if condition { ... } ? condition { ... }
+
+if i > 0 {
+
+} else if i == 0 {
+
+} else {
+
+}
+
+? i > 0:
+
+. ?>> i == 0:
+
+. ?> :
+
+.
+```
+
+```rs
+// Declaring variables with different keywords
+
+let i = 1;
+$ i = 1;
+declare i equals 1;
+const i is 1;
+var i assign 1;
+```
+
+And many more...
+
+## Documentation
+
+For detailed documentation, visit [Tron's official documentation](https://tronlang.org/docs).
+
+## Community
+
+Join the Tron community:
+
+- [GitHub](https://github.com/tronlang/Tron)
+- [Discord](https://discord.gg/8jSvkTSemE)
+- [Twitter](https://twitter.com/tron_language)
+
+## Contributing
+
+We welcome contributions of all kinds. If you're interested in contributing to Tron, please read our [contribution guidelines](https://github.com/TronLang/Tron/CONTRIBUTING.md).
+
+## License
+
+Tron is licensed under the MIT License. See [LICENSE](https://github.com/TronLang/Tron/LICENSE) for more information.
+
+Happy hacking with Tron!

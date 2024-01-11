@@ -193,18 +193,6 @@ impl Scanner {
             '%' => self.add_token(Percent),
             '$' => self.add_token(Var),
             ':' => self.add_token(Start),
-            '^' => {
-                let token = if self.char_match('^') { Cube } else { Power };
-                self.add_token(token)
-            }
-            '&' => {
-                let token = if self.char_match('&') {
-                    CubicRoot
-                } else {
-                    Root
-                };
-                self.add_token(token)
-            }
             '.' => self.add_token(End),
             '#' => loop {
                 if self.peek() == '\n' || self.is_at_end() {
@@ -212,7 +200,6 @@ impl Scanner {
                 }
                 self.advance();
             },
-            '@' => self.add_token(Random),
             '?' => {
                 let token = if self.char_match('>') {
                     Else
@@ -425,17 +412,6 @@ pub enum TokenType {
     Root,
     Random,
     Percent,
-    Sin,
-    Cos,
-    Tan,
-    Round,
-    Floor,
-    Parse,
-    Type,
-    In,
-    Num,
-    ToDeg,
-    ToRad,
     Cube,
     CubicRoot,
     Bang,

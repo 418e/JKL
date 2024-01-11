@@ -2,6 +2,7 @@ use crate::environment::Environment;
 use crate::expr::{CallableImpl, LiteralValue, NativeFunctionImpl, TronFunctionImpl};
 use crate::libs::*;
 use crate::natives::*;
+use crate::panic;
 use crate::parser::*;
 use crate::resolver::*;
 use crate::scanner::Token;
@@ -9,11 +10,9 @@ use crate::scanner::*;
 use crate::stmt::Stmt;
 use colored::Colorize;
 use std::collections::HashMap;
-use std::io;
 use std::process::exit;
 use std::process::Command;
 use std::rc::Rc;
-use crate::panic;
 
 pub struct Interpreter {
     pub specials: HashMap<String, LiteralValue>,
@@ -51,6 +50,38 @@ impl Interpreter {
                 fun: Rc::new(native_len as fn(&Vec<LiteralValue>) -> LiteralValue),
             })),
         );
+        interpreter.environment.define(
+            "push".to_string(),
+            LiteralValue::Callable(CallableImpl::NativeFunction(NativeFunctionImpl {
+                name: "push".to_string(),
+                arity: 1,
+                fun: Rc::new(native_push as fn(&Vec<LiteralValue>) -> LiteralValue),
+            })),
+        );
+        interpreter.environment.define(
+            "join".to_string(),
+            LiteralValue::Callable(CallableImpl::NativeFunction(NativeFunctionImpl {
+                name: "join".to_string(),
+                arity: 1,
+                fun: Rc::new(native_join as fn(&Vec<LiteralValue>) -> LiteralValue),
+            })),
+        );
+        interpreter.environment.define(
+            "pop".to_string(),
+            LiteralValue::Callable(CallableImpl::NativeFunction(NativeFunctionImpl {
+                name: "pop".to_string(),
+                arity: 1,
+                fun: Rc::new(native_pop as fn(&Vec<LiteralValue>) -> LiteralValue),
+            })),
+        );
+        interpreter.environment.define(
+            "shift".to_string(),
+            LiteralValue::Callable(CallableImpl::NativeFunction(NativeFunctionImpl {
+                name: "shift".to_string(),
+                arity: 1,
+                fun: Rc::new(native_shift as fn(&Vec<LiteralValue>) -> LiteralValue),
+            })),
+        );
 
         interpreter
     }
@@ -74,12 +105,6 @@ impl Interpreter {
                     let value = expression.evaluate(self.environment.clone())?;
                     println!(" ➤ {}", value.to_string());
                 }
-                Stmt::Input { expression } => {
-                    let value = expression.evaluate(self.environment.clone())?;
-                    println!(" ➤ {}", value.to_string());
-                    let mut input = String::new();
-                    io::stdin().read_line(&mut input).unwrap();
-                }
                 Stmt::Errors { expression } => {
                     let value = expression.evaluate(self.environment.clone())?;
                     println!(" ➤ {}", value.to_string().red());
@@ -94,7 +119,6 @@ impl Interpreter {
 
                     match val.as_str() {
                         "\"#math\"" => include_math_natives(&mut self.environment),
-                        "\"#array\"" => include_array_natives(&mut self.environment),
                         _ => {
                             if std::path::Path::new(&path_buf).exists() {
                                 // Load and execute the library file
@@ -147,17 +171,6 @@ impl Interpreter {
                             if let Some(els_stmt) = els {
                                 self.interpret(vec![els_stmt.as_ref()])?;
                             }
-                        }
-                    }
-                }
-                Stmt::TryStmt { tri, catch } => {
-                    let result = self.interpret(vec![tri.as_ref()]);
-                    match result {
-                        Ok(_) => {
-                            self.interpret(vec![tri.as_ref()])?;
-                        }
-                        Err(_) => {
-                            self.interpret(vec![catch.as_ref()])?;
                         }
                     }
                 }

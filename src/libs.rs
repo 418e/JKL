@@ -3,41 +3,6 @@ use crate::expr::*;
 use crate::natives::*;
 use std::rc::Rc;
 
-pub fn include_array_natives(environment: &mut Environment) {
-    environment.define(
-        "push".to_string(),
-        LiteralValue::Callable(CallableImpl::NativeFunction(NativeFunctionImpl {
-            name: "push".to_string(),
-            arity: 1,
-            fun: Rc::new(native_push as fn(&Vec<LiteralValue>) -> LiteralValue),
-        })),
-    );
-    environment.define(
-        "join".to_string(),
-        LiteralValue::Callable(CallableImpl::NativeFunction(NativeFunctionImpl {
-            name: "join".to_string(),
-            arity: 1,
-            fun: Rc::new(native_join as fn(&Vec<LiteralValue>) -> LiteralValue),
-        })),
-    );
-    environment.define(
-        "pop".to_string(),
-        LiteralValue::Callable(CallableImpl::NativeFunction(NativeFunctionImpl {
-            name: "pop".to_string(),
-            arity: 1,
-            fun: Rc::new(native_pop as fn(&Vec<LiteralValue>) -> LiteralValue),
-        })),
-    );
-    environment.define(
-        "shift".to_string(),
-        LiteralValue::Callable(CallableImpl::NativeFunction(NativeFunctionImpl {
-            name: "shift".to_string(),
-            arity: 1,
-            fun: Rc::new(native_shift as fn(&Vec<LiteralValue>) -> LiteralValue),
-        })),
-    );
-}
-
 pub fn include_math_natives(environment: &mut Environment) {
     environment.define(
         "sin".to_string(),

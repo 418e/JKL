@@ -18,6 +18,7 @@ fn get_keywords_hashmap() -> HashMap<&'static str, TokenType> {
         ("doing", Start),
         ("start", Start),
         ("begin", Start),
+        ("then", Start),
         // end
         ("end", End),
         ("done", End),
@@ -60,10 +61,6 @@ fn get_keywords_hashmap() -> HashMap<&'static str, TokenType> {
         ("out", Print),
         ("output", Print),
         ("tell", Print),
-        // input
-        ("input", Input),
-        ("in", Input),
-        ("inp", Input),
         // panic
         ("panic", Errors),
         ("alarm", Errors),
@@ -84,8 +81,6 @@ fn get_keywords_hashmap() -> HashMap<&'static str, TokenType> {
         ("terminate", Exits),
         // return
         ("return", Return),
-        ("respond", Return),
-        ("append", Return),
         // true
         ("true", True),
         ("affirmative", True),
@@ -94,9 +89,7 @@ fn get_keywords_hashmap() -> HashMap<&'static str, TokenType> {
         ("let", Var),
         ("var", Var),
         ("const", Var),
-        ("state", Var),
         ("declare", Var),
-        ("dec", Var),
         // while
         ("while", While),
         ("loop", While),
@@ -105,15 +98,9 @@ fn get_keywords_hashmap() -> HashMap<&'static str, TokenType> {
         ("test", Bench),
         ("measure", Bench),
         ("time", Bench),
-        // catch
-        ("catch", Catch),
-        // try
-        ("try", Try),
         // elif
         ("else if", Elif),
         ("elif", Elif),
-        ("what if", Elif),
-        ("whatif", Elif),
         // break
         ("break", Break),
         // plus
@@ -128,10 +115,8 @@ fn get_keywords_hashmap() -> HashMap<&'static str, TokenType> {
         ("divided by", Slash),
         // increase
         ("increase", Increment),
-        ("incr", Increment),
         // decrease
         ("decrease", Decrement),
-        ("decr", Decrement),
         // equal, assign
         ("equal", Equal),
         ("equals", Equal),
@@ -140,6 +125,12 @@ fn get_keywords_hashmap() -> HashMap<&'static str, TokenType> {
         ("are", Equal),
         ("assigned to", Equal),
         ("assign", Equal),
+        ("as", Equal),
+        // command
+        ("exe", Gets),
+        ("execute", Gets),
+        ("run", Gets),
+        ("cmd", Gets),
     ])
 }
 pub struct Scanner {
@@ -438,14 +429,11 @@ pub enum TokenType {
     For,
     If,
     Elif,
-    Try,
-    Catch,
     Nil,
     Or,
     Nor,
     Xor,
     Print,
-    Input,
     Errors,
     Return,
     True,

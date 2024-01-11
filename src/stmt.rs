@@ -8,9 +8,6 @@ pub enum Stmt {
     Print {
         expression: Expr,
     },
-    Input {
-        expression: Expr,
-    },
     Errors {
         expression: Expr,
     },
@@ -30,10 +27,6 @@ pub enum Stmt {
         then: Box<Stmt>,
         elif_branches: Vec<(Expr, Box<Stmt>)>,
         els: Option<Box<Stmt>>,
-    },
-    TryStmt {
-        tri: Box<Stmt>,
-        catch: Box<Stmt>,
     },
     WhileStmt {
         condition: Expr,

@@ -32,7 +32,7 @@ pub struct NativeFunctionImpl {
 }
 #[derive(Clone)]
 pub enum LiteralValue {
-    Number(f64),
+    Number(f32),
     StringValue(String),
     True,
     False,
@@ -127,7 +127,7 @@ impl LiteralValue {
     }
     pub fn from_token(token: Token) -> Self {
         match token.token_type {
-            TokenType::Number => Self::Number(unwrap_as_f64(token.literal)),
+            TokenType::Number => Self::Number(unwrap_as_f64(token.literal) as f32),
             TokenType::StringLit => Self::StringValue(unwrap_as_string(token.literal)),
             TokenType::False => Self::False,
             TokenType::True => Self::True,
@@ -148,7 +148,7 @@ impl LiteralValue {
     pub fn is_falsy(&self) -> LiteralValue {
         match self {
             Number(x) => {
-                if *x == 0.0 as f64 {
+                if *x == 0.0 as f32 {
                     True
                 } else {
                     False
@@ -180,7 +180,7 @@ impl LiteralValue {
     pub fn is_truthy(&self) -> LiteralValue {
         match self {
             Number(x) => {
-                if *x == 0.0 as f64 {
+                if *x == 0.0 as f32 {
                     False
                 } else {
                     True
@@ -472,17 +472,25 @@ impl Expr {
                 }
             }
             Expr::Assign { id: _, name, value } => {
-                let new_value = (*value).evaluate(environment.clone())?;
-                let assign_success =
-                    environment.assign(&name.lexeme, new_value.clone(), self.get_id());
-                if assign_success {
-                    Ok(new_value)
-                } else {
-                    panic(&format!(
-                        "\n Variable {} has not been declared",
+                if name.lexeme.ends_with('_') {
+                    panic!(
+                        "\n Immutable variable {} cannot be declared",
                         name.lexeme.to_string()
-                    ));
-                    process::exit(1);
+                    );
+                } else {
+                    let new_value = (*value).evaluate(environment.clone())?;
+                    let assign_success =
+                        environment.assign(&name.lexeme, new_value.clone(), self.get_id());
+
+                    if assign_success {
+                        Ok(new_value)
+                    } else {
+                        panic(&format!(
+                            "\n Variable {} has not been declared",
+                            name.lexeme.to_string()
+                        ));
+                        process::exit(1);
+                    }
                 }
             }
             Expr::Variable { id: _, name } => match environment.get(&name.lexeme, self.get_id()) {
@@ -623,7 +631,7 @@ impl Expr {
                     (Number(x), TokenType::Increment) => Ok(Number(x + 1.0)),
                     (Number(x), TokenType::Decrement) => Ok(Number(x - 1.0)),
                     (Number(x), TokenType::Random) => {
-                        Ok(Number(rng.gen_range(0..*x as i64) as f64))
+                        Ok(Number(rng.gen_range(0..*x as i32) as f32))
                     }
                     (_, TokenType::Minus) => {
                         panic(&format!("\n Minus not implemented for {}", right.to_type()));

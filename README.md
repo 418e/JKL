@@ -23,11 +23,11 @@ Tron is a modern programming language that prioritizes developer comfort and fle
 ## Quick Start
 
 To get started with Tron, install the Tron interpreter on your system and create your first Tron program:
+
 ```bash
-curl -o tron https://tronlang.org/tron-lang
-sudo mv tron /usr/local/bin/
-sudo chmod +x /usr/local/bin/tron
+curl -sSL https://tronlang.org/install.sh | bash
 ```
+
 Create a file named `main.tron` with the following content:
 
 ```tron

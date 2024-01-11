@@ -47,12 +47,7 @@ impl Resolver {
                 elif_branches: _,
                 els: _,
             } => self.resolve_if_stmt(stmt)?,
-            Stmt::TryStmt { tri, catch } => {
-                self.resolve_internal(tri.as_ref())?;
-                self.resolve_internal(catch.as_ref())?;
-            }
             Stmt::Print { expression } => self.resolve_expr(expression)?,
-            Stmt::Input { expression } => self.resolve_expr(expression)?,
             Stmt::Errors { expression } => self.resolve_expr(expression)?,
             Stmt::Import { expression } => self.resolve_expr(expression)?,
             Stmt::Exits {} => (),

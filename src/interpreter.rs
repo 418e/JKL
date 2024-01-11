@@ -13,6 +13,7 @@ use std::io;
 use std::process::exit;
 use std::process::Command;
 use std::rc::Rc;
+use crate::panic;
 
 pub struct Interpreter {
     pub specials: HashMap<String, LiteralValue>,
@@ -71,7 +72,7 @@ impl Interpreter {
                 }
                 Stmt::Print { expression } => {
                     let value = expression.evaluate(self.environment.clone())?;
-                    println!(" ➤ {}", value.to_string().green());
+                    println!(" ➤ {}", value.to_string());
                 }
                 Stmt::Input { expression } => {
                     let value = expression.evaluate(self.environment.clone())?;
@@ -81,7 +82,7 @@ impl Interpreter {
                 }
                 Stmt::Errors { expression } => {
                     let value = expression.evaluate(self.environment.clone())?;
-                    println!(" ➤ {}", value.to_string().red().to_string());
+                    println!(" ➤ {}", value.to_string().red());
                     exit(1)
                 }
                 Stmt::Exits {} => exit(1),
@@ -251,11 +252,11 @@ impl Interpreter {
             };
             callable_impl
         } else {
-            panic!("\n Tried to make a function from a non-function statement");
+            panic("\n Tried to make a function from a non-function statement");
+            exit(1)
         }
     }
     fn execute_lib(&mut self, lib_contents: &str) -> Result<(), String> {
-        // Parse and execute the library contents
         let scanner = Scanner::new(lib_contents);
         let tokens = scanner.scan_tokens().map_err(|e| e.to_string())?;
         let mut parser = Parser::new(tokens);

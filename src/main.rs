@@ -1,19 +1,25 @@
 mod environment;
 mod expr;
 mod interpreter;
+mod libs;
 mod natives;
 mod parser;
 mod resolver;
 mod scanner;
 mod stmt;
-mod libs;
 use crate::interpreter::*;
 use crate::parser::*;
 use crate::resolver::*;
 use crate::scanner::*;
+use colored::Colorize;
 use std::env;
 use std::fs;
 use std::process::exit;
+
+pub fn panic(message: &str) {
+    eprintln!("{} \n", message.red());
+    exit(1);
+}
 
 pub fn run_file(path: &str) -> Result<(), String> {
     let absolute_path = if path.starts_with("/") {
@@ -50,18 +56,17 @@ fn main() {
     if args.len() == 2 {
         let command = &args[1];
         if command == "version" {
-                println!("v2.0.0")
+            println!("v2.0.0")
         } else {
             let filename = command;
             let path_buf = path.join(filename);
             let input = path_buf.to_str();
             match input {
                 Some(input) => {
-                    println!("{:?}", input);
                     match run_file(input) {
                         Ok(_) => exit(0),
                         Err(msg) => {
-                            println!("Error:\n{}", msg);
+                            println!("\nError:\n{}", msg);
                             exit(1);
                         }
                     }

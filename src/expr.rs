@@ -1,12 +1,14 @@
 use crate::environment::Environment;
 use crate::interpreter::Interpreter;
+use crate::panic;
 use crate::scanner;
 use crate::scanner::{Token, TokenType};
 use colored::Colorize;
-use num::integer::Roots;
 use rand::Rng;
 use std::cmp::{Eq, PartialEq};
 use std::hash::{Hash, Hasher};
+use std::process;
+use std::process::exit;
 use std::rc::Rc;
 
 #[derive(Clone)]
@@ -76,13 +78,19 @@ impl PartialEq for LiteralValue {
 fn unwrap_as_f64(literal: Option<scanner::LiteralValue>) -> f64 {
     match literal {
         Some(scanner::LiteralValue::FValue(x)) => x as f64,
-        _ => panic!("\n Could not unwrap as f64"),
+        _ => {
+            panic("\n Could not unwrap as f64");
+            0.0
+        }
     }
 }
 fn unwrap_as_string(literal: Option<scanner::LiteralValue>) -> String {
     match literal {
         Some(scanner::LiteralValue::StringValue(s)) => s.clone(),
-        _ => panic!("\n Could not unwrap as string"),
+        _ => {
+            panic("\n Could not unwrap as string");
+            "".to_string()
+        }
     }
 }
 impl LiteralValue {
@@ -124,7 +132,10 @@ impl LiteralValue {
             TokenType::False => Self::False,
             TokenType::True => Self::True,
             TokenType::Nil => Self::Nil,
-            _ => panic!("\n Could not create LiteralValue from {:?}", token),
+            _ => {
+                panic(&format!("\n Could not create LiteralValue from {:?}", token).to_string());
+                Self::Nil
+            }
         }
     }
     pub fn from_bool(b: bool) -> Self {
@@ -160,7 +171,10 @@ impl LiteralValue {
             True => False,
             False => True,
             Nil => True,
-            Callable(_) => panic!("\n Cannot use Callable as a falsy value"),
+            Callable(_) => {
+                panic("\n Cannot use Callable as a falsy value");
+                LiteralValue::Nil
+            }
         }
     }
     pub fn is_truthy(&self) -> LiteralValue {
@@ -189,7 +203,10 @@ impl LiteralValue {
             True => True,
             False => False,
             Nil => False,
-            Callable(_) => panic!("\n Cannot use Callable as a truthy value"),
+            Callable(_) => {
+                panic("\n Cannot use Callable as a truthy value");
+                LiteralValue::Nil
+            }
         }
     }
 }
@@ -432,18 +449,19 @@ impl Expr {
             }
             Expr::Array { id: _, elements } => {
                 if elements.len() == 2 {
-                    // This is an array indexing operation
                     let array = elements[0].evaluate(environment.clone())?;
                     let index = elements[1].evaluate(environment.clone())?;
                     if let LiteralValue::Number(index_num) = index {
                         if let LiteralValue::ArrayValue(arr) = array {
                             let idx = index_num as usize;
                             return arr.get(idx).cloned().ok_or_else(|| {
-                                panic!("\n Array index out of bounds");
+                                panic("\n Array index out of bounds");
+                                process::exit(1);
                             });
                         }
                     }
-                    panic!("\n Invalid array indexing operation");
+                    panic("\n Invalid array indexing operation");
+                    process::exit(1);
                 } else {
                     let mut array_elements = Vec::new();
                     for element_expr in elements.iter() {
@@ -460,19 +478,23 @@ impl Expr {
                 if assign_success {
                     Ok(new_value)
                 } else {
-                    panic!(
+                    panic(&format!(
                         "\n Variable {} has not been declared",
                         name.lexeme.to_string()
-                    );
+                    ));
+                    process::exit(1);
                 }
             }
             Expr::Variable { id: _, name } => match environment.get(&name.lexeme, self.get_id()) {
                 Some(value) => Ok(value.clone()),
-                None => panic!(
-                    "Variable '{}' has not been declared at distance {:?}",
-                    name.lexeme,
-                    environment.get_distance(self.get_id())
-                ),
+                None => {
+                    panic(&format!(
+                        "Variable '{}' has not been declared at distance {:?}",
+                        name.lexeme,
+                        environment.get_distance(self.get_id())
+                    ));
+                    process::exit(1);
+                }
             },
             Expr::Call {
                 id: _,
@@ -492,7 +514,10 @@ impl Expr {
                         }
                         Ok((nativefun.fun)(&evaluated_arguments))
                     }
-                    other => panic!("\n Error 102: {} is not callable", other.to_type()),
+                    other => {
+                        panic(&format!("\n {} is not callable", other.to_type()));
+                        process::exit(1);
+                    }
                 }
             }
             Expr::Literal { id: _, value } => Ok((*value).clone()),
@@ -538,7 +563,13 @@ impl Expr {
                         right.evaluate(environment.clone())
                     }
                 }
-                ttype => panic!("\n Invalid token in logical expression: {}", ttype),
+                ttype => {
+                    panic(&format!(
+                        "\n Invalid token in logical expression: {}",
+                        ttype
+                    ));
+                    process::exit(1);
+                }
             },
             Expr::Get {
                 id: _,
@@ -557,7 +588,10 @@ impl Expr {
                             .cloned()
                             .ok_or_else(|| format!("Index out of bounds: {}", index))
                     }
-                    _ => panic!("\n Trying to index a non-array value"),
+                    _ => {
+                        panic("\n Trying to index a non-array value");
+                        process::exit(1);
+                    }
                 }
             }
 
@@ -568,12 +602,13 @@ impl Expr {
                 value,
             } => {
                 let obj_value = object.evaluate(environment.clone())?;
-                panic!(
+                panic(&format!(
                     "Cannot set property on type {} /  {:?} / {:?}",
                     obj_value.to_type(),
                     name,
                     value
-                )
+                ));
+                process::exit(1);
             }
             Expr::Grouping { id: _, expression } => expression.evaluate(environment),
             Expr::Unary {
@@ -587,42 +622,39 @@ impl Expr {
                     (Number(x), TokenType::Minus) => Ok(Number(-x)),
                     (Number(x), TokenType::Increment) => Ok(Number(x + 1.0)),
                     (Number(x), TokenType::Decrement) => Ok(Number(x - 1.0)),
-                    (Number(x), TokenType::Power) => Ok(Number(x * x)),
-                    (Number(x), TokenType::Cube) => Ok(Number(x * x * x)),
-                    (Number(x), TokenType::Root) => Ok(Number(Roots::sqrt(&(*x as i64)) as f64)),
-                    (Number(x), TokenType::CubicRoot) => {
-                        Ok(Number(Roots::cbrt(&(*x as i64)) as f64))
-                    }
-
                     (Number(x), TokenType::Random) => {
                         Ok(Number(rng.gen_range(0..*x as i64) as f64))
                     }
                     (_, TokenType::Minus) => {
-                        panic!("\n Minus not implemented for {}", right.to_type())
+                        panic(&format!("\n Minus not implemented for {}", right.to_type()));
+                        process::exit(1);
                     }
                     (_, TokenType::Increment) => {
-                        panic!("\n Increment not implemented for {}", right.to_type())
+                        panic(&format!(
+                            "\n Increment not implemented for {}",
+                            right.to_type()
+                        ));
+                        process::exit(1);
                     }
                     (_, TokenType::Decrement) => {
-                        panic!("\n Decrement not implemented for {}", right.to_type())
-                    }
-                    (_, TokenType::Power) => {
-                        panic!("\n Power not implemented for {}", right.to_type())
-                    }
-                    (_, TokenType::Cube) => {
-                        panic!("\n Cube not implemented for {}", right.to_type())
-                    }
-                    (_, TokenType::Root) => {
-                        panic!("\n Root not implemented for {}", right.to_type())
-                    }
-                    (_, TokenType::CubicRoot) => {
-                        panic!("\n CubicRoot not implemented for {}", right.to_type())
+                        panic(&format!(
+                            "\n Decrement not implemented for {}",
+                            right.to_type()
+                        ));
+                        process::exit(1);
                     }
                     (_, TokenType::Percent) => {
-                        panic!("\n Percent not implemented for {}", right.to_type())
+                        panic(&format!(
+                            "\n Percent not implemented for {}",
+                            right.to_type()
+                        ));
+                        process::exit(1);
                     }
                     (any, TokenType::Bang) => Ok(any.is_falsy()),
-                    (_, ttype) => panic!("\n {} is not a valid unary operator", ttype),
+                    (_, ttype) => {
+                        panic(&format!("\n {} is not a valid unary operator", ttype));
+                        exit(1);
+                    }
                 }
             }
             Expr::Binary {
@@ -633,9 +665,7 @@ impl Expr {
             } => {
                 let left = left.evaluate(environment.clone())?;
                 let right = right.evaluate(environment.clone())?;
-                let mut rng = rand::thread_rng();
                 match (&left, operator.token_type, &right) {
-                    (Number(x), TokenType::Random, Number(y)) => Ok(Number(rng.gen_range(*x..*y))),
                     (Number(x), TokenType::Plus, Number(y)) => Ok(Number(x + y)),
                     (StringValue(x), TokenType::Plus, Number(y)) => {
                         Ok(StringValue(format!("{}{}", x, y.to_string())))
@@ -672,17 +702,22 @@ impl Expr {
                         Ok(LiteralValue::from_bool(x.len() <= y.len()))
                     }
                     (StringValue(_), op, Number(_)) => {
-                        panic!("\n {} is not defined for string and number", op)
+                        panic(&format!("\n {} is not defined for string and number", op));
+                        exit(1);
                     }
                     (Number(_), op, StringValue(_)) => {
-                        panic!("\n {} is not defined for string and number", op)
+                        panic(&format!("\n {} is not defined for string and number", op));
+                        exit(1);
                     }
                     (x, TokenType::BangEqual, y) => Ok(LiteralValue::from_bool(x != y)),
                     (x, TokenType::EqualEqual, y) => Ok(LiteralValue::from_bool(x == y)),
-                    (x, ttype, y) => panic!(
-                        "{} is not implemented for operands {:?} and {:?}",
-                        ttype, x, y
-                    ),
+                    (x, ttype, y) => {
+                        panic(&format!(
+                            "{} is not implemented for operands {:?} and {:?}",
+                            ttype, x, y
+                        ));
+                        exit(1)
+                    }
                 }
             }
         }
@@ -694,12 +729,13 @@ pub fn run_tron_function(
     eval_env: Environment,
 ) -> Result<LiteralValue, String> {
     if arguments.len() != tronfun.arity {
-        panic!(
+        panic(&format!(
             " Callable {} expected {} arguments but got {}",
             tronfun.name,
             tronfun.arity,
             arguments.len()
-        );
+        ));
+        exit(1)
     }
     let mut arg_vals = vec![];
     for arg in arguments {

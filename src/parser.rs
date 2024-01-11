@@ -143,8 +143,6 @@ impl Parser {
             self.block_statement()
         } else if self.match_token(Print) {
             self.print_statement()
-        } else if self.match_token(Input) {
-            self.inputs_statement()
         } else if self.match_token(Errors) {
             self.error_statement()
         } else if self.match_token(Exits) {
@@ -153,8 +151,6 @@ impl Parser {
             self.import_statement()
         } else if self.match_token(If) {
             self.if_statement()
-        } else if self.match_token(Try) {
-            self.try_statement()
         } else if self.match_token(While) {
             self.while_statement()
         } else if self.match_token(Bench) {
@@ -281,22 +277,6 @@ impl Parser {
             els,
         })
     }
-    fn try_statement(&mut self) -> Result<Stmt, String> {
-        let tri = self.statement()?;
-        let catch = if self.match_token(Catch) {
-            let stm = self.statement()?;
-            Some(Box::new(stm))
-        } else {
-            None
-        };
-        match catch {
-            Some(catch_stmt) => Ok(Stmt::TryStmt {
-                tri: Box::new(tri),
-                catch: catch_stmt,
-            }),
-            None => Err("Expected 'catch' clause in try statement".to_string()),
-        }
-    }
     fn block_statement(&mut self) -> Result<Stmt, String> {
         let mut statements = vec![];
         while !self.check(End) && !self.is_at_end() {
@@ -310,11 +290,6 @@ impl Parser {
         let value = self.expression()?;
         self.consume(Semicolon, "Expected ';' after value.")?;
         Ok(Stmt::Print { expression: value })
-    }
-    fn inputs_statement(&mut self) -> Result<Stmt, String> {
-        let value = self.expression()?;
-        self.consume(Semicolon, "Expected ';' after value.")?;
-        Ok(Stmt::Input { expression: value })
     }
     fn error_statement(&mut self) -> Result<Stmt, String> {
         let value = self.expression()?;
@@ -527,9 +502,7 @@ impl Parser {
     }
 
     fn unary(&mut self) -> Result<Expr, String> {
-        if self.match_tokens(&[
-            Bang, Minus, Increment, Decrement, Percent,
-        ]) {
+        if self.match_tokens(&[Bang, Minus, Increment, Decrement, Percent]) {
             let op = self.previous();
             let rhs = self.unary()?;
             Ok(Unary {
@@ -707,8 +680,8 @@ impl Parser {
                 return;
             }
             match self.peek().token_type {
-                Fun | Var | For | If | Input | Errors | While | Bench | Print | Return | Import
-                | Try | Exits | Break => return,
+                Fun | Var | For | If | Errors | While | Bench | Print | Return | Import | Exits
+                | Break => return,
                 _ => (),
             }
             self.advance();

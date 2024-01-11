@@ -1,11 +1,12 @@
 use rand::Rng;
-
 use crate::expr::LiteralValue;
 use crate::panic;
 use std::io;
 use std::process::exit;
 
+
 pub fn native_sin(args: &Vec<LiteralValue>) -> LiteralValue {
+    
     if args.len() != 1 {
         panic("\n sin() expects one argument");
     }
@@ -337,8 +338,8 @@ pub fn native_len(args: &Vec<LiteralValue>) -> LiteralValue {
         panic("\n len() expects one argument");
     }
     match &args[0] {
-        LiteralValue::StringValue(n) => LiteralValue::Number(n.len() as f64),
-        LiteralValue::ArrayValue(n) => LiteralValue::Number(n.len() as f64),
+        LiteralValue::StringValue(n) => LiteralValue::Number(n.len() as f32),
+        LiteralValue::ArrayValue(n) => LiteralValue::Number(n.len() as f32),
         _ => {
             panic("\n len() requires a numeric argument");
             exit(1)

@@ -44,10 +44,8 @@ fn run(interpreter: &mut Interpreter, contents: &str) -> Result<(), String> {
     let stmts = parser.parse()?;
     let resolver = Resolver::new();
     let locals = resolver.resolve(&stmts.iter().collect())?;
-    println!("\n");
     interpreter.resolve(locals);
     interpreter.interpret(stmts.iter().collect())?;
-    println!("\n");
     return Ok(());
 }
 fn main() {
@@ -56,21 +54,18 @@ fn main() {
     if args.len() == 2 {
         let command = &args[1];
         if command == "version" {
-            println!("v2.0.0")
+            println!("v2.1.1")
         } else {
             let filename = command;
             let path_buf = path.join(filename);
             let input = path_buf.to_str();
             match input {
-                Some(input) => {
-                    match run_file(input) {
-                        Ok(_) => exit(0),
-                        Err(msg) => {
-                            println!("\nError:\n{}", msg);
-                            exit(1);
-                        }
+                Some(input) => match run_file(input) {
+                    Ok(_) => exit(0),
+                    Err(_msg) => {
+                        exit(1);
                     }
-                }
+                },
                 None => {
                     println!("Error: Non-Unicode file path");
                     exit(1);

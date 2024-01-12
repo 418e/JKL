@@ -15,6 +15,7 @@ use colored::Colorize;
 use std::env;
 use std::fs;
 use std::process::exit;
+use std::process::Command;
 
 pub fn panic(message: &str) {
     eprintln!("{} \n", message.red());
@@ -54,7 +55,15 @@ fn main() {
     if args.len() == 2 {
         let command = &args[1];
         if command == "version" {
-            println!("v2.1.1")
+            println!("v2.3.0")
+        } else if command == "update" {
+            println!("Updating Tron....");
+            let _output = Command::new("bash")
+                .arg("-c")
+                .arg("curl -sSL https://tronlang.org/install.sh | bash")
+                .output()
+                .expect("Failed to execute command");
+            println!("Update completed");
         } else {
             let filename = command;
             let path_buf = path.join(filename);
@@ -73,7 +82,7 @@ fn main() {
             }
         }
     } else {
-        println!("Usage: tron <filename> or tron version");
+        println!("Usage: \n tron <filename> \n tron version \n tron update");
         exit(64);
     }
 }

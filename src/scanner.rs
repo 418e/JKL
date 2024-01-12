@@ -1,5 +1,6 @@
 use colored::Colorize;
-use hashbrown::HashMap;
+use std::collections::HashMap;
+
 use std::string::String;
 fn is_digit(ch: char) -> bool {
     ch as u8 >= b'0' && ch as u8 <= b'9'
@@ -131,6 +132,14 @@ fn get_keywords_hashmap() -> HashMap<&'static str, TokenType> {
         ("execute", Gets),
         ("run", Gets),
         ("cmd", Gets),
+        // wait
+        ("wait", Wait),
+        ("hold", Wait),
+        ("pause", Wait),
+        // before
+        ("before", Before),
+        ("until", Before),
+        ("during", Before),
     ])
 }
 pub struct Scanner {
@@ -183,22 +192,13 @@ impl Scanner {
             ',' => self.add_token(Comma),
             '%' => self.add_token(Percent),
             '$' => self.add_token(Var),
-            ':' => self.add_token(Start),
-            '.' => self.add_token(End),
+            ':' => self.add_token(Colon),
+            '.' => self.add_token(Dot),
             '#' => loop {
-                if self.peek() == '\n' || self.is_at_end() {
-                    break;
-                }
-                self.advance();
+                self.add_token(Elif);
             },
             '?' => {
-                let token = if self.char_match('>') {
-                    Else
-                } else if self.char_match('>') {
-                    Elif
-                } else {
-                    If
-                };
+                let token = if self.char_match('>') { Else } else { If };
                 self.add_token(token);
             }
             '-' => {
@@ -386,6 +386,9 @@ impl Scanner {
 }
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum TokenType {
+    Wait,
+    Before,
+    Colon,
     Start,
     End,
     LeftParen,

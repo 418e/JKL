@@ -1,6 +1,7 @@
 use crate::expr::{Expr, Expr::*, LiteralValue};
 use crate::panic;
 use crate::scanner::{Token, TokenType, TokenType::*};
+use crate::stmt::BeforeBlock;
 use crate::stmt::Stmt;
 use colored::Colorize;
 use std::process::exit;
@@ -153,6 +154,8 @@ impl Parser {
             self.if_statement()
         } else if self.match_token(While) {
             self.while_statement()
+        } else if self.match_token(Wait) {
+            self.wait_statement()
         } else if self.match_token(Bench) {
             self.bench_statement()
         } else if self.match_token(For) {
@@ -245,7 +248,25 @@ impl Parser {
             body: Box::new(body),
         })
     }
-
+    fn wait_statement(&mut self) -> Result<Stmt, String> {
+        let time = self.expression()?;
+        let body = self.statement()?;
+        let before = if self.match_token(Before) {
+            let before_time = self.expression()?;
+            let before_body = self.statement()?;
+            Some(BeforeBlock {
+                time: before_time,
+                body: Box::new(before_body),
+            })
+        } else {
+            None
+        };
+        Ok(Stmt::WaitStmt {
+            time,
+            body: Box::new(body),
+            before,
+        })
+    }
     fn bench_statement(&mut self) -> Result<Stmt, String> {
         let body = self.statement()?;
         Ok(Stmt::BenchStmt {
@@ -516,6 +537,15 @@ impl Parser {
     }
     fn call(&mut self) -> Result<Expr, String> {
         let mut expr = self.primary()?;
+        if self.match_token(Dot) {
+            let name = self.consume(Identifier, "Expected token after dot-accessor")?;
+            expr = Get {
+                id: self.get_id(),
+                object: Box::new(expr),
+                name,
+            };
+        }
+
         loop {
             if self.match_token(LeftParen) {
                 expr = self.finish_call(expr)?;

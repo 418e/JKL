@@ -32,6 +32,11 @@ pub enum Stmt {
         condition: Expr,
         body: Box<Stmt>,
     },
+    WaitStmt {
+        time: Expr,
+        body: Box<Stmt>,
+        before: Option<BeforeBlock>,
+    },
     BenchStmt {
         body: Box<Stmt>,
     },
@@ -51,4 +56,9 @@ pub enum Stmt {
     BreakStmt {
         keyword: Token,
     },
+}
+#[derive(Debug, Clone)]
+pub struct BeforeBlock {
+    pub time: Expr,
+    pub body: Box<Stmt>,
 }

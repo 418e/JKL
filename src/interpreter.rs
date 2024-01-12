@@ -126,10 +126,11 @@ impl Interpreter {
                                     .map_err(|e| e.to_string())?;
                                 self.execute_lib(&lib_contents)?;
                             } else {
-                                return Err(format!(
+                                panic(&format!(
                                     "Library not found: {:?}",
                                     std::path::Path::new(&path_buf)
                                 ));
+                                exit(1);
                             }
                         }
                     }
@@ -184,6 +185,44 @@ impl Interpreter {
                             Err(e) => return Err(e),
                         }
                     }
+                }
+                Stmt::WaitStmt { time, body, before } => {
+                    let time_in_ms = match time.evaluate(self.environment.clone())? {
+                        LiteralValue::Number(i) => i,
+                        _ => return Err("Expected a number for time".to_string()),
+                    };
+
+                    let mut before_time_in_ms = 0;
+
+                    if let Some(before_block) = before {
+                        before_time_in_ms =
+                            match before_block.time.evaluate(self.environment.clone())? {
+                                LiteralValue::Number(i) => i.round() as i32,
+                                _ => return Err("Expected a number for before time".to_string()),
+                            };
+
+                        // Calculate the number of times to execute the before block
+                        let num_executions =
+                            (time_in_ms as f64 / before_time_in_ms as f64).ceil() as u64;
+                        for _ in 0..num_executions {
+                            self.interpret(vec![before_block.body.as_ref()])?;
+                            std::thread::sleep(std::time::Duration::from_millis(
+                                before_time_in_ms as u64,
+                            ));
+                        }
+                    }
+
+                    // Wait for the remaining time if necessary
+                    let remaining_time = if before_time_in_ms > 0 {
+                        time_in_ms as u64 % before_time_in_ms as u64
+                    } else {
+                        time_in_ms as u64
+                    };
+                    if remaining_time > 0 {
+                        std::thread::sleep(std::time::Duration::from_millis(remaining_time));
+                    }
+
+                    self.interpret(vec![body.as_ref()])?;
                 }
                 Stmt::BenchStmt { body } => {
                     let start_time = std::time::SystemTime::now();

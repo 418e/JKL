@@ -1,3 +1,31 @@
+# 2.3.0 - Jan 12
+
+- new cli command `tron update`
+- added new `wait/before` statement:
+
+```
+wait 1000 {
+  print 1;
+}
+```
+will print 1 after 1000ms delay
+
+```
+wait 1000 {
+  print 1;
+} before 200 {
+  print 0;
+}
+```
+will print 0, with 200ms delay 1000/200 times, and then print 1;
+
+wait keywords: wait, hold pause
+before keywords: before, until, during
+
+- removed `.` and `:` as end/start
+- removed `#` comments
+`?>>` elif => `#`
+
 # 2.2.0 - Jan 11
 
 - added variable immutability

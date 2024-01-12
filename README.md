@@ -64,9 +64,9 @@ function greet() start
    print "Hello";
 stop
 
-def greet():
+def greet()do
   say "Hello";
-.
+done
 
 define greet() {
   out "Hello";
@@ -77,21 +77,21 @@ define greet() {
 ```rs
 // Conditional statements with different keywords if condition { ... } ? condition { ... }
 
-if i > 0 {
+if i > 0 start
 
-} else if i == 0 {
+stop else if i == 0 start
 
-} else {
+stop else start
 
-}
+stop
 
-? i > 0:
+? i > 0{
 
-. ?>> i == 0:
+} # i == 0{
 
-. ?> :
+ } ?> {
 
-.
+ }
 ```
 
 ```rs
@@ -108,7 +108,7 @@ And many more...
 
 ## Documentation
 
-For detailed documentation, visit [Tron's official documentation](https://tronlang.org/docs).
+For detailed documentation, visit [Tron's official documentation](https://docs.tronlang.org).
 
 ## Community
 

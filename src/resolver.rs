@@ -65,7 +65,14 @@ impl Resolver {
                 self.resolve_internal(body.as_ref())?;
                 self.current_loop = previous_loop;
             }
-
+            Stmt::WaitStmt { time, body, before } => {
+                self.resolve_expr(time)?;
+                self.resolve_internal(body)?;
+                if let Some(before_block) = before {
+                    self.resolve_expr(&before_block.time)?;
+                    self.resolve_internal(&before_block.body)?;
+                }
+            }
             Stmt::BreakStmt { keyword: _ } => {
                 if self.current_loop == LoopType::None {
                     panic!("\n Break statement is not allowed outside of a loop");
@@ -282,7 +289,7 @@ impl Resolver {
                 paren: _,
                 arguments: _,
             } => match callee.as_ref() {
-                Expr::Variable { id: _, name } => self.resolve_local(name, resolve_id),
+                Expr::Variable { id: _, name } => self.resolve_local(&name, resolve_id),
                 _ => panic!("\n Wrong type in resolve_expr_var"),
             },
             _ => panic!("\n Wrong type in resolve_expr_var"),

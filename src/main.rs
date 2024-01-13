@@ -1,24 +1,33 @@
+/*
+
+    Tron Programming Language
+
+    - Welcome to Tron's source code
+
+
+    latest version: 2.3.1
+    latest release: Jan 13
+
+*/
 mod environment;
 mod expr;
 mod interpreter;
-mod libs;
-mod natives;
 mod parser;
 mod resolver;
 mod scanner;
 mod stmt;
+mod tstd;
 use crate::interpreter::*;
 use crate::parser::*;
 use crate::resolver::*;
 use crate::scanner::*;
-use colored::Colorize;
 use std::env;
 use std::fs;
 use std::process::exit;
 use std::process::Command;
 
 pub fn panic(message: &str) {
-    eprintln!("{} \n", message.red());
+    eprintln!("\x1B[31m{}\x1B[0m \n", message);
     exit(1);
 }
 
@@ -55,7 +64,7 @@ fn main() {
     if args.len() == 2 {
         let command = &args[1];
         if command == "version" {
-            println!("v2.3.0")
+            println!("v2.3.1")
         } else if command == "update" {
             println!("Updating Tron....");
             let _output = Command::new("bash")
@@ -82,7 +91,23 @@ fn main() {
             }
         }
     } else {
-        println!("Usage: \n tron <filename> \n tron version \n tron update");
+        println!(
+            "
+\x1B[38;5;208m
+            ████████╗██████╗  ██████╗ ███╗   ██╗
+            ╚══██╔══╝██╔══██╗██╔═══██╗████╗  ██║
+               ██║   ██████╔╝██║   ██║██╔██╗ ██║
+               ██║   ██╔══██╗██║   ██║██║╚██╗██║
+               ██║   ██║  ██║╚██████╔╝██║ ╚████║
+               ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═══╝\x1B[0m
+                                    
+        Usage: 
+
+        \x1B[32mtron\x1B[0m \x1B[33m<filename>\x1B[0m - interpret tron files
+        \x1B[32mtron\x1B[0m \x1B[34mversion\x1B[0m - current version of Tron
+        \x1B[32mtron\x1B[0m \x1B[34mupdate\x1B[0m - install latest version of Tron
+        "
+        );
         exit(64);
     }
 }

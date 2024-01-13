@@ -1,17 +1,26 @@
-use colored::Colorize;
-use std::collections::HashMap;
+/*
 
+    Tron Scanner
+
+    - Scanner/Lexer
+
+*/
+use std::collections::HashMap;
 use std::string::String;
+// function to check if character is digital
 fn is_digit(ch: char) -> bool {
     ch as u8 >= b'0' && ch as u8 <= b'9'
 }
+// function to check if character is alphabetical (or underscore)
 fn is_alpha(ch: char) -> bool {
     let uch = ch as u8;
     (uch >= b'a' && uch <= b'z') || (uch >= b'A' && uch <= b'Z') || (ch == '_')
 }
+// function to check if character is either alphabetical or digital
 fn is_alpha_numeric(ch: char) -> bool {
     is_alpha(ch) || is_digit(ch)
 }
+// list of keywords
 fn get_keywords_hashmap() -> HashMap<&'static str, TokenType> {
     HashMap::from([
         // start
@@ -142,6 +151,18 @@ fn get_keywords_hashmap() -> HashMap<&'static str, TokenType> {
         ("during", Before),
     ])
 }
+/*
+
+Scanner struct
+
+source: input
+tokens: list of tokens
+start: starting point
+current: current point
+line: line
+keywords: list of keywords from hashmap
+
+*/
 pub struct Scanner {
     source: String,
     tokens: Vec<Token>,
@@ -150,7 +171,10 @@ pub struct Scanner {
     line: usize,
     keywords: HashMap<&'static str, TokenType>,
 }
+// Scanner implementation
 impl Scanner {
+    // Scanner input
+    // you see examples in main.rs and interpreter.rs
     pub fn new(source: &str) -> Self {
         Self {
             source: source.to_string(),
@@ -161,12 +185,13 @@ impl Scanner {
             keywords: get_keywords_hashmap(),
         }
     }
+    // as you guessed, it skans tokens and returns vector of tokens
     pub fn scan_tokens(mut self) -> Result<Vec<Token>, String> {
         while !self.is_at_end() {
             self.start = self.current;
             match self.scan_token() {
                 Ok(_) => (),
-                Err(msg) => return Err(msg.red().to_string()),
+                Err(msg) => return Err(msg.to_string()),
             }
         }
         self.tokens.push(Token {
@@ -177,9 +202,11 @@ impl Scanner {
         });
         Ok(self.tokens)
     }
+    // Function checks if token is at end
     fn is_at_end(&self) -> bool {
         self.current >= self.source.len()
     }
+    // Token scanner, contains list of characters
     fn scan_token(&mut self) -> Result<(), String> {
         let c = self.advance();
         match c {
@@ -289,6 +316,8 @@ impl Scanner {
         }
         Ok(())
     }
+    // Function checks if something is alphanumeric, if itsn't returns Identifier
+    // Function parameters are good example
     fn identifier(&mut self) {
         while is_alpha_numeric(self.peek()) {
             self.advance();
@@ -300,6 +329,7 @@ impl Scanner {
             self.add_token(Identifier);
         }
     }
+    // Number parser, recognizes floating point numbers
     fn number(&mut self) -> Result<(), String> {
         while is_digit(self.peek()) {
             self.advance();
@@ -311,7 +341,7 @@ impl Scanner {
             }
         }
         let substring = &self.source[self.start..self.current];
-        let value = substring.parse::<f64>();
+        let value = substring.parse::<f32>();
         match value {
             Ok(value) => self.add_token_lit(Number, Some(FValue(value))),
             Err(_) => {
@@ -320,12 +350,14 @@ impl Scanner {
         }
         Ok(())
     }
+    // See next character
     fn peek_next(&self) -> char {
         if self.current + 1 >= self.source.len() {
             return '\0';
         }
         self.source.chars().nth(self.current + 1).unwrap()
     }
+    // String parser
     fn string(&mut self) -> Result<(), String> {
         while self.peek() != '"' && !self.is_at_end() {
             if self.peek() == '\n' {
@@ -338,24 +370,17 @@ impl Scanner {
         }
         self.advance();
         let value = &self.source[self.start + 1..self.current - 1];
-        if &self.source[self.start + 1..self.start + 2] == "{"
-            && &self.source[self.current - 2..self.current - 1] == "}"
-        {
-            let vector = &self.source[self.start + 2..self.current - 2];
-            let parts = vector.split(',');
-            for part in parts {
-                println!("{}", part);
-            }
-        }
         self.add_token_lit(StringLit, Some(StringValue(value.to_string())));
         Ok(())
     }
+    // This function is used to look at the char at current position without advancing
     fn peek(&self) -> char {
         if self.is_at_end() {
             return '\0';
         }
         self.source.chars().nth(self.current).unwrap()
     }
+    // Checks self matchers character
     fn char_match(&mut self, ch: char) -> bool {
         if self.is_at_end() {
             return false;
@@ -366,14 +391,17 @@ impl Scanner {
             return true;
         }
     }
+    // Tells scanner to read next character
     fn advance(&mut self) -> char {
         let c = self.source.chars().nth(self.current).unwrap();
         self.current += 1;
         c
     }
+    // adds token
     fn add_token(&mut self, token_type: TokenType) {
         self.add_token_lit(token_type, None);
     }
+    // used to give tokens literals
     fn add_token_lit(&mut self, token_type: TokenType, literal: Option<LiteralValue>) {
         let text = self.source[self.start..self.current].to_string();
         self.tokens.push(Token {
@@ -384,6 +412,7 @@ impl Scanner {
         });
     }
 }
+// list of Tron token types
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum TokenType {
     Wait,
@@ -455,14 +484,16 @@ impl std::fmt::Display for TokenType {
     }
 }
 
+// struct of Array
 #[derive(Debug, Clone)]
 pub struct ArrayElement {
     #[allow(dead_code)]
     token: Token,
 }
+// struct of LiteralValue
 #[derive(Debug, Clone)]
 pub enum LiteralValue {
-    FValue(f64),
+    FValue(f32),
     StringValue(String),
 }
 use LiteralValue::*;

@@ -1,3 +1,9 @@
+# 2.3.1 - Jan 13
+
+- perfonmance improvments
+- binary size reduction
+- removed external libraries (except rand)
+
 # 2.3.0 - Jan 12
 
 - new cli command `tron update`
@@ -8,6 +14,7 @@ wait 1000 {
   print 1;
 }
 ```
+
 will print 1 after 1000ms delay
 
 ```
@@ -17,6 +24,7 @@ wait 1000 {
   print 0;
 }
 ```
+
 will print 0, with 200ms delay 1000/200 times, and then print 1;
 
 wait keywords: wait, hold pause
@@ -24,7 +32,7 @@ before keywords: before, until, during
 
 - removed `.` and `:` as end/start
 - removed `#` comments
-`?>>` elif => `#`
+  `?>>` elif => `#`
 
 # 2.2.0 - Jan 11
 

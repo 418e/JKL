@@ -5,11 +5,11 @@ src/
 ├── environment.rs // Handles Tron environment setup and management
 ├── expr.rs // Handles expressions in Tron
 ├── interpreter.rs // Handles Tron interpreter
-├── libs.rs // Handles Tron standart library
 ├── main.rs // Entry point of the Tron program
 ├── natives.rs // Handles Tron native functions
 ├── parser.rs // Handles parsing of Tron code
 ├── resolver.rs // Handles resolution of Tron code
 ├── scanner.rs // Handles scanning of Tron code
-└── stmt.rs // Handles statements in Tron
+├── stmt.rs // Handles statements in Tron
+└── tstd.rs // Contains Tron natives
 ```

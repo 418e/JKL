@@ -1,9 +1,15 @@
+/*
+
+    Tron Parser
+
+    - Statement parsing happens here, if you are looking for expressions visit expr.rs
+
+*/
 use crate::expr::{Expr, Expr::*, LiteralValue};
 use crate::panic;
 use crate::scanner::{Token, TokenType, TokenType::*};
 use crate::stmt::BeforeBlock;
 use crate::stmt::Stmt;
-use colored::Colorize;
 use std::process::exit;
 pub struct Parser {
     tokens: Vec<Token>,
@@ -53,7 +59,7 @@ impl Parser {
             match stmt {
                 Ok(s) => stmts.push(s),
                 Err(msg) => {
-                    errs.push(msg.red().to_string());
+                    errs.push(msg.to_string());
                     self.synchronize();
                 }
             }
@@ -93,10 +99,8 @@ impl Parser {
             loop {
                 if parameters.len() >= 255 {
                     let location = self.peek().line_number;
-                    return Err(
-                        format!("Line {location}: Cant have more than 255 arguments")
-                            .red()
-                            .to_string(),
+                    panic(
+                        &format!("Line {location}: Cant have more than 255 arguments").to_string(),
                     );
                 }
                 let param = self.consume(Identifier, "Expected parameter name")?;
@@ -389,7 +393,10 @@ impl Parser {
                     name,
                     value: Box::new(value),
                 }),
-                _ => Err("Invalid assignment target.".to_string().red().to_string()),
+                _ => {
+                    panic("Invalid assignment target");
+                    exit(1);
+                }
             }
         } else {
             Ok(expr)
@@ -570,11 +577,9 @@ impl Parser {
                 arguments.push(arg);
                 if arguments.len() >= 255 {
                     let location = self.peek().line_number;
-                    return Err(
-                        format!("Line {location}: Cant have more than 255 arguments")
-                            .red()
-                            .to_string(),
-                    );
+                    panic(
+                        &format!("Line {location}: Cant have more than 255 arguments").to_string(),
+                    )
                 } else if !self.match_token(Comma) {
                     break;
                 }
@@ -651,7 +656,8 @@ impl Parser {
                 result = self.function_expression()?;
             }
             _ => {
-                return Err("Expected expression".to_string().red().to_string());
+                panic("Expected expression");
+                exit(1);
             }
         }
         Ok(result)
@@ -663,7 +669,7 @@ impl Parser {
             let token = self.previous();
             Ok(token)
         } else {
-            panic(&format!("\nLine {}: {}", token.line_number, msg).red());
+            panic(&format!("\nLine {}: {}", token.line_number, msg));
             exit(1)
         }
     }

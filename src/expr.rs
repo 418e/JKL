@@ -1,9 +1,15 @@
+/*
+
+    Tron Expressions
+
+    - Parser and interpreter of expressions
+
+*/
 use crate::environment::Environment;
 use crate::interpreter::Interpreter;
 use crate::panic;
 use crate::scanner;
 use crate::scanner::{Token, TokenType};
-use colored::Colorize;
 use rand::Rng;
 use std::cmp::{Eq, PartialEq};
 use std::hash::{Hash, Hasher};
@@ -758,7 +764,7 @@ pub fn run_tron_function(
     for i in 0..(tronfun.body.len()) {
         let result = int.interpret(vec![&tronfun.body[i]]);
         if let Err(e) = result {
-            return Err(e.red().to_string());
+            return Err(e.to_string());
         } else if let Some(value) = int.specials.get("return") {
             return Ok(value.clone());
         }

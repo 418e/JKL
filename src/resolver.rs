@@ -1,3 +1,10 @@
+/*
+
+    Tron Resolver
+
+    - Resolver functions and type checkers
+
+*/
 use crate::expr::Expr;
 use crate::scanner::Token;
 use crate::stmt::Stmt;

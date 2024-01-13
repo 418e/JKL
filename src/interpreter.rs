@@ -1,15 +1,21 @@
+/*
+
+    Tron Interpreter
+
+    - Output of every statement
+
+*/
 use crate::environment::Environment;
 use crate::expr::{CallableImpl, LiteralValue, NativeFunctionImpl, TronFunctionImpl};
-use crate::libs::*;
-use crate::natives::*;
+use crate::tstd::*;
 use crate::panic;
 use crate::parser::*;
 use crate::resolver::*;
 use crate::scanner::Token;
 use crate::scanner::*;
 use crate::stmt::Stmt;
-use colored::Colorize;
 use std::collections::HashMap;
+use std::io;
 use std::process::exit;
 use std::process::Command;
 use std::rc::Rc;
@@ -31,7 +37,27 @@ impl Interpreter {
             LiteralValue::Callable(CallableImpl::NativeFunction(NativeFunctionImpl {
                 name: "typeof".to_string(),
                 arity: 1,
-                fun: Rc::new(native_typeof as fn(&Vec<LiteralValue>) -> LiteralValue),
+                fun: Rc::new(|args: &Vec<LiteralValue>| -> LiteralValue {
+                    if args.len() != 1 {
+                        panic("\n typeof() expects one argument");
+                    }
+                    match &args[0] {
+                        LiteralValue::Number(_n) => LiteralValue::StringValue("number".to_string()),
+                        LiteralValue::StringValue(_n) => {
+                            LiteralValue::StringValue("string".to_string())
+                        }
+                        LiteralValue::Nil => LiteralValue::StringValue("null".to_string()),
+                        LiteralValue::False => LiteralValue::StringValue("boolean".to_string()),
+                        LiteralValue::True => LiteralValue::StringValue("boolean".to_string()),
+                        LiteralValue::ArrayValue(_n) => {
+                            LiteralValue::StringValue("array".to_string())
+                        }
+                        _ => {
+                            panic("\n uknown type");
+                            exit(1)
+                        }
+                    }
+                }),
             })),
         );
         interpreter.environment.define(
@@ -39,7 +65,23 @@ impl Interpreter {
             LiteralValue::Callable(CallableImpl::NativeFunction(NativeFunctionImpl {
                 name: "input".to_string(),
                 arity: 1,
-                fun: Rc::new(native_input as fn(&Vec<LiteralValue>) -> LiteralValue),
+                fun: Rc::new(|args: &Vec<LiteralValue>| -> LiteralValue {
+                    if args.len() != 1 {
+                        panic("\n input() expects one argument");
+                    }
+                    match &args[0] {
+                        LiteralValue::StringValue(n) => {
+                            println!("{}", n.to_string());
+                            let mut input = String::new();
+                            io::stdin().read_line(&mut input).unwrap();
+                            LiteralValue::StringValue(format!("{}", input))
+                        }
+                        _ => {
+                            panic("\n input() requires a numeric argument");
+                            exit(1)
+                        }
+                    }
+                }),
             })),
         );
         interpreter.environment.define(
@@ -47,7 +89,19 @@ impl Interpreter {
             LiteralValue::Callable(CallableImpl::NativeFunction(NativeFunctionImpl {
                 name: "len".to_string(),
                 arity: 1,
-                fun: Rc::new(native_len as fn(&Vec<LiteralValue>) -> LiteralValue),
+                fun: Rc::new(|args: &Vec<LiteralValue>| -> LiteralValue {
+                    if args.len() != 1 {
+                        panic("\n len() expects one argument");
+                    }
+                    match &args[0] {
+                        LiteralValue::StringValue(n) => LiteralValue::Number(n.len() as f32),
+                        LiteralValue::ArrayValue(n) => LiteralValue::Number(n.len() as f32),
+                        _ => {
+                            panic("\n len() requires a numeric argument");
+                            exit(1)
+                        }
+                    }
+                }),
             })),
         );
         interpreter.environment.define(
@@ -55,7 +109,22 @@ impl Interpreter {
             LiteralValue::Callable(CallableImpl::NativeFunction(NativeFunctionImpl {
                 name: "push".to_string(),
                 arity: 1,
-                fun: Rc::new(native_push as fn(&Vec<LiteralValue>) -> LiteralValue),
+                fun: Rc::new(|args: &Vec<LiteralValue>| -> LiteralValue {
+                    if args.len() != 2 {
+                        panic("\n push() expects two argumentss");
+                    }
+                    match &args[0] {
+                        LiteralValue::ArrayValue(arr) => {
+                            let mut arr = arr.clone();
+                            arr.push(args[1].clone());
+                            LiteralValue::ArrayValue(arr)
+                        }
+                        _ => {
+                            panic("\n push() requires a numeric argument");
+                            exit(1)
+                        }
+                    }
+                }),
             })),
         );
         interpreter.environment.define(
@@ -63,7 +132,29 @@ impl Interpreter {
             LiteralValue::Callable(CallableImpl::NativeFunction(NativeFunctionImpl {
                 name: "join".to_string(),
                 arity: 1,
-                fun: Rc::new(native_join as fn(&Vec<LiteralValue>) -> LiteralValue),
+                fun: Rc::new(|args: &Vec<LiteralValue>| -> LiteralValue {
+                    if args.len() != 2 {
+                        panic("\n join() expects two argumentss");
+                    }
+                    match (&args[0], &args[1]) {
+                        (LiteralValue::ArrayValue(arr), LiteralValue::StringValue(join_str)) => {
+                            let mut strings = Vec::new();
+                            for val in arr.iter() {
+                                match val {
+                                    LiteralValue::Number(num) => strings.push(num.to_string()),
+                                    LiteralValue::StringValue(s) => strings.push(s.clone()),
+                                    _ => panic("\n join() requires an array of strings or numbers"),
+                                }
+                            }
+                            let joined = strings.join(join_str);
+                            LiteralValue::StringValue(joined)
+                        }
+                        _ => {
+                            panic("\n join() requires a numeric argument");
+                            exit(1)
+                        }
+                    }
+                }),
             })),
         );
         interpreter.environment.define(
@@ -71,7 +162,19 @@ impl Interpreter {
             LiteralValue::Callable(CallableImpl::NativeFunction(NativeFunctionImpl {
                 name: "pop".to_string(),
                 arity: 1,
-                fun: Rc::new(native_pop as fn(&Vec<LiteralValue>) -> LiteralValue),
+                fun: Rc::new(|args: &Vec<LiteralValue>| -> LiteralValue {
+                    if args.len() != 1 {
+                        panic("\n pop() expects one argument");
+                    }
+                    if let LiteralValue::ArrayValue(arr) = &args[0] {
+                        let mut arr = arr.clone();
+                        arr.pop();
+                        LiteralValue::ArrayValue(arr)
+                    } else {
+                        panic("\n pop() requires a numeric argument");
+                        exit(1)
+                    }
+                }),
             })),
         );
         interpreter.environment.define(
@@ -79,7 +182,23 @@ impl Interpreter {
             LiteralValue::Callable(CallableImpl::NativeFunction(NativeFunctionImpl {
                 name: "shift".to_string(),
                 arity: 1,
-                fun: Rc::new(native_shift as fn(&Vec<LiteralValue>) -> LiteralValue),
+                fun: Rc::new(|args: &Vec<LiteralValue>| -> LiteralValue {
+                    if args.len() != 1 {
+                        panic("\n shift() expects one argument");
+                    }
+                    if let LiteralValue::ArrayValue(arr) = &args[0] {
+                        let mut arr = arr.clone();
+                        if arr.is_empty() {
+                            panic("\n shift() cannot remove from an empty array");
+                            exit(1)
+                        }
+                        arr.remove(0);
+                        LiteralValue::ArrayValue(arr)
+                    } else {
+                        panic("\n shift() requires a numeric argument");
+                        exit(1)
+                    }
+                }),
             })),
         );
 
@@ -107,8 +226,7 @@ impl Interpreter {
                 }
                 Stmt::Errors { expression } => {
                     let value = expression.evaluate(self.environment.clone())?;
-                    println!(" ➤ {}", value.to_string().red());
-                    exit(1)
+                    panic!(" ➤ {}", value.to_string());
                 }
                 Stmt::Exits {} => exit(1),
                 Stmt::Import { expression } => {

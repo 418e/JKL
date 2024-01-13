@@ -46,7 +46,6 @@ impl Resolver {
                 params: _,
                 body: _,
             } => self.resolve_function(stmt, FunctionType::Function)?,
-            Stmt::CmdFunction { name: _, cmd: _ } => self.resolve_var(stmt)?,
             Stmt::Expression { expression } => self.resolve_expr(expression)?,
             Stmt::IfStmt {
                 predicate: _,
@@ -116,9 +115,6 @@ impl Resolver {
         if let Stmt::Var { name, initializer } = stmt {
             self.declare(name)?;
             self.resolve_expr(initializer)?;
-            self.define(name);
-        } else if let Stmt::CmdFunction { name, cmd: _ } = stmt {
-            self.declare(name)?;
             self.define(name);
         } else {
             panic!("\n Wrong type in resolve var");

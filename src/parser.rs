@@ -21,23 +21,6 @@ enum FunctionKind {
     Function,
 }
 
-const NATIVE_FUNCTIONS: [&str; 14] = [
-    "sin",
-    "cos",
-    "tan",
-    "round",
-    "floor",
-    "to_degrees",
-    "to_radians",
-    "input",
-    "typeof",
-    "len",
-    "push",
-    "join",
-    "pop",
-    "shift",
-];
-
 impl Parser {
     pub fn new(tokens: Vec<Token>) -> Self {
         Self {
@@ -81,17 +64,6 @@ impl Parser {
     }
     fn function(&mut self, kind: FunctionKind) -> Result<Stmt, String> {
         let name = self.consume(Identifier, &format!("Expected {kind:?} name"))?;
-        if NATIVE_FUNCTIONS.contains(&name.lexeme.as_str()) {
-            return Err("Cannot redefine a native function.".to_string());
-        }
-        if self.match_token(Gets) {
-            let cmd_body = self.consume(StringLit, "Expected command body")?;
-            self.consume(Semicolon, "Expected Semicolon after command body")?;
-            return Ok(Stmt::CmdFunction {
-                name,
-                cmd: cmd_body.lexeme,
-            });
-        }
         self.consume(LeftParen, &format!("Expected '(' after {kind:?} name"))?;
         let mut parameters = vec![];
 
@@ -100,7 +72,7 @@ impl Parser {
                 if parameters.len() >= 255 {
                     let location = self.peek().line_number;
                     panic(
-                        &format!("Line {location}: Cant have more than 255 arguments").to_string(),
+                        &format!("Line {location}: Can't have more than 255 arguments").to_string(),
                     );
                 }
                 let param = self.consume(Identifier, "Expected parameter name")?;
@@ -111,19 +83,37 @@ impl Parser {
             }
         }
         self.consume(RightParen, "Expected ')' after parameters.")?;
-        self.consume(Start, &format!("Expected 'start' before {kind:?} body."))?;
-        let body = match self.block_statement()? {
-            Stmt::Block { statements } => statements,
-            _ => {
-                panic("\n Block statement parsed something that was not a block");
-                exit(1)
-            }
-        };
-        Ok(Stmt::Function {
-            name,
-            params: parameters,
-            body,
-        })
+        if self.match_token(Colon) {
+            let body_expr = self.expression()?;
+            self.consume(Semicolon, "Expected ';' after function body expression.")?;
+            return Ok(Stmt::Function {
+                name,
+                params: parameters,
+                body: vec![Box::new(Stmt::ReturnStmt {
+                    keyword: Token {
+                        token_type: TokenType::Return,
+                        lexeme: "".to_string(),
+                        line_number: 0, // You might want to use the actual line number here
+                        literal: None
+                    },
+                    value: Some(body_expr),
+                })],
+            });
+        } else {
+            self.consume(Start, &format!("Expected 'start' before {kind:?} body."))?;
+            let body = match self.block_statement()? {
+                Stmt::Block { statements } => statements,
+                _ => {
+                    panic("\n Block statement parsed something that was not a block");
+                    exit(1)
+                }
+            };
+            Ok(Stmt::Function {
+                name,
+                params: parameters,
+                body,
+            })
+        }
     }
 
     fn var_declaration(&mut self) -> Result<Stmt, String> {
@@ -656,7 +646,7 @@ impl Parser {
                 result = self.function_expression()?;
             }
             _ => {
-                panic("Expected expression");
+                panic(&format!("Unexpected token: {:?}", token.token_type));
                 exit(1);
             }
         }

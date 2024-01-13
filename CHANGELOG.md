@@ -1,6 +1,47 @@
+# 2.4.0 - Jan 13
+
+- added short functions
+
+```
+fn main(x) : x + 1;
+print main(6);
+
+// 7
+```
+
+- added sleep native: `sleep(time)`:
+
+```
+sleep(2000);
+
+// will create delay for 2s
+```
+
+- added ternary native: `ternary(statement, value1, value2):`:
+
+```
+let i = 0;
+let x = ternary(i > 1, 4, 5);
+print x;
+
+// 5
+// if statement is true, return value1, if not: value2
+```
+
+- added cmd native: `cmd("command")`:
+
+```
+let x = cmd("echo hi");
+print x;
+
+// "hi"
+```
+
+- removed cmd functions
+
 # 2.3.1 - Jan 13
 
-- perfonmance improvments
+- performance improvements
 - binary size reduction
 - removed external libraries (except rand)
 

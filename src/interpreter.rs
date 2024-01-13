@@ -7,13 +7,13 @@
 */
 use crate::environment::Environment;
 use crate::expr::{CallableImpl, LiteralValue, NativeFunctionImpl, TronFunctionImpl};
-use crate::tstd::*;
 use crate::panic;
 use crate::parser::*;
 use crate::resolver::*;
 use crate::scanner::Token;
 use crate::scanner::*;
 use crate::stmt::Stmt;
+use crate::tstd::*;
 use std::collections::HashMap;
 use std::io;
 use std::process::exit;
@@ -31,7 +31,85 @@ impl Interpreter {
             specials: HashMap::new(),
             environment: Environment::new(HashMap::new()),
         };
-
+        interpreter.environment.define(
+            "sleep".to_string(),
+            LiteralValue::Callable(CallableImpl::NativeFunction(NativeFunctionImpl {
+                name: "sleep".to_string(),
+                arity: 1,
+                fun: Rc::new(|args: &Vec<LiteralValue>| -> LiteralValue {
+                    if args.len() != 1 {
+                        panic("\n sleep() expects one argument");
+                    }
+                    match &args[0] {
+                        LiteralValue::Number(time) => {
+                            std::thread::sleep(std::time::Duration::from_millis(*time as u64));
+                            LiteralValue::Number(*time)
+                        }
+                        _ => {
+                            panic("\n sleep() requires a numeric argument");
+                            exit(1)
+                        }
+                    }
+                }),
+            })),
+        );
+        interpreter.environment.define(
+            "cmd".to_string(),
+            LiteralValue::Callable(CallableImpl::NativeFunction(NativeFunctionImpl {
+                name: "cmd".to_string(),
+                arity: 1,
+                fun: Rc::new(|args: &Vec<LiteralValue>| -> LiteralValue {
+                    if args.len() != 1 {
+                        panic("\n cmd() expects one argument");
+                    }
+                    match &args[0] {
+                        LiteralValue::StringValue(command) => {
+                            let output = Command::new("sh").arg("-c").arg(command).output();
+                            match output {
+                                Ok(output) => {
+                                    if output.status.success() {
+                                        let stdout = String::from_utf8_lossy(&output.stdout);
+                                        LiteralValue::StringValue(stdout.to_string())
+                                    } else {
+                                        let stderr = String::from_utf8_lossy(&output.stderr);
+                                        panic(&format!("\n Command failed: {}", stderr));
+                                        exit(1)
+                                    }
+                                }
+                                Err(error) => {
+                                    panic(&format!("\n Failed to execute command: {}", error));
+                                    exit(1)
+                                }
+                            }
+                        }
+                        _ => {
+                            panic("\n cmd() requires a string argument");
+                            exit(1)
+                        }
+                    }
+                }),
+            })),
+        );
+        interpreter.environment.define(
+            "ternary".to_string(),
+            LiteralValue::Callable(CallableImpl::NativeFunction(NativeFunctionImpl {
+                name: "ternary".to_string(),
+                arity: 3,
+                fun: Rc::new(|args: &Vec<LiteralValue>| -> LiteralValue {
+                    if args.len() != 3 {
+                        panic("\n ternary() expects three arguments");
+                    }
+                    match &args[0] {
+                        LiteralValue::True => args[1].clone(),
+                        LiteralValue::False => args[2].clone(),
+                        _ => {
+                            panic("\n ternary() first argument must be a boolean");
+                            exit(1)
+                        }
+                    }
+                }),
+            })),
+        );
         interpreter.environment.define(
             "typeof".to_string(),
             LiteralValue::Callable(CallableImpl::NativeFunction(NativeFunctionImpl {
@@ -365,30 +443,6 @@ impl Interpreter {
                     let callable = self.make_function(stmt);
                     let fun = LiteralValue::Callable(CallableImpl::TronFunction(callable));
                     self.environment.define(name.lexeme.clone(), fun);
-                }
-                Stmt::CmdFunction { name, cmd } => {
-                    let cmd = cmd.clone();
-                    let local_fn = move |_args: &Vec<LiteralValue>| {
-                        let cmd = cmd.clone();
-                        let parts = cmd.split(" ").collect::<Vec<&str>>();
-                        let mut command = Command::new(parts[0].replace("\"", ""));
-                        for part in parts[1..].iter() {
-                            command.arg(part.replace("\"", ""));
-                        }
-                        let output = command.output().expect("Failed to run command");
-                        return LiteralValue::StringValue(
-                            std::str::from_utf8(output.stdout.as_slice())
-                                .unwrap()
-                                .to_string(),
-                        );
-                    };
-                    let fun_val =
-                        LiteralValue::Callable(CallableImpl::NativeFunction(NativeFunctionImpl {
-                            name: name.lexeme.clone(),
-                            arity: 0,
-                            fun: Rc::new(local_fn),
-                        }));
-                    self.environment.define(name.lexeme.clone(), fun_val);
                 }
                 Stmt::ReturnStmt { keyword: _, value } => {
                     let eval_val;

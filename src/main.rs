@@ -5,7 +5,7 @@
     - Welcome to Tron's source code
 
 
-    latest version: 2.3.1
+    latest version: 2.4.0
     latest release: Jan 13
 
 */
@@ -64,7 +64,7 @@ fn main() {
     if args.len() == 2 {
         let command = &args[1];
         if command == "version" {
-            println!("v2.3.1")
+            println!("v2.4.0")
         } else if command == "update" {
             println!("Updating Tron....");
             let _output = Command::new("bash")

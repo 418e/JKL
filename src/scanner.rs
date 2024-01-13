@@ -136,11 +136,6 @@ fn get_keywords_hashmap() -> HashMap<&'static str, TokenType> {
         ("assigned to", Equal),
         ("assign", Equal),
         ("as", Equal),
-        // command
-        ("exe", Gets),
-        ("execute", Gets),
-        ("run", Gets),
-        ("cmd", Gets),
         // wait
         ("wait", Wait),
         ("hold", Wait),
@@ -271,8 +266,6 @@ impl Scanner {
             '<' => {
                 let token = if self.char_match('=') {
                     LessEqual
-                } else if self.char_match('-') {
-                    Gets
                 } else {
                     Less
                 };
@@ -450,7 +443,6 @@ pub enum TokenType {
     PlusEqual,
     MinusEqual,
     Pipe,
-    Gets,
     Identifier,
     StringLit,
     Number,

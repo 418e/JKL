@@ -41,6 +41,7 @@ impl Resolver {
             Stmt::Block { statements: _ } => self.resolve_block(stmt)?,
             Stmt::Var {
                 name: _,
+                type_annotation: _,
                 initializer: _,
             } => self.resolve_var(stmt)?,
             Stmt::Function {
@@ -114,8 +115,23 @@ impl Resolver {
         Ok(())
     }
     fn resolve_var(&mut self, stmt: &Stmt) -> Result<(), String> {
-        if let Stmt::Var { name, initializer } = stmt {
+        if let Stmt::Var {
+            name,
+            type_annotation,
+            initializer,
+        } = stmt
+        {
             self.declare(name)?;
+            if let Some(ref token) = type_annotation {
+                match token.lexeme.as_str() {
+                    "number" => { /* handle number type */ }
+                    "string" => { /* handle string type */ }
+                    "array" => { /* handle array type */ }
+                    "bool" => { /* handle bool type */ }
+                    "null" => { /* handle null type */ }
+                    _ => panic(&format!("type {} doesn't exist", token.lexeme)),
+                }
+            }
             self.resolve_expr(initializer)?;
             self.define(name);
         } else {
@@ -123,18 +139,25 @@ impl Resolver {
         }
         Ok(())
     }
-    fn resolve_function(&mut self, stmt: &Stmt, fn_type: FunctionType) -> Result<(), String> {
-        if let Stmt::Function { name, params, body } = stmt {
-            self.declare(name)?;
-            self.define(name);
-            self.resolve_function_helper(
-                params,
-                &body.iter().map(|b| b.as_ref()).collect(),
-                fn_type,
-            )
+    fn resolve_function(
+        &mut self,
+        stmt: &Stmt,
+        resolving_function: FunctionType,
+    ) -> Result<(), String> {
+        if let Stmt::Function { name: _, params, body } = stmt {
+            let enclosing_function = self.current_function;
+            self.current_function = resolving_function;
+            self.begin_scope();
+            for (param_name, _param_type) in params {
+                self.declare(param_name)?;
+                self.define(param_name);
+            }
+            self.resolve_many(&body.iter().map(|b| b.as_ref()).collect())?;
+            self.end_scope();
+            self.current_function = enclosing_function;
+            Ok(())
         } else {
-            panic("\n Wrong type in resolve function");
-            exit(1);
+            panic!("resolve_function called with non-function statement");
         }
     }
     fn resolve_if_stmt(&mut self, stmt: &Stmt) -> Result<(), String> {
@@ -161,24 +184,6 @@ impl Resolver {
             panic("\n Wrong type in resolve_if_stmt");
             exit(1)
         }
-    }
-    fn resolve_function_helper(
-        &mut self,
-        params: &Vec<Token>,
-        body: &Vec<&Stmt>,
-        resolving_function: FunctionType,
-    ) -> Result<(), String> {
-        let enclosing_function = self.current_function;
-        self.current_function = resolving_function;
-        self.begin_scope();
-        for param in params {
-            self.declare(param)?;
-            self.define(param);
-        }
-        self.resolve_many(body)?;
-        self.end_scope();
-        self.current_function = enclosing_function;
-        Ok(())
     }
     fn begin_scope(&mut self) {
         self.scopes.push(HashMap::new());
@@ -268,16 +273,6 @@ impl Resolver {
                 operator: _,
                 right,
             } => self.resolve_expr(right),
-            Expr::AnonFunction {
-                id: _,
-                paren: _,
-                arguments,
-                body,
-            } => self.resolve_function_helper(
-                arguments,
-                &body.iter().map(|b| b.as_ref()).collect(),
-                FunctionType::Function,
-            ),
         }
     }
     fn resolve_expr_var(&mut self, expr: &Expr, resolve_id: usize) -> Result<(), String> {
@@ -297,9 +292,15 @@ impl Resolver {
                 arguments: _,
             } => match callee.as_ref() {
                 Expr::Variable { id: _, name } => self.resolve_local(&name, resolve_id),
-                _ => {panic("\n Wrong type in resolve_expr_var"); exit(1)},
+                _ => {
+                    panic("\n Wrong type in resolve_expr_var");
+                    exit(1)
+                }
             },
-            _ => {panic("\n Wrong type in resolve_expr_var");exit(1)},
+            _ => {
+                panic("\n Wrong type in resolve_expr_var");
+                exit(1)
+            }
         }
     }
     fn resolve_local(&mut self, name: &Token, resolve_id: usize) -> Result<(), String> {

@@ -479,10 +479,11 @@ impl Expr {
             }
             Expr::Assign { id: _, name, value } => {
                 if name.lexeme.ends_with('_') {
-                    panic!(
+                    panic(&format!(
                         "\n Immutable variable {} cannot be declared",
                         name.lexeme.to_string()
-                    );
+                    ));
+                    exit(1);
                 } else {
                     let new_value = (*value).evaluate(environment.clone())?;
                     let assign_success =
@@ -636,6 +637,8 @@ impl Expr {
                     (Number(x), TokenType::Minus) => Ok(Number(-x)),
                     (Number(x), TokenType::Increment) => Ok(Number(x + 1.0)),
                     (Number(x), TokenType::Decrement) => Ok(Number(x - 1.0)),
+                    (Number(x), TokenType::Power2) => Ok(Number(x * x)),
+                    (Number(x), TokenType::Root2) => Ok(Number(x.sqrt())),
                     (Number(x), TokenType::Random) => {
                         Ok(Number(rng.gen_range(0..*x as i32) as f32))
                     }

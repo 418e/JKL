@@ -304,7 +304,7 @@ impl Interpreter {
                 }
                 Stmt::Errors { expression } => {
                     let value = expression.evaluate(self.environment.clone())?;
-                    panic!(" ➤ {}", value.to_string());
+                    panic(&format!(" ➤ {}", value.to_string()));
                 }
                 Stmt::Exits {} => exit(1),
                 Stmt::Import { expression } => {

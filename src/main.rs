@@ -5,8 +5,8 @@
     - Welcome to Tron's source code
 
 
-    latest version: 2.4.0
-    latest release: Jan 13
+    latest version: 2.4.1
+    latest release: Jan 14
 
 */
 mod environment;
@@ -64,7 +64,7 @@ fn main() {
     if args.len() == 2 {
         let command = &args[1];
         if command == "version" {
-            println!("v2.4.0")
+            println!("v2.4.1")
         } else if command == "update" {
             println!("Updating Tron....");
             let _output = Command::new("bash")
@@ -106,6 +106,8 @@ fn main() {
         \x1B[32mtron\x1B[0m \x1B[33m<filename>\x1B[0m - interpret tron files
         \x1B[32mtron\x1B[0m \x1B[34mversion\x1B[0m - current version of Tron
         \x1B[32mtron\x1B[0m \x1B[34mupdate\x1B[0m - install latest version of Tron
+
+             \x1B[38;5;208mTron Programming Language (2.4.1)\x1B[0m
         "
         );
         exit(64);

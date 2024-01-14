@@ -94,7 +94,7 @@ impl Parser {
                         token_type: TokenType::Return,
                         lexeme: "".to_string(),
                         line_number: 0, // You might want to use the actual line number here
-                        literal: None
+                        literal: None,
                     },
                     value: Some(body_expr),
                 })],
@@ -335,7 +335,9 @@ impl Parser {
             loop {
                 if parameters.len() >= 255 {
                     let location = self.peek().line_number;
-                    panic!("\n Line {location}: Cant have more than 255 arguments");
+                    panic(&format!(
+                        "\n Line {location}: Cant have more than 255 arguments"
+                    ));
                 }
                 let param = self.consume(Identifier, "Expected parameter name")?;
                 parameters.push(param);
@@ -354,7 +356,10 @@ impl Parser {
         )?;
         let body = match self.block_statement()? {
             Stmt::Block { statements } => statements,
-            _ => panic!("\n Block statement parsed something that was not a block"),
+            _ => {
+                panic("\n Block statement parsed something that was not a block");
+                exit(1)
+            }
         };
         Ok(Expr::AnonFunction {
             id: self.get_id(),
@@ -520,7 +525,7 @@ impl Parser {
     }
 
     fn unary(&mut self) -> Result<Expr, String> {
-        if self.match_tokens(&[Bang, Minus, Increment, Decrement, Percent]) {
+        if self.match_tokens(&[Bang, Minus, Increment, Decrement, Percent, Power2, Root2]) {
             let op = self.previous();
             let rhs = self.unary()?;
             Ok(Unary {

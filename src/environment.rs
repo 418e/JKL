@@ -6,9 +6,12 @@
 
 */
 use crate::expr::{CallableImpl, LiteralValue, NativeFunctionImpl};
+use crate::panic;
 use std::cell::RefCell;
 use std::collections::HashMap;
+use std::process::exit;
 use std::rc::Rc;
+
 #[derive(Clone)]
 pub struct Environment {
     pub values: Rc<RefCell<HashMap<String, LiteralValue>>>,
@@ -76,7 +79,16 @@ impl Environment {
             if distance == 0 {
                 self.values.borrow().get(name).cloned()
             } else {
-                match &self.enclosing { None => panic!("\n Tried to resolve a variable that was defined deeper than the current environment depth"), Some(env) => { assert!(distance > 0); env.get_internal(name, Some(distance - 1)) } }
+                match &self.enclosing {
+                    None => {
+                        panic("\n Tried to resolve a variable that was defined deeper than the current environment depth");
+                        exit(1)
+                    }
+                    Some(env) => {
+                        assert!(distance > 0);
+                        env.get_internal(name, Some(distance - 1))
+                    }
+                }
             }
         }
     }
@@ -100,7 +112,10 @@ impl Environment {
                 true
             } else {
                 match &self.enclosing {
-                    None => panic!("\n Tried to define a variable in a too deep level"),
+                    None => {
+                        panic("\n Tried to define a variable in a too deep level");
+                        exit(1)
+                    }
                     Some(env) => env.assign_internal(name, value, Some(distance - 1)),
                 };
                 true

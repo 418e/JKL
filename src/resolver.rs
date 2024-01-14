@@ -6,9 +6,11 @@
 
 */
 use crate::expr::Expr;
+use crate::panic;
 use crate::scanner::Token;
 use crate::stmt::Stmt;
 use std::collections::HashMap;
+use std::process::exit;
 #[derive(Copy, Clone, PartialEq)]
 enum FunctionType {
     None,
@@ -59,7 +61,7 @@ impl Resolver {
             Stmt::Exits {} => (),
             Stmt::ReturnStmt { keyword: _, value } => {
                 if self.current_function == FunctionType::None {
-                    panic!("\n Return statement is not allowed outside of a function");
+                    panic("\n Return statement is not allowed outside of a function");
                 } else if let Some(value) = value {
                     self.resolve_expr(value)?;
                 }
@@ -81,7 +83,7 @@ impl Resolver {
             }
             Stmt::BreakStmt { keyword: _ } => {
                 if self.current_loop == LoopType::None {
-                    panic!("\n Break statement is not allowed outside of a loop");
+                    panic("\n Break statement is not allowed outside of a loop");
                 }
             }
             Stmt::BenchStmt { body } => {
@@ -107,7 +109,7 @@ impl Resolver {
                 self.resolve_many(&statements.iter().map(|b| b.as_ref()).collect())?;
                 self.end_scope();
             }
-            _ => panic!("\n Wrong type"),
+            _ => panic("\n Wrong type"),
         }
         Ok(())
     }
@@ -117,7 +119,7 @@ impl Resolver {
             self.resolve_expr(initializer)?;
             self.define(name);
         } else {
-            panic!("\n Wrong type in resolve var");
+            panic("\n Wrong type in resolve var");
         }
         Ok(())
     }
@@ -131,7 +133,8 @@ impl Resolver {
                 fn_type,
             )
         } else {
-            panic!("\n Wrong type in resolve function");
+            panic("\n Wrong type in resolve function");
+            exit(1);
         }
     }
     fn resolve_if_stmt(&mut self, stmt: &Stmt) -> Result<(), String> {
@@ -155,7 +158,8 @@ impl Resolver {
             }
             Ok(())
         } else {
-            panic!("\n Wrong type in resolve_if_stmt");
+            panic("\n Wrong type in resolve_if_stmt");
+            exit(1)
         }
     }
     fn resolve_function_helper(
@@ -187,7 +191,7 @@ impl Resolver {
         if self.scopes.is_empty() {
             return Ok(());
         } else if self.scopes[size - 1].contains_key(&name.lexeme.clone()) {
-            panic!("\n A variable with this name is already in scope");
+            panic("\n A variable with this name is already in scope");
         }
         self.scopes[size - 1].insert(name.lexeme.clone(), false);
         Ok(())
@@ -281,7 +285,7 @@ impl Resolver {
             Expr::Variable { id: _, name } => {
                 if !self.scopes.is_empty() {
                     if let Some(false) = self.scopes[self.scopes.len() - 1].get(&name.lexeme) {
-                        panic!("\n  Can't read local variable in its own initializer");
+                        panic("\n  Can't read local variable in its own initializer");
                     }
                 }
                 self.resolve_local(name, resolve_id)
@@ -293,9 +297,9 @@ impl Resolver {
                 arguments: _,
             } => match callee.as_ref() {
                 Expr::Variable { id: _, name } => self.resolve_local(&name, resolve_id),
-                _ => panic!("\n Wrong type in resolve_expr_var"),
+                _ => {panic("\n Wrong type in resolve_expr_var"); exit(1)},
             },
-            _ => panic!("\n Wrong type in resolve_expr_var"),
+            _ => {panic("\n Wrong type in resolve_expr_var");exit(1)},
         }
     }
     fn resolve_local(&mut self, name: &Token, resolve_id: usize) -> Result<(), String> {
@@ -317,7 +321,7 @@ impl Resolver {
             self.resolve_expr(value.as_ref())?;
             self.resolve_local(name, resolve_id)?;
         } else {
-            panic!("\n Wrong type in resolve assign");
+            panic("\n Wrong type in resolve assign");
         }
         Ok(())
     }

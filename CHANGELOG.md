@@ -1,3 +1,19 @@
+# 2.4.1 - Jan 14
+
+- fixed bugs
+- new operators: `**`(`**3` = 9) and `&`(`&9` = 3)
+- new keywords:
+
+> - `And` : `&&`
+> - `Or`: `||`
+> - `Else if`: `??`
+> - `multiply`: `times`
+> - `>`: `more`, `more than`
+> - `<`: `less`, `less than`
+> - `/`: `slash`
+
+- removed `#` keyword for `else if`
+
 # 2.4.0 - Jan 13
 
 - added short functions

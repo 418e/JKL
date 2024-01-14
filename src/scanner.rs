@@ -5,6 +5,7 @@
     - Scanner/Lexer
 
 */
+use crate::panic;
 use std::collections::HashMap;
 use std::string::String;
 // function to check if character is digital
@@ -120,9 +121,11 @@ fn get_keywords_hashmap() -> HashMap<&'static str, TokenType> {
         // mutliplication
         ("multiply", Star),
         ("multiplied by", Star),
+        ("times", Star),
         // divide
         ("divide", Slash),
         ("divided by", Slash),
+        ("slash", Slash),
         // increase
         ("increase", Increment),
         // decrease
@@ -136,6 +139,12 @@ fn get_keywords_hashmap() -> HashMap<&'static str, TokenType> {
         ("assigned to", Equal),
         ("assign", Equal),
         ("as", Equal),
+        // more, morethan
+        ("more", Greater),
+        ("more than", Greater),
+        // less, lessthan
+        ("less", Less),
+        ("less than", Less),
         // wait
         ("wait", Wait),
         ("hold", Wait),
@@ -216,11 +225,22 @@ impl Scanner {
             '$' => self.add_token(Var),
             ':' => self.add_token(Colon),
             '.' => self.add_token(Dot),
-            '#' => loop {
-                self.add_token(Elif);
-            },
+            '&' => {
+                let token = if self.char_match('&') { And } else { Root2 };
+                self.add_token(token);
+            }
+            '|' => {
+                let token = if self.char_match('|') { Or } else { Or };
+                self.add_token(token);
+            }
             '?' => {
-                let token = if self.char_match('>') { Else } else { If };
+                let token = if self.char_match('>') {
+                    Else
+                } else if self.char_match('?') {
+                    Elif
+                } else {
+                    If
+                };
                 self.add_token(token);
             }
             '-' => {
@@ -244,7 +264,10 @@ impl Scanner {
                 self.add_token(token);
             }
             ';' => self.add_token(Semicolon),
-            '*' => self.add_token(Star),
+            '*' => {
+                let token = if self.char_match('*') { Power2 } else { Star };
+                self.add_token(token)
+            }
             '!' => {
                 let token = if self.char_match('=') {
                     BangEqual
@@ -303,7 +326,10 @@ impl Scanner {
                 } else if is_alpha(c) {
                     self.identifier();
                 } else {
-                    panic!("\n Unrecognized char at line {}: {}", self.line, c);
+                    panic(&format!(
+                        "\n Unrecognized char at line {}: {}",
+                        self.line, c
+                    ));
                 }
             }
         }
@@ -337,9 +363,7 @@ impl Scanner {
         let value = substring.parse::<f32>();
         match value {
             Ok(value) => self.add_token_lit(Number, Some(FValue(value))),
-            Err(_) => {
-                panic!("\n Could not parse number: {}", substring)
-            }
+            Err(_) => panic(&format!("\n Could not parse number: {}", substring)),
         }
         Ok(())
     }
@@ -359,7 +383,7 @@ impl Scanner {
             self.advance();
         }
         if self.is_at_end() {
-            panic!("\n Unterminated string");
+            panic("\n Unterminated string");
         }
         self.advance();
         let value = &self.source[self.start + 1..self.current - 1];
@@ -438,6 +462,8 @@ pub enum TokenType {
     GreaterEqual,
     Less,
     LessEqual,
+    Power2,
+    Root2,
     Increment,
     Decrement,
     PlusEqual,

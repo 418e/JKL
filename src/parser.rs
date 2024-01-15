@@ -65,8 +65,8 @@ impl Parser {
     fn function(&mut self, kind: FunctionKind) -> Result<Stmt, String> {
         let name = self.consume(Identifier, &format!("Expected {kind:?} name"))?;
         self.consume(LeftParen, &format!("Expected '(' after {kind:?} name"))?;
-        let mut parameters = vec![];
 
+        let mut parameters: Vec<(Token, Option<Token>)> = vec![];
         if !self.check(RightParen) {
             loop {
                 if parameters.len() >= 255 {
@@ -75,8 +75,13 @@ impl Parser {
                         &format!("Line {location}: Can't have more than 255 arguments").to_string(),
                     );
                 }
-                let param = self.consume(Identifier, "Expected parameter name")?;
-                parameters.push(param);
+                let param_name = self.consume(Identifier, "Expected parameter name")?;
+                let param_type = if self.match_token(Colon) {
+                    Some(self.consume(Identifier, "Expected type after ':'")?)
+                } else {
+                    None
+                };
+                parameters.push((param_name, param_type));
                 if !self.match_token(Comma) {
                     break;
                 }
@@ -117,19 +122,24 @@ impl Parser {
     }
 
     fn var_declaration(&mut self) -> Result<Stmt, String> {
-        let token = self.consume(Identifier, "Expected variable name")?;
-        let initializer;
-        if self.match_token(Equal) {
-            initializer = self.expression()?;
+        let name = self.consume(Identifier, "Expected variable name")?;
+        let type_annotation = if self.match_token(Colon) {
+            Some(self.consume(Identifier, "Expected type after ':'")?)
         } else {
-            initializer = Literal {
+            None
+        };
+        let initializer = if self.match_token(Equal) {
+            self.expression()?
+        } else {
+            Expr::Literal {
                 id: self.get_id(),
                 value: LiteralValue::Nil,
-            };
-        }
+            }
+        };
         self.consume(Semicolon, "Expected ';' after variable declaration")?;
         Ok(Stmt::Var {
-            name: token,
+            name,
+            type_annotation,
             initializer,
         })
     }
@@ -327,46 +337,6 @@ impl Parser {
     }
     fn expression(&mut self) -> Result<Expr, String> {
         self.assignment()
-    }
-    fn function_expression(&mut self) -> Result<Expr, String> {
-        let paren = self.consume(LeftParen, "Expected '(' after anonymous function")?;
-        let mut parameters = vec![];
-        if !self.check(RightParen) {
-            loop {
-                if parameters.len() >= 255 {
-                    let location = self.peek().line_number;
-                    panic(&format!(
-                        "\n Line {location}: Cant have more than 255 arguments"
-                    ));
-                }
-                let param = self.consume(Identifier, "Expected parameter name")?;
-                parameters.push(param);
-                if !self.match_token(Comma) {
-                    break;
-                }
-            }
-        }
-        self.consume(
-            RightParen,
-            "Expected ')' after anonymous function parameters",
-        )?;
-        self.consume(
-            Start,
-            "Expected 'start' after anonymous function declaration",
-        )?;
-        let body = match self.block_statement()? {
-            Stmt::Block { statements } => statements,
-            _ => {
-                panic("\n Block statement parsed something that was not a block");
-                exit(1)
-            }
-        };
-        Ok(Expr::AnonFunction {
-            id: self.get_id(),
-            paren,
-            arguments: parameters,
-            body,
-        })
     }
     fn assignment(&mut self) -> Result<Expr, String> {
         let expr = self.pipe()?;
@@ -645,10 +615,6 @@ impl Parser {
                     };
                 }
                 result = expr;
-            }
-            Fun => {
-                self.advance();
-                result = self.function_expression()?;
             }
             _ => {
                 panic(&format!("Unexpected token: {:?}", token.token_type));

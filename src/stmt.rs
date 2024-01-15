@@ -24,6 +24,7 @@ pub enum Stmt {
     },
     Var {
         name: Token,
+        type_annotation: Option<Token>,
         initializer: Expr,
     },
     Block {
@@ -49,7 +50,7 @@ pub enum Stmt {
     },
     Function {
         name: Token,
-        params: Vec<Token>,
+        params: Vec<(Token, Option<Token>)>,
         body: Vec<Box<Stmt>>,
     },
     ReturnStmt {

@@ -15,9 +15,11 @@ use std::rc::Rc;
 #[derive(Clone)]
 pub struct Environment {
     pub values: Rc<RefCell<HashMap<String, LiteralValue>>>,
+    pub type_annotations: Rc<RefCell<HashMap<String, String>>>,
     locals: Rc<RefCell<HashMap<usize, usize>>>,
     pub enclosing: Option<Box<Environment>>,
 }
+
 fn clock_impl(_args: &Vec<LiteralValue>) -> LiteralValue {
     let now = std::time::SystemTime::now()
         .duration_since(std::time::SystemTime::UNIX_EPOCH)
@@ -42,9 +44,18 @@ impl Environment {
     pub fn new(locals: HashMap<usize, usize>) -> Self {
         Self {
             values: get_globals(),
+            type_annotations: Rc::new(RefCell::new(HashMap::new())),
             locals: Rc::new(RefCell::new(locals)),
             enclosing: None,
         }
+    }
+    pub fn get_type_annotation(&self, name: &str) -> Option<String> {
+        self.type_annotations.borrow().get(name).cloned()
+    }
+    pub fn set_type_annotation(&self, name: String, type_annotation: String) {
+        self.type_annotations
+            .borrow_mut()
+            .insert(name, type_annotation);
     }
     pub fn resolve(&self, locals: HashMap<usize, usize>) {
         for (key, val) in locals.iter() {
@@ -54,6 +65,7 @@ impl Environment {
     pub fn enclose(&self) -> Environment {
         Self {
             values: Rc::new(RefCell::new(HashMap::new())),
+            type_annotations: self.type_annotations.clone(),
             locals: self.locals.clone(),
             enclosing: Some(Box::new(self.clone())),
         }

@@ -331,8 +331,27 @@ impl Interpreter {
                         }
                     }
                 }
-                Stmt::Var { name, initializer } => {
+                Stmt::Var {
+                    name,
+                    type_annotation,
+                    initializer,
+                } => {
                     let value = initializer.evaluate(self.environment.clone())?;
+                    if let Some(type_token) = type_annotation {
+                        if type_token.lexeme == value.to_type() {
+                            self.environment.set_type_annotation(
+                                name.lexeme.clone(),
+                                type_token.lexeme.clone(),
+                            );
+                        } else {
+                            panic(&format!(
+                                "mismatched types: \n variable {} is expecting {} type, but got {}",
+                                name.lexeme,
+                                type_token.lexeme,
+                                value.to_type()
+                            ))
+                        }
+                    }
                     self.environment.define(name.lexeme.clone(), value);
                 }
                 Stmt::Block { statements } => {
@@ -463,7 +482,10 @@ impl Interpreter {
     fn make_function(&self, fn_stmt: &Stmt) -> TronFunctionImpl {
         if let Stmt::Function { name, params, body } = fn_stmt {
             let arity = params.len();
-            let params: Vec<Token> = params.iter().map(|t| (*t).clone()).collect();
+            let params: Vec<(Token, Option<Token>)> = params
+                .iter()
+                .map(|(name, type_token)| (name.clone(), type_token.clone()))
+                .collect();
             let body: Vec<Box<Stmt>> = body.iter().map(|b| (*b).clone()).collect();
             let name_clone = name.lexeme.clone();
             let parent_env = self.environment.clone();

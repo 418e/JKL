@@ -27,7 +27,7 @@ pub struct TronFunctionImpl {
     pub name: String,
     pub arity: usize,
     pub parent_env: Environment,
-    pub params: Vec<Token>,
+    pub params: Vec<(Token, Option<Token>)>,
     pub body: Vec<Box<Stmt>>,
 }
 #[derive(Clone)]
@@ -122,13 +122,13 @@ impl LiteralValue {
     }
     pub fn to_type(&self) -> &str {
         match self {
-            LiteralValue::Number(_) => "Number",
-            LiteralValue::StringValue(_) => "String",
-            LiteralValue::ArrayValue(_) => "Array",
-            LiteralValue::True => "Boolean",
-            LiteralValue::False => "Boolean",
-            LiteralValue::Nil => "nil",
-            LiteralValue::Callable(_) => "Callable",
+            LiteralValue::Number(_) => "number",
+            LiteralValue::StringValue(_) => "string",
+            LiteralValue::ArrayValue(_) => "array",
+            LiteralValue::True => "bool",
+            LiteralValue::False => "bool",
+            LiteralValue::Nil => "null",
+            LiteralValue::Callable(_) => "callable",
         }
     }
     pub fn from_token(token: Token) -> Self {
@@ -219,12 +219,6 @@ impl LiteralValue {
 use crate::stmt::Stmt;
 #[derive(Clone)]
 pub enum Expr {
-    AnonFunction {
-        id: usize,
-        paren: Token,
-        arguments: Vec<Token>,
-        body: Vec<Box<Stmt>>,
-    },
     Array {
         id: usize,
         elements: Vec<Box<Expr>>,
@@ -302,12 +296,6 @@ impl Eq for Expr {}
 impl Expr {
     pub fn get_id(&self) -> usize {
         match self {
-            Expr::AnonFunction {
-                id,
-                paren: _,
-                arguments: _,
-                body: _,
-            } => *id,
             Expr::Array { id, elements: _ } => *id,
             Expr::Assign {
                 id,
@@ -357,12 +345,6 @@ impl Expr {
 impl Expr {
     pub fn to_string(&self) -> String {
         match self {
-            Expr::AnonFunction {
-                id: _,
-                paren: _,
-                arguments,
-                body: _,
-            } => format!("anon/{}", arguments.len()),
             Expr::Array { id: _, elements } => {
                 let elements_str = elements
                     .iter()
@@ -435,24 +417,6 @@ impl Expr {
 
     pub fn evaluate(&self, environment: Environment) -> Result<LiteralValue, String> {
         match self {
-            Expr::AnonFunction {
-                id: _,
-                paren: _,
-                arguments,
-                body,
-            } => {
-                let arity = arguments.len();
-                let arguments: Vec<Token> = arguments.iter().map(|t| (*t).clone()).collect();
-                let body: Vec<Box<Stmt>> = body.iter().map(|b| (*b).clone()).collect();
-                let callable_impl = CallableImpl::TronFunction(TronFunctionImpl {
-                    name: "anon_funciton".to_string(),
-                    arity,
-                    parent_env: environment.clone(),
-                    params: arguments,
-                    body,
-                });
-                Ok(Callable(callable_impl))
-            }
             Expr::Array { id: _, elements } => {
                 if elements.len() == 2 {
                     let array = elements[0].evaluate(environment.clone())?;
@@ -488,7 +452,22 @@ impl Expr {
                     let new_value = (*value).evaluate(environment.clone())?;
                     let assign_success =
                         environment.assign(&name.lexeme, new_value.clone(), self.get_id());
-
+                    let type_annotation = environment.get_type_annotation(&name.lexeme);
+                    match type_annotation {
+        Some(expected_type) => {
+            match (expected_type.as_str(), &new_value) {
+                ("number", LiteralValue::Number(_)) => {},
+                ("string", LiteralValue::StringValue(_)) => {},
+                ("array", LiteralValue::ArrayValue(_)) => {},
+                ("bool", LiteralValue::True) | ("bool", LiteralValue::False) => {},
+                ("null", LiteralValue::Nil) => {},
+                _ => panic(&format!("Type mismatch: variable '{:?}' expected type '{}', but got value of type '{}'", name.lexeme, expected_type, new_value.to_type())),
+            }
+        },
+        None => {
+            // No type annotation exists, so no type checking is necessary
+        },
+    }
                     if assign_success {
                         Ok(new_value)
                     } else {
@@ -746,13 +725,12 @@ pub fn run_tron_function(
     eval_env: Environment,
 ) -> Result<LiteralValue, String> {
     if arguments.len() != tronfun.arity {
-        panic(&format!(
-            " Callable {} expected {} arguments but got {}",
+        return Err(format!(
+            "Callable {} expected {} arguments but got {}",
             tronfun.name,
             tronfun.arity,
             arguments.len()
         ));
-        exit(1)
     }
     let mut arg_vals = vec![];
     for arg in arguments {
@@ -761,11 +739,40 @@ pub fn run_tron_function(
     }
     let fun_env = tronfun.parent_env.enclose();
     for (i, val) in arg_vals.iter().enumerate() {
-        fun_env.define(tronfun.params[i].lexeme.clone(), (*val).clone());
+        if i < tronfun.params.len() {
+            let (param_name_token, param_type_token_option) = &tronfun.params[i];
+            let param_name_lexeme = &param_name_token.lexeme;
+
+            // Check if a type was provided for the parameter and perform type checking if necessary
+            if let Some(param_type_token) = param_type_token_option {
+                let param_type_lexeme = &param_type_token.lexeme;
+
+                // Type checking logic
+                match (param_type_lexeme.as_str(), val) {
+                    ("number", LiteralValue::Number(_)) => {}
+                    ("string", LiteralValue::StringValue(_)) => {}
+                    ("array", LiteralValue::ArrayValue(_)) => {}
+                    ("bool", LiteralValue::True) | ("bool", LiteralValue::False) => {}
+                    ("null", LiteralValue::Nil) => {}
+                    _ => {
+                        panic(&format!(
+                        "Type mismatch: expected argument of type '{}' for parameter '{}', but got value of type '{}'",
+                         val.to_type(),
+                        param_name_lexeme,param_type_lexeme,
+                       
+                    ));
+                    }
+                }
+            }
+
+            fun_env.define(param_name_lexeme.clone(), val.clone());
+        } else {
+            panic("Function call argument count does not match parameter count.");
+        }
     }
     let mut int = Interpreter::with_env(fun_env);
-    for i in 0..(tronfun.body.len()) {
-        let result = int.interpret(vec![&tronfun.body[i]]);
+    for stmt in tronfun.body.iter() {
+        let result = int.interpret(vec![stmt.as_ref()]);
         if let Err(e) = result {
             return Err(e.to_string());
         } else if let Some(value) = int.specials.get("return") {

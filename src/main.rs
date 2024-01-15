@@ -5,7 +5,7 @@
     - Welcome to Tron's source code
 
 
-    latest version: 2.4.1
+    latest version: 2.5.0
     latest release: Jan 14
 
 */
@@ -107,7 +107,7 @@ fn main() {
         \x1B[32mtron\x1B[0m \x1B[34mversion\x1B[0m - current version of Tron
         \x1B[32mtron\x1B[0m \x1B[34mupdate\x1B[0m - install latest version of Tron
 
-             \x1B[38;5;208mTron Programming Language (2.4.1)\x1B[0m
+             \x1B[38;5;208mTron Programming Language (2.5.0)\x1B[0m
         "
         );
         exit(64);

@@ -1,3 +1,19 @@
+# 2.5.0 - Jan 15
+
+- added type system
+- added 5 types: `number`, `string`, `bool`, `null`, `array`
+- added type checking for variables and function paramters:
+
+```
+let i: number = 0;
+// let i = 0; is still valid
+
+fn sum(x: number , y: number) {
+// fn sum(x,y) is still valid
+    return x + y;
+}
+```
+
 # 2.4.1 - Jan 14
 
 - fixed bugs

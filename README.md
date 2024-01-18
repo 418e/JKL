@@ -1,12 +1,15 @@
 <div align="center">
 
-![Tron Logo](https://tronlang.org/tron.svg)
+![Tron Logo](https://tronlang.org/Tron.svg)
 
 # Welcome to Tron Programming Language
 
 An open-source, fast, and expressive programming language crafted with ❤️ in Rust.
 
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
+![GitHub (Pre-)Release Date](https://img.shields.io/github/release-date-pre/tronlang/Tron)
+![GitHub Repo stars](https://img.shields.io/github/stars/tronlang/Tron)
+
 
 </div>
 
@@ -46,77 +49,12 @@ You should see the output:
 Hello, world!
 ```
 
-## Examples
+## Acknowledgements
 
-Here are some examples to show you the flexibility of Tron's syntax:
-
-```rs
-// Function declaration can be done in multiple ways
-fn greet() {
-  print "Hello";
-}
-
-fun greet() do
-  print "Hello";
-end
-
-function greet() start
-   print "Hello";
-stop
-
-def greet()do
-  say "Hello";
-done
-
-define greet() {
-  out "Hello";
-}
-// you can even choose, what kind of brackets you want to use
-```
-
-```rs
-// Conditional statements with different keywords if condition { ... } ? condition { ... }
-
-if i > 0 start
-
-stop else if i == 0 start
-
-stop else start
-
-stop
-
-? i > 0{
-
-} # i == 0{
-
- } ?> {
-
- }
-```
-
-```rs
-// Declaring variables with different keywords
-
-let i = 1;
-$ i = 1;
-declare i equals 1;
-const i is 1;
-var i assign 1;
-```
-
-And many more...
-
-## Documentation
-
-For detailed documentation, visit [Tron's official documentation](https://docs.tronlang.org).
-
-## Community
-
-Join the Tron community:
-
-- [GitHub](https://github.com/tronlang/Tron)
-- [Discord](https://discord.gg/8jSvkTSemE)
-- [Twitter](https://twitter.com/tron_language)
+- [Documentation](https://docs.tronlang.org)
+- [Examples](https://github.com/tronlang/Examples)
+- [TronWasm](https://wasm.tronlang.org)
+- [Extension](https://marketplace.visualstudio.com/items?itemName=TronLang.tron-lang)
 
 ## Contributing
 
@@ -124,6 +62,6 @@ We welcome contributions of all kinds. If you're interested in contributing to T
 
 ## License
 
-Tron is licensed under the MIT License. See [LICENSE](https://github.com/TronLang/Tron/LICENSE) for more information.
+Tron is licensed under the MIT License. See [LICENSE](https://github.com/tronlang/Tron/blob/main/LICENSE) for more information.
 
 Happy hacking with Tron!

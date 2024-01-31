@@ -1,10 +1,10 @@
 [package]
 name = "tron-lang"
-version = "2.5.0"
+version = "2.6.0"
 edition = "2021"
 authors = ["418e"]
 description = "Open Source Programming Language"
-documentation = "https://github.com/418e/Tron/wiki"
+documentation = "https://docs.tronlang.org"
 homepage = "https://tronlang.org/"
 repository = "https://github.com/418e/Tron"
 license = "MIT"

@@ -23,22 +23,22 @@ pub enum Stmt {
         expression: Expr,
     },
     Var {
-        name: Token,
+        names: Vec<Token>,
         type_annotation: Option<Token>,
         initializer: Expr,
     },
     Block {
         statements: Vec<Box<Stmt>>,
     },
-    IfStmt {
-        predicate: Expr,
-        then: Box<Stmt>,
-        elif_branches: Vec<(Expr, Box<Stmt>)>,
-        els: Option<Box<Stmt>>,
-    },
     WhileStmt {
-        condition: Expr,
+        conditions: Vec<Expr>,
         body: Box<Stmt>,
+    },
+    IfStmt {
+        predicates: Vec<Expr>,
+        then_branch: Box<Stmt>,
+        elif_branches: Vec<(Vec<Expr>, Box<Stmt>)>,
+        else_branch: Option<Box<Stmt>>,
     },
     WaitStmt {
         time: Expr,

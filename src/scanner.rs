@@ -189,13 +189,13 @@ impl Scanner {
             keywords: get_keywords_hashmap(),
         }
     }
-    // as you guessed, it skans tokens and returns vector of tokens
+    // as you might have guessed, it scans tokens and returns vector of tokens
     pub fn scan_tokens(mut self) -> Result<Vec<Token>, String> {
         while !self.is_at_end() {
             self.start = self.current;
             match self.scan_token() {
                 Ok(_) => (),
-                Err(msg) => return Err(msg.to_string()),
+                Err(msg) => panic(&format!("Scanner Error: {}", msg.to_string())),
             }
         }
         self.tokens.push(Token {
@@ -363,7 +363,7 @@ impl Scanner {
         let value = substring.parse::<f32>();
         match value {
             Ok(value) => self.add_token_lit(Number, Some(FValue(value))),
-            Err(_) => panic(&format!("\n Could not parse number: {}", substring)),
+            Err(_) => panic(&format!("\n Scanner Error: Could not parse number({})", substring)),
         }
         Ok(())
     }
@@ -383,14 +383,14 @@ impl Scanner {
             self.advance();
         }
         if self.is_at_end() {
-            panic("\n Unterminated string");
+            panic("\n Scanner Error: unterminated string");
         }
         self.advance();
         let value = &self.source[self.start + 1..self.current - 1];
         self.add_token_lit(StringLit, Some(StringValue(value.to_string())));
         Ok(())
     }
-    // This function is used to look at the char at current position without advancing
+    // This function is used for looking at the character at current position without advancing
     fn peek(&self) -> char {
         if self.is_at_end() {
             return '\0';

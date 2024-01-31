@@ -442,9 +442,9 @@ impl Expr {
                 }
             }
             Expr::Assign { id: _, name, value } => {
-                if name.lexeme.ends_with('_') {
+              if name.lexeme.chars().next().unwrap().is_uppercase() {
                     panic(&format!(
-                        "\n Immutable variable {} cannot be declared",
+                        "\n Immutable variable {} cannot be re-declared",
                         name.lexeme.to_string()
                     ));
                     exit(1);

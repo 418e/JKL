@@ -332,27 +332,30 @@ impl Interpreter {
                     }
                 }
                 Stmt::Var {
-                    name,
+                    names,
                     type_annotation,
                     initializer,
                 } => {
                     let value = initializer.evaluate(self.environment.clone())?;
-                    if let Some(type_token) = type_annotation {
-                        if type_token.lexeme == value.to_type() {
-                            self.environment.set_type_annotation(
-                                name.lexeme.clone(),
-                                type_token.lexeme.clone(),
-                            );
-                        } else {
-                            panic(&format!(
-                                "mismatched types: \n variable {} is expecting {} type, but got {}",
-                                name.lexeme,
-                                type_token.lexeme,
-                                value.to_type()
-                            ))
+                    for name in names {
+                        let value_clone = value.clone();
+                        if let Some(type_token) = type_annotation {
+                            if type_token.lexeme == value_clone.to_type() {
+                                self.environment.set_type_annotation(
+                                    name.lexeme.clone(),
+                                    type_token.lexeme.clone(),
+                                );
+                            } else {
+                                panic(&format!(
+                "mismatched types: \n variable {} is expecting {} type, but got {}",
+                name.lexeme,
+                type_token.lexeme,
+                value_clone.to_type()
+            ))
+                            }
                         }
+                        self.environment.define(name.lexeme.clone(), value_clone);
                     }
-                    self.environment.define(name.lexeme.clone(), value);
                 }
                 Stmt::Block { statements } => {
                     let new_environment = self.environment.enclose();
@@ -364,40 +367,65 @@ impl Interpreter {
                     block_result?;
                 }
                 Stmt::IfStmt {
-                    predicate,
-                    then,
+                    predicates,
+                    then_branch,
                     elif_branches,
-                    els,
+                    else_branch,
                 } => {
-                    let truth_value = predicate.evaluate(self.environment.clone())?;
-                    if truth_value.is_truthy() == LiteralValue::True {
-                        self.interpret(vec![then.as_ref()])?;
+                    let mut all_true = true;
+                    for predicate in predicates {
+                        let truth_value = predicate.evaluate(self.environment.clone())?;
+                        if truth_value.is_truthy() != LiteralValue::True {
+                            all_true = false;
+                            break;
+                        }
+                    }
+                    if all_true {
+                        self.interpret(vec![then_branch.as_ref()])?;
                     } else {
                         let mut executed_branch = false;
-                        for (elif_predicate, elif_stmt) in elif_branches {
-                            let elif_truth_value =
-                                elif_predicate.evaluate(self.environment.clone())?;
-                            if elif_truth_value.is_truthy() == LiteralValue::True {
+                        for (elif_predicates, elif_stmt) in elif_branches {
+                            let mut all_true = true;
+                            for elif_predicate in elif_predicates {
+                                let elif_truth_value =
+                                    elif_predicate.evaluate(self.environment.clone())?;
+                                if elif_truth_value.is_truthy() != LiteralValue::True {
+                                    all_true = false;
+                                    break;
+                                }
+                            }
+                            if all_true {
                                 self.interpret(vec![elif_stmt.as_ref()])?;
                                 executed_branch = true;
                                 break;
                             }
                         }
                         if !executed_branch {
-                            if let Some(els_stmt) = els {
+                            if let Some(els_stmt) = else_branch {
                                 self.interpret(vec![els_stmt.as_ref()])?;
                             }
                         }
                     }
                 }
-                Stmt::WhileStmt { condition, body } => {
-                    while condition.evaluate(self.environment.clone())?.is_truthy()
-                        == LiteralValue::True
-                    {
-                        match self.interpret(vec![body.as_ref()]) {
-                            Ok(_) => {}
-                            Err(e) if e == "break" => break,
-                            Err(e) => return Err(e),
+                Stmt::WhileStmt { conditions, body } => {
+                    let mut all_true = true;
+                    for condition in conditions {
+                        let truth_value = condition.evaluate(self.environment.clone())?;
+                        if truth_value.is_truthy() != LiteralValue::True {
+                            all_true = false;
+                            break;
+                        }
+                    }
+                    while all_true {
+                        self.interpret(vec![body.as_ref()])?;
+                        // Re-evaluate conditions for the next iteration
+                        all_true = true;
+                        for condition in conditions {
+                            let truth_value = condition.evaluate(self.environment.clone())?;
+                            if truth_value.is_truthy() != LiteralValue::True {
+                                all_true = false;
+                                break;
+                            }
                         }
                     }
                 }

@@ -1,3 +1,12 @@
+# 2.6.0 - Feb 1
+
+- if statement can now handle multiple expressions
+- else if statement can now handle multiple expressions
+- while statement can now handle multiple expressions
+- assignent can now handle multiple variables
+- variables with uppercase name now will be immutable
+- updates now will be released once in two weeks
+
 # 2.5.0 - Jan 15
 
 - added type system

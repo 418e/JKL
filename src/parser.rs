@@ -36,22 +36,16 @@ impl Parser {
     }
     pub fn parse(&mut self) -> Result<Vec<Stmt>, String> {
         let mut stmts = vec![];
-        let mut errs = vec![];
         while !self.is_at_end() {
             let stmt = self.declaration();
             match stmt {
                 Ok(s) => stmts.push(s),
                 Err(msg) => {
-                    errs.push(msg.to_string());
-                    self.synchronize();
+                    panic(&format!("Parser Error: {}", msg.to_string()));
                 }
             }
         }
-        if errs.is_empty() {
-            Ok(stmts)
-        } else {
-            Err(errs.join("\n"))
-        }
+        Ok(stmts)
     }
     fn declaration(&mut self) -> Result<Stmt, String> {
         if self.match_token(Var) {
@@ -63,8 +57,8 @@ impl Parser {
         }
     }
     fn function(&mut self, kind: FunctionKind) -> Result<Stmt, String> {
-        let name = self.consume(Identifier, &format!("Expected {kind:?} name"))?;
-        self.consume(LeftParen, &format!("Expected '(' after {kind:?} name"))?;
+        let name = self.consume(Identifier, &format!("expected {kind:?} name"))?;
+        self.consume(LeftParen, &format!("expected '(' after {kind:?} name"))?;
 
         let mut parameters: Vec<(Token, Option<Token>)> = vec![];
         if !self.check(RightParen) {
@@ -72,12 +66,15 @@ impl Parser {
                 if parameters.len() >= 255 {
                     let location = self.peek().line_number;
                     panic(
-                        &format!("Line {location}: Can't have more than 255 arguments").to_string(),
+                        &format!(
+                            "Parser Error at line {location}: can't have more than 255 arguments"
+                        )
+                        .to_string(),
                     );
                 }
-                let param_name = self.consume(Identifier, "Expected parameter name")?;
+                let param_name = self.consume(Identifier, "expected parameter name")?;
                 let param_type = if self.match_token(Colon) {
-                    Some(self.consume(Identifier, "Expected type after ':'")?)
+                    Some(self.consume(Identifier, "expected type after ':'")?)
                 } else {
                     None
                 };
@@ -87,10 +84,10 @@ impl Parser {
                 }
             }
         }
-        self.consume(RightParen, "Expected ')' after parameters.")?;
+        self.consume(RightParen, "expected ')' after parameters.")?;
         if self.match_token(Colon) {
             let body_expr = self.expression()?;
-            self.consume(Semicolon, "Expected ';' after function body expression.")?;
+            self.consume(Semicolon, "expected ';' after function body expression.")?;
             return Ok(Stmt::Function {
                 name,
                 params: parameters,
@@ -104,42 +101,36 @@ impl Parser {
                     value: Some(body_expr),
                 })],
             });
-        } else {
-            self.consume(Start, &format!("Expected 'start' before {kind:?} body."))?;
-            let body = match self.block_statement()? {
-                Stmt::Block { statements } => statements,
-                _ => {
-                    panic("\n Block statement parsed something that was not a block");
-                    exit(1)
-                }
-            };
-            Ok(Stmt::Function {
-                name,
-                params: parameters,
-                body,
-            })
         }
+        self.consume(Start, &format!("expected 'start' before {kind:?} body."))?;
+        let body = match self.block_statement()? {
+            Stmt::Block { statements } => statements,
+            _ => {
+                panic("\n Parser Error: block statement parsed something that was not a block");
+                exit(1)
+            }
+        };
+        Ok(Stmt::Function {
+            name,
+            params: parameters,
+            body,
+        })
     }
 
     fn var_declaration(&mut self) -> Result<Stmt, String> {
-        let name = self.consume(Identifier, "Expected variable name")?;
-        let type_annotation = if self.match_token(Colon) {
-            Some(self.consume(Identifier, "Expected type after ':'")?)
-        } else {
-            None
-        };
-        let initializer = if self.match_token(Equal) {
-            self.expression()?
-        } else {
-            Expr::Literal {
-                id: self.get_id(),
-                value: LiteralValue::Nil,
+        let mut names = Vec::new();
+        loop {
+            names.push(self.consume(Identifier, "Expected variable name")?);
+            if !self.match_token(Comma) {
+                break;
             }
-        };
+        }
+        self.consume(Equal, "Expected '=' after variable name")?;
+        let initializer = self.expression()?;
         self.consume(Semicolon, "Expected ';' after variable declaration")?;
         Ok(Stmt::Var {
-            name,
-            type_annotation,
+            names,
+            type_annotation: None,
             initializer,
         })
     }
@@ -234,7 +225,7 @@ impl Parser {
             Some(c) => cond = c,
         }
         body = Stmt::WhileStmt {
-            condition: cond,
+            conditions: vec![cond],
             body: Box::new(body),
         };
         if let Some(init) = initializer {
@@ -245,10 +236,17 @@ impl Parser {
         Ok(body)
     }
     fn while_statement(&mut self) -> Result<Stmt, String> {
-        let condition = self.expression()?;
+        let mut conditions = Vec::new();
+        loop {
+            let condition = self.expression()?;
+            conditions.push(condition);
+            if !self.match_token(Comma) {
+                break;
+            }
+        }
         let body = self.statement()?;
         Ok(Stmt::WhileStmt {
-            condition,
+            conditions,
             body: Box::new(body),
         })
     }
@@ -279,27 +277,38 @@ impl Parser {
     }
 
     fn if_statement(&mut self) -> Result<Stmt, String> {
-        let predicate = self.expression()?;
-        let then = Box::new(self.statement()?);
-        let mut elif_branches = Vec::new();
-
-        while self.match_token(Elif) {
-            let elif_predicate = self.expression()?;
-            let elif_stmt = Box::new(self.statement()?);
-            elif_branches.push((elif_predicate, elif_stmt));
+        let mut predicates = Vec::new();
+        loop {
+            let predicate = self.expression()?;
+            predicates.push(predicate);
+            if !self.match_token(Comma) {
+                break;
+            }
         }
-
-        let els = if self.match_token(Else) {
+        let then_branch = Box::new(self.statement()?);
+        let mut elif_branches = Vec::new();
+        while self.match_token(Elif) {
+            let mut elif_predicates = Vec::new();
+            loop {
+                let elif_predicate = self.expression()?;
+                elif_predicates.push(elif_predicate);
+                if !self.match_token(Comma) {
+                    break;
+                }
+            }
+            let elif_stmt = Box::new(self.statement()?);
+            elif_branches.push((elif_predicates, elif_stmt));
+        }
+        let else_branch = if self.match_token(Else) {
             Some(Box::new(self.statement()?))
         } else {
             None
         };
-
         Ok(Stmt::IfStmt {
-            predicate,
-            then,
+            predicates,
+            then_branch,
             elif_branches,
-            els,
+            else_branch,
         })
     }
     fn block_statement(&mut self) -> Result<Stmt, String> {
@@ -630,7 +639,10 @@ impl Parser {
             let token = self.previous();
             Ok(token)
         } else {
-            panic(&format!("\nLine {}: {}", token.line_number, msg));
+            panic(&format!(
+                "\nParser Error at line {}: {}",
+                token.line_number, msg
+            ));
             exit(1)
         }
     }
@@ -669,19 +681,5 @@ impl Parser {
     }
     fn is_at_end(&mut self) -> bool {
         self.peek().token_type == Eof
-    }
-    fn synchronize(&mut self) {
-        self.advance();
-        while !self.is_at_end() {
-            if self.previous().token_type == Semicolon {
-                return;
-            }
-            match self.peek().token_type {
-                Fun | Var | For | If | Errors | While | Bench | Print | Return | Import | Exits
-                | Break => return,
-                _ => (),
-            }
-            self.advance();
-        }
     }
 }

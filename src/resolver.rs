@@ -19,7 +19,6 @@ enum FunctionType {
 #[derive(Copy, Clone, PartialEq)]
 enum LoopType {
     None,
-    Loop,
 }
 pub struct Resolver {
     scopes: Vec<HashMap<String, bool>>,
@@ -40,7 +39,7 @@ impl Resolver {
         match stmt {
             Stmt::Block { statements: _ } => self.resolve_block(stmt)?,
             Stmt::Var {
-                name: _,
+                names: _,
                 type_annotation: _,
                 initializer: _,
             } => self.resolve_var(stmt)?,
@@ -51,10 +50,10 @@ impl Resolver {
             } => self.resolve_function(stmt, FunctionType::Function)?,
             Stmt::Expression { expression } => self.resolve_expr(expression)?,
             Stmt::IfStmt {
-                predicate: _,
-                then: _,
+                predicates: _,
+                then_branch: _,
                 elif_branches: _,
-                els: _,
+                else_branch: _,
             } => self.resolve_if_stmt(stmt)?,
             Stmt::Print { expression } => self.resolve_expr(expression)?,
             Stmt::Errors { expression } => self.resolve_expr(expression)?,
@@ -67,12 +66,11 @@ impl Resolver {
                     self.resolve_expr(value)?;
                 }
             }
-            Stmt::WhileStmt { condition, body } => {
-                self.resolve_expr(condition)?;
-                let previous_loop = self.current_loop;
-                self.current_loop = LoopType::Loop;
+            Stmt::WhileStmt { conditions, body } => {
+                for condition in conditions {
+                    self.resolve_expr(condition)?;
+                }
                 self.resolve_internal(body.as_ref())?;
-                self.current_loop = previous_loop;
             }
             Stmt::WaitStmt { time, body, before } => {
                 self.resolve_expr(time)?;
@@ -116,24 +114,26 @@ impl Resolver {
     }
     fn resolve_var(&mut self, stmt: &Stmt) -> Result<(), String> {
         if let Stmt::Var {
-            name,
+            names,
             type_annotation,
             initializer,
         } = stmt
         {
-            self.declare(name)?;
-            if let Some(ref token) = type_annotation {
-                match token.lexeme.as_str() {
-                    "number" => { /* handle number type */ }
-                    "string" => { /* handle string type */ }
-                    "array" => { /* handle array type */ }
-                    "bool" => { /* handle bool type */ }
-                    "null" => { /* handle null type */ }
-                    _ => panic(&format!("type {} doesn't exist", token.lexeme)),
+            for name in names {
+                self.declare(name)?;
+                if let Some(ref token) = type_annotation {
+                    match token.lexeme.as_str() {
+                        "number" => { /* handle number type */ }
+                        "string" => { /* handle string type */ }
+                        "array" => { /* handle array type */ }
+                        "bool" => { /* handle bool type */ }
+                        "null" => { /* handle null type */ }
+                        _ => panic(&format!("type {} doesn't exist", token.lexeme)),
+                    }
                 }
+                self.resolve_expr(initializer)?;
+                self.define(name);
             }
-            self.resolve_expr(initializer)?;
-            self.define(name);
         } else {
             panic("\n Wrong type in resolve var");
         }
@@ -144,7 +144,12 @@ impl Resolver {
         stmt: &Stmt,
         resolving_function: FunctionType,
     ) -> Result<(), String> {
-        if let Stmt::Function { name: _, params, body } = stmt {
+        if let Stmt::Function {
+            name: _,
+            params,
+            body,
+        } = stmt
+        {
             let enclosing_function = self.current_function;
             self.current_function = resolving_function;
             self.begin_scope();
@@ -162,20 +167,22 @@ impl Resolver {
     }
     fn resolve_if_stmt(&mut self, stmt: &Stmt) -> Result<(), String> {
         if let Stmt::IfStmt {
-            predicate,
-            then,
+            predicates,
+            then_branch: then,
             elif_branches,
-            els,
+            else_branch: els,
         } = stmt
         {
-            self.resolve_expr(predicate)?;
+            for predicate in predicates {
+                self.resolve_expr(predicate)?;
+            }
             self.resolve_internal(then.as_ref())?;
-
-            for (elif_predicate, elif_stmt) in elif_branches {
-                self.resolve_expr(elif_predicate)?;
+            for (elif_predicates, elif_stmt) in elif_branches {
+                for elif_predicate in elif_predicates {
+                    self.resolve_expr(elif_predicate)?;
+                }
                 self.resolve_internal(elif_stmt.as_ref())?;
             }
-
             if let Some(els) = els {
                 self.resolve_internal(els.as_ref())?;
             }

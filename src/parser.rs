@@ -85,7 +85,7 @@ impl Parser {
             }
         }
         self.consume(RightParen, "expected ')' after parameters.")?;
-        if self.match_token(Colon) {
+        if self.match_token(Equal) {
             let body_expr = self.expression()?;
             self.consume(Semicolon, "expected ';' after function body expression.")?;
             return Ok(Stmt::Function {
@@ -95,7 +95,7 @@ impl Parser {
                     keyword: Token {
                         token_type: TokenType::Return,
                         lexeme: "".to_string(),
-                        line_number: 0, // You might want to use the actual line number here
+                        line_number: 0,
                         literal: None,
                     },
                     value: Some(body_expr),
@@ -118,9 +118,17 @@ impl Parser {
     }
 
     fn var_declaration(&mut self) -> Result<Stmt, String> {
-        let mut names = Vec::new();
+        let mut names: Vec<Token> = vec![];
+        let mut type_annotation: Vec<Option<Token>> = vec![];
         loop {
-            names.push(self.consume(Identifier, "Expected variable name")?);
+            let variable_name = self.consume(Identifier, "Expected variable name")?;
+            names.push(variable_name);
+            let variable_type = if self.match_token(Colon) {
+                Some(self.consume(Identifier, "Expected type after ':'")?)
+            } else {
+                None
+            };
+            type_annotation.push(variable_type);
             if !self.match_token(Comma) {
                 break;
             }
@@ -130,7 +138,7 @@ impl Parser {
         self.consume(Semicolon, "Expected ';' after variable declaration")?;
         Ok(Stmt::Var {
             names,
-            type_annotation: None,
+            type_annotation,
             initializer,
         })
     }
@@ -599,7 +607,7 @@ impl Parser {
                     expression: Box::new(expr),
                 };
             }
-            False | True | Nil | Number | StringLit => {
+            False | True | Nil | Number | Integer | StringLit => {
                 self.advance();
                 result = Expr::Literal {
                     id: self.get_id(),

@@ -1,3 +1,16 @@
+# 2.7.0 - Feb 14
+
+### core changes
+
+- short function syntax changed (`:` -> `=`)
+- added new types: (`integer`, `big integer`)
+- fixed type annonations
+
+### other changes
+
+- updated tronlang.org
+- updated documentation
+
 # 2.6.0 - Feb 1
 
 - if statement can now handle multiple expressions

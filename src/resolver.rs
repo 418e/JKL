@@ -119,11 +119,13 @@ impl Resolver {
             initializer,
         } = stmt
         {
-            for name in names {
+            for (index, name) in names.iter().enumerate() {
                 self.declare(name)?;
-                if let Some(ref token) = type_annotation {
+                if let Some(ref token) = type_annotation[index] {
                     match token.lexeme.as_str() {
                         "number" => { /* handle number type */ }
+                        "integer" => { /* */ }
+                        "biginteger" => { /* */ }
                         "string" => { /* handle string type */ }
                         "array" => { /* handle array type */ }
                         "bool" => { /* handle bool type */ }

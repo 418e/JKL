@@ -349,24 +349,45 @@ impl Scanner {
         }
     }
     // Number parser, recognizes floating point numbers
-    fn number(&mut self) -> Result<(), String> {
+fn number(&mut self) -> Result<(), String> {
+    while is_digit(self.peek()) {
+        self.advance();
+    }
+    let is_float = if self.peek() == '.' && is_digit(self.peek_next()) {
+        self.advance();
         while is_digit(self.peek()) {
             self.advance();
         }
-        if self.peek() == '.' && is_digit(self.peek_next()) {
-            self.advance();
-            while is_digit(self.peek()) {
-                self.advance();
+        true
+    } else {
+        false
+    };
+
+    let substring = &self.source[self.start..self.current];
+    let value = substring.parse::<f32>();
+    match value {
+        Ok(value) => {
+            if is_float {
+                self.add_token_lit(Number, Some(FValue(value)));
+            } else {
+                // Check if the parsed value is an integer
+                if value.fract() ==   0.0 {
+                    // Convert the f32 to i32 and create an Integer token
+                    let int_value = value as i32;
+                    self.add_token_lit(Integer, Some(IntegerValue(int_value)));
+                } else {
+                    // If it's not an integer, create a Number token
+                    self.add_token_lit(Number, Some(FValue(value)));
+                }
             }
-        }
-        let substring = &self.source[self.start..self.current];
-        let value = substring.parse::<f32>();
-        match value {
-            Ok(value) => self.add_token_lit(Number, Some(FValue(value))),
-            Err(_) => panic(&format!("\n Scanner Error: Could not parse number({})", substring)),
-        }
-        Ok(())
+        },
+        Err(_) => panic(&format!(
+            "\n Scanner Error: Could not parse number({})",
+            substring
+        )),
     }
+    Ok(())
+}
     // See next character
     fn peek_next(&self) -> char {
         if self.current + 1 >= self.source.len() {
@@ -472,6 +493,7 @@ pub enum TokenType {
     Identifier,
     StringLit,
     Number,
+    Integer,
     And,
     Else,
     False,
@@ -512,6 +534,7 @@ pub struct ArrayElement {
 #[derive(Debug, Clone)]
 pub enum LiteralValue {
     FValue(f32),
+    IntegerValue(i32),
     StringValue(String),
 }
 use LiteralValue::*;

@@ -24,7 +24,7 @@ pub enum Stmt {
     },
     Var {
         names: Vec<Token>,
-        type_annotation: Option<Token>,
+        type_annotation: Vec<Option<Token>>,
         initializer: Expr,
     },
     Block {

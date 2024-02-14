@@ -6,9 +6,9 @@
 
 An open-source, fast, and expressive programming language crafted with ❤️ in Rust.
 
-[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
-![GitHub (Pre-)Release Date](https://img.shields.io/github/release-date-pre/tronlang/Tron)
-![GitHub Repo stars](https://img.shields.io/github/stars/tronlang/Tron)
+[![MIT License](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](https://choosealicense.com/licenses/mit/)
+![GitHub Release](https://img.shields.io/github/v/release/starion-dev/Tron?style=for-the-badge)
+![GitHub Repo stars](https://img.shields.io/github/stars/starion-dev/Tron?style=for-the-badge)
 
 
 </div>
@@ -52,7 +52,7 @@ Hello, world!
 ## Acknowledgements
 
 - [Documentation](https://docs.tronlang.org)
-- [Examples](https://github.com/tronlang/Examples)
+- [Examples](https://github.com/starion-dev/Examples)
 - [TronWasm](https://wasm.tronlang.org)
 - [Extension](https://marketplace.visualstudio.com/items?itemName=TronLang.tron-lang)
 
@@ -62,6 +62,6 @@ We welcome contributions of all kinds. If you're interested in contributing to T
 
 ## License
 
-Tron is licensed under the MIT License. See [LICENSE](https://github.com/tronlang/Tron/blob/main/LICENSE) for more information.
+Tron is licensed under the MIT License. See [LICENSE](./LICENSE) for more information.
 
 Happy hacking with Tron!

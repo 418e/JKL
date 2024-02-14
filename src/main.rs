@@ -5,8 +5,8 @@
     - Welcome to Tron's source code
 
 
-    latest version: 2.6.0
-    latest release: Feb 1
+    latest version: 2.7.0
+    latest release: Feb 14
 
 */
 mod environment;
@@ -64,9 +64,9 @@ fn main() {
     if args.len() == 2 {
         let command = &args[1];
         if command == "version" {
-            println!("v2.6.0")
+            println!("v2.7.0")
         } else if command == "update" {
-            println!("Updating Tron....");
+            println!("Updating....");
             let _output = Command::new("bash")
                 .arg("-c")
                 .arg("curl -sSL https://tronlang.org/install.sh | bash")
@@ -93,21 +93,11 @@ fn main() {
     } else {
         println!(
             "
-\x1B[38;5;208m
-            ████████╗██████╗  ██████╗ ███╗   ██╗
-            ╚══██╔══╝██╔══██╗██╔═══██╗████╗  ██║
-               ██║   ██████╔╝██║   ██║██╔██╗ ██║
-               ██║   ██╔══██╗██║   ██║██║╚██╗██║
-               ██║   ██║  ██║╚██████╔╝██║ ╚████║
-               ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═══╝\x1B[0m
-                                    
-        Usage: 
-
         \x1B[32mtron\x1B[0m \x1B[33m<filename>\x1B[0m - interpret tron files
         \x1B[32mtron\x1B[0m \x1B[34mversion\x1B[0m - current version of Tron
         \x1B[32mtron\x1B[0m \x1B[34mupdate\x1B[0m - install latest version of Tron
 
-             \x1B[38;5;208mTron Programming Language (2.6.0)\x1B[0m
+             \x1B[38;5;208mTron Programming Language (2.7.0)\x1B[0m
         "
         );
         exit(64);

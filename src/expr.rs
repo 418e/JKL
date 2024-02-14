@@ -36,8 +36,11 @@ pub struct NativeFunctionImpl {
     pub arity: usize,
     pub fun: Rc<dyn Fn(&Vec<LiteralValue>) -> LiteralValue>,
 }
+#[allow(dead_code)]
 #[derive(Clone)]
 pub enum LiteralValue {
+    Integer(i32),
+    BigInteger(i128),
     Number(f32),
     StringValue(String),
     True,
@@ -45,7 +48,7 @@ pub enum LiteralValue {
     Nil,
     ArrayValue(Vec<LiteralValue>),
     Callable(CallableImpl),
-}
+} 
 use LiteralValue::*;
 impl std::fmt::Debug for LiteralValue {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -56,6 +59,10 @@ impl PartialEq for LiteralValue {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
             (Number(x), Number(y)) => x == y,
+            (Integer(x), Integer(y)) => x == y,
+            (BigInteger(x), BigInteger(y)) => x == y,
+            (Integer(x), Number(y)) => x.to_owned() as f32 == *y,
+            (BigInteger(x), Number(y)) => x.to_owned() as f32 == *y,
             (
                 Callable(CallableImpl::TronFunction(TronFunctionImpl { name, arity, .. })),
                 Callable(CallableImpl::TronFunction(TronFunctionImpl {
@@ -90,6 +97,15 @@ fn unwrap_as_f64(literal: Option<scanner::LiteralValue>) -> f64 {
         }
     }
 }
+fn unwrap_as_i128(literal: Option<scanner::LiteralValue>) -> i128 {
+    match literal {
+        Some(scanner::LiteralValue::IntegerValue(x)) => x as i128,
+        _ => {
+            panic("\n Could not unwrap as i128");
+            0
+        }
+    }
+}
 fn unwrap_as_string(literal: Option<scanner::LiteralValue>) -> String {
     match literal {
         Some(scanner::LiteralValue::StringValue(s)) => s.clone(),
@@ -101,13 +117,15 @@ fn unwrap_as_string(literal: Option<scanner::LiteralValue>) -> String {
 }
 impl LiteralValue {
     pub fn to_string(&self) -> String {
-        match self {
+        match self {    
+            LiteralValue::Integer(x) => x.to_string(),
+            LiteralValue::BigInteger(x) => x.to_string(),
             LiteralValue::Number(x) => x.to_string(),
             LiteralValue::ArrayValue(x) => format!("\"{:?}\"", x),
             LiteralValue::StringValue(x) => format!("\"{}\"", x),
             LiteralValue::True => "true".to_string(),
             LiteralValue::False => "false".to_string(),
-            LiteralValue::Nil => "nil".to_string(),
+            LiteralValue::Nil => "null".to_string(),
             LiteralValue::Callable(CallableImpl::TronFunction(TronFunctionImpl {
                 name,
                 arity,
@@ -122,7 +140,9 @@ impl LiteralValue {
     }
     pub fn to_type(&self) -> &str {
         match self {
+            LiteralValue::BigInteger(_) => "big integer",
             LiteralValue::Number(_) => "number",
+            LiteralValue::Integer(_) => "integer",
             LiteralValue::StringValue(_) => "string",
             LiteralValue::ArrayValue(_) => "array",
             LiteralValue::True => "bool",
@@ -134,6 +154,7 @@ impl LiteralValue {
     pub fn from_token(token: Token) -> Self {
         match token.token_type {
             TokenType::Number => Self::Number(unwrap_as_f64(token.literal) as f32),
+            TokenType::Integer => Self::Integer(unwrap_as_i128(token.literal) as i32),
             TokenType::StringLit => Self::StringValue(unwrap_as_string(token.literal)),
             TokenType::False => Self::False,
             TokenType::True => Self::True,
@@ -155,6 +176,20 @@ impl LiteralValue {
         match self {
             Number(x) => {
                 if *x == 0.0 as f32 {
+                    True
+                } else {
+                    False
+                }
+            }
+            Integer(x) => {
+                if *x == 0 as i32 {
+                    True
+                } else {
+                    False
+                }
+            }
+            BigInteger(x) => {
+                if *x == 0 as i128 {
                     True
                 } else {
                     False
@@ -187,6 +222,20 @@ impl LiteralValue {
         match self {
             Number(x) => {
                 if *x == 0.0 as f32 {
+                    False
+                } else {
+                    True
+                }
+            }
+            Integer(x) => {
+                if *x == 0 as i32 {
+                    False
+                } else {
+                    True
+                }
+            }
+            BigInteger(x) => {
+                if *x == 0 as i128 {
                     False
                 } else {
                     True
@@ -421,7 +470,7 @@ impl Expr {
                 if elements.len() == 2 {
                     let array = elements[0].evaluate(environment.clone())?;
                     let index = elements[1].evaluate(environment.clone())?;
-                    if let LiteralValue::Number(index_num) = index {
+                    if let LiteralValue::Integer(index_num) = index {
                         if let LiteralValue::ArrayValue(arr) = array {
                             let idx = index_num as usize;
                             return arr.get(idx).cloned().ok_or_else(|| {
@@ -457,6 +506,8 @@ impl Expr {
         Some(expected_type) => {
             match (expected_type.as_str(), &new_value) {
                 ("number", LiteralValue::Number(_)) => {},
+                ("integer", LiteralValue::Integer(_)) => {},
+                ("Biginteger", LiteralValue::BigInteger(_)) => {},
                 ("string", LiteralValue::StringValue(_)) => {},
                 ("array", LiteralValue::ArrayValue(_)) => {},
                 ("bool", LiteralValue::True) | ("bool", LiteralValue::False) => {},
@@ -613,7 +664,24 @@ impl Expr {
                 let right = right.evaluate(environment)?;
                 let mut rng = rand::thread_rng();
                 match (&right, operator.token_type) {
-                    (Number(x), TokenType::Minus) => Ok(Number(-x)),
+                    // minus
+                    (Number(x), TokenType::Minus) => Ok(Number(-x)), 
+                    (Integer(x), TokenType::Minus) => { panic(&format!(
+                            "\n Integer can't be less than 0 {}",
+                            x
+                        ));
+                        process::exit(1)},
+                        (BigInteger(x), TokenType::Minus) => { panic(&format!(
+                            "\n BigInteger can't be less than 0 {}",
+                            x
+                        ));
+                        process::exit(1)},
+                    (True, TokenType::Minus) => Ok(False),
+                    (False, TokenType::Minus) => Ok(True),
+                     (_, TokenType::Minus) => {
+                        panic(&format!("\n Minus not implemented for {}", right.to_type()));
+                        process::exit(1);
+                    }
                     (Number(x), TokenType::Increment) => Ok(Number(x + 1.0)),
                     (Number(x), TokenType::Decrement) => Ok(Number(x - 1.0)),
                     (Number(x), TokenType::Power2) => Ok(Number(x * x)),
@@ -621,9 +689,33 @@ impl Expr {
                     (Number(x), TokenType::Random) => {
                         Ok(Number(rng.gen_range(0..*x as i32) as f32))
                     }
-                    (_, TokenType::Minus) => {
-                        panic(&format!("\n Minus not implemented for {}", right.to_type()));
+                    (Integer    (x), TokenType::Increment) => Ok(Integer(x + 1)),
+                    (Integer(x), TokenType::Decrement) => Ok(Integer(x - 1)),
+                    (Integer(x), TokenType::Power2) => Ok(Integer(x * x)),
+                    (Integer(x), TokenType::Root2) => {
+                        panic(&format!(
+                            "\n You can't take root from Integer {}",
+                            x
+                        ));
                         process::exit(1);
+                    },
+                    (Integer(x), TokenType::Random) => {
+                        Ok(Integer(rng.gen_range(0..*x)))
+                    }
+                   
+
+                   (BigInteger    (x), TokenType::Increment) => Ok(BigInteger(x + 1)),
+                    (BigInteger(x), TokenType::Decrement) => Ok(BigInteger(x - 1)),
+                    (BigInteger(x), TokenType::Power2) => Ok(BigInteger(x * x)),
+                    (BigInteger(x), TokenType::Root2) => {
+                        panic(&format!(
+                            "\n You can't take root from BigInteger {}",
+                            x
+                        ));
+                        process::exit(1);
+                    },
+                    (BigInteger(x), TokenType::Random) => {
+                        Ok(BigInteger(rng.gen_range(0..*x)))
                     }
                     (_, TokenType::Increment) => {
                         panic(&format!(
@@ -663,25 +755,56 @@ impl Expr {
                 let right = right.evaluate(environment.clone())?;
                 match (&left, operator.token_type, &right) {
                     (Number(x), TokenType::Plus, Number(y)) => Ok(Number(x + y)),
+                    (Integer(x), TokenType::Plus, Number(y)) => Ok(Number(*x as f32 + y)),
+                    (Integer(x), TokenType::Plus, Integer(y)) => Ok(Integer(x + y)),
+                    (BigInteger(x), TokenType::Plus, Number(y)) => Ok(Number(*x as f32 + y)),
+                    (BigInteger(x), TokenType::Plus, BigInteger(y)) => Ok(BigInteger(x - y)),
                     (StringValue(x), TokenType::Plus, Number(y)) => {
                         Ok(StringValue(format!("{}{}", x, y.to_string())))
                     }
                     (Number(x), TokenType::Plus, StringValue(y)) => {
                         Ok(StringValue(format!("{}{}", x.to_string(), y)))
                     }
+                    (Integer(x), TokenType::Plus, StringValue(y)) => {
+                        Ok(StringValue(format!("{}{}", x.to_string(), y)))
+                    }
+                    (BigInteger(x), TokenType::Plus, StringValue(y)) => {
+                        Ok(StringValue(format!("{}{}", x.to_string(), y)))
+                    }
                     (StringValue(x), TokenType::Plus, StringValue(y)) => {
                         Ok(StringValue(format!("{}{}", x.to_string(), y)))
                     }
                     (Number(x), TokenType::Minus, Number(y)) => Ok(Number(x - y)),
+                    (Integer(x), TokenType::Minus, Number(y)) => Ok(Number(*x as f32 - y)),
+                    (Number(x), TokenType::Minus, Integer(y)) => Ok(Number(x - *y as f32)),
+                    (Integer(x), TokenType::Minus, Integer(y)) => Ok(Integer(x - y)),
+                    (Number(x), TokenType::Minus, BigInteger(y)) => Ok(Number(x - *y as f32)),
+                    (BigInteger(x), TokenType::Minus, BigInteger(y)) => Ok(BigInteger(x - y)),
                     (Number(x), TokenType::Star, Number(y)) => Ok(Number(x * y)),
                     (Number(x), TokenType::Slash, Number(y)) => Ok(Number(x / y)),
+                    (Integer(x), TokenType::Star, Integer(y)) => Ok(Integer(x * y)),
+                    (Integer(x), TokenType::Slash, Integer(y)) => Ok(Integer(x / y)),
+                    (BigInteger(x), TokenType::Star, BigInteger(y)) => Ok(BigInteger(x * y)),
+                    (BigInteger(x), TokenType::Slash, BigInteger(y)) => Ok(BigInteger(x / y)),
                     (Number(x), TokenType::Greater, Number(y)) => {
+                        Ok(LiteralValue::from_bool(x > y))
+                    }
+                    (Integer(x), TokenType::Greater, Integer(y)) => {
+                        Ok(LiteralValue::from_bool(x > y))
+                    }
+                    (BigInteger(x), TokenType::Greater, BigInteger(y)) => {
                         Ok(LiteralValue::from_bool(x > y))
                     }
                     (StringValue(x), TokenType::Greater, StringValue(y)) => {
                         Ok(LiteralValue::from_bool(x.len() > y.len()))
                     }
                     (Number(x), TokenType::GreaterEqual, Number(y)) => {
+                        Ok(LiteralValue::from_bool(x >= y))
+                    }
+                     (Integer(x), TokenType::GreaterEqual, Integer(y)) => {
+                        Ok(LiteralValue::from_bool(x >= y))
+                    }
+                     (BigInteger(x), TokenType::GreaterEqual, BigInteger(y)) => {
                         Ok(LiteralValue::from_bool(x >= y))
                     }
                     (StringValue(x), TokenType::GreaterEqual, StringValue(y)) => {
@@ -692,6 +815,14 @@ impl Expr {
                         Ok(LiteralValue::from_bool(x.len() < y.len()))
                     }
                     (Number(x), TokenType::LessEqual, Number(y)) => {
+                        Ok(LiteralValue::from_bool(x <= y))
+                    }
+                    (Integer(x), TokenType::Less, Integer(y)) => Ok(LiteralValue::from_bool(x < y)),
+                    (Integer(x), TokenType::LessEqual, Integer(y)) => {
+                        Ok(LiteralValue::from_bool(x <= y))
+                    }
+                    (BigInteger(x), TokenType::Less, BigInteger(y)) => Ok(LiteralValue::from_bool(x < y)),
+                    (BigInteger(x), TokenType::LessEqual, BigInteger(y)) => {
                         Ok(LiteralValue::from_bool(x <= y))
                     }
                     (StringValue(x), TokenType::LessEqual, StringValue(y)) => {
@@ -750,6 +881,8 @@ pub fn run_tron_function(
                 // Type checking logic
                 match (param_type_lexeme.as_str(), val) {
                     ("number", LiteralValue::Number(_)) => {}
+                    ("integer", LiteralValue::Integer(_)) => {}
+                    ("bigintiger", LiteralValue::BigInteger(_)) => {}
                     ("string", LiteralValue::StringValue(_)) => {}
                     ("array", LiteralValue::ArrayValue(_)) => {}
                     ("bool", LiteralValue::True) | ("bool", LiteralValue::False) => {}

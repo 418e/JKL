@@ -119,22 +119,7 @@ impl Interpreter {
                     if args.len() != 1 {
                         panic("\n typeof() expects one argument");
                     }
-                    match &args[0] {
-                        LiteralValue::Number(_n) => LiteralValue::StringValue("number".to_string()),
-                        LiteralValue::StringValue(_n) => {
-                            LiteralValue::StringValue("string".to_string())
-                        }
-                        LiteralValue::Nil => LiteralValue::StringValue("null".to_string()),
-                        LiteralValue::False => LiteralValue::StringValue("boolean".to_string()),
-                        LiteralValue::True => LiteralValue::StringValue("boolean".to_string()),
-                        LiteralValue::ArrayValue(_n) => {
-                            LiteralValue::StringValue("array".to_string())
-                        }
-                        _ => {
-                            panic("\n uknown type");
-                            exit(1)
-                        }
-                    }
+                    LiteralValue::StringValue(args[0].to_type().to_string())
                 }),
             })),
         );
@@ -172,8 +157,8 @@ impl Interpreter {
                         panic("\n len() expects one argument");
                     }
                     match &args[0] {
-                        LiteralValue::StringValue(n) => LiteralValue::Number(n.len() as f32),
-                        LiteralValue::ArrayValue(n) => LiteralValue::Number(n.len() as f32),
+                        LiteralValue::StringValue(n) => LiteralValue::Integer(n.len() as i32),
+                        LiteralValue::ArrayValue(n) => LiteralValue::Integer(n.len() as i32),
                         _ => {
                             panic("\n len() requires a numeric argument");
                             exit(1)
@@ -220,6 +205,8 @@ impl Interpreter {
                             for val in arr.iter() {
                                 match val {
                                     LiteralValue::Number(num) => strings.push(num.to_string()),
+                                    LiteralValue::Integer(num) => strings.push(num.to_string()),
+                                    LiteralValue::BigInteger(num) => strings.push(num.to_string()),
                                     LiteralValue::StringValue(s) => strings.push(s.clone()),
                                     _ => panic("\n join() requires an array of strings or numbers"),
                                 }
@@ -300,11 +287,11 @@ impl Interpreter {
                 }
                 Stmt::Print { expression } => {
                     let value = expression.evaluate(self.environment.clone())?;
-                    println!(" ➤ {}", value.to_string());
+                    println!(" {}", value.to_string());
                 }
                 Stmt::Errors { expression } => {
                     let value = expression.evaluate(self.environment.clone())?;
-                    panic(&format!(" ➤ {}", value.to_string()));
+                    panic(&format!(" {}", value.to_string()));
                 }
                 Stmt::Exits {} => exit(1),
                 Stmt::Import { expression } => {
@@ -337,9 +324,9 @@ impl Interpreter {
                     initializer,
                 } => {
                     let value = initializer.evaluate(self.environment.clone())?;
-                    for name in names {
+                    for (index, name) in names.iter().enumerate() {
                         let value_clone = value.clone();
-                        if let Some(type_token) = type_annotation {
+                        if let Some(type_token) = &type_annotation[index] {
                             if type_token.lexeme == value_clone.to_type() {
                                 self.environment.set_type_annotation(
                                     name.lexeme.clone(),
@@ -347,11 +334,11 @@ impl Interpreter {
                                 );
                             } else {
                                 panic(&format!(
-                "mismatched types: \n variable {} is expecting {} type, but got {}",
-                name.lexeme,
-                type_token.lexeme,
-                value_clone.to_type()
-            ))
+                    "mismatched types: \nvariable {} is expecting {} type, but got {}",
+                    name.lexeme,
+                    type_token.lexeme,
+                    value_clone.to_type()
+                ));
                             }
                         }
                         self.environment.define(name.lexeme.clone(), value_clone);
@@ -440,7 +427,7 @@ impl Interpreter {
                     if let Some(before_block) = before {
                         before_time_in_ms =
                             match before_block.time.evaluate(self.environment.clone())? {
-                                LiteralValue::Number(i) => i.round() as i32,
+                                LiteralValue::Integer(i) => i,
                                 _ => return Err("Expected a number for before time".to_string()),
                             };
 

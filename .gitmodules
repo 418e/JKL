@@ -1,0 +1,15 @@
+[submodule "examples"]
+	path = examples
+	url = https://github.com/starion-dev/Examples.git
+[submodule "extension"]
+	path = extension
+	url = https://github.com/starion-dev/Extension.git
+[submodule "wasm"]
+	path = wasm
+	url = https://github.com/starion-dev/Tron-Wasm
+[submodule "documentation"]
+	path = documentation
+	url = https://github.com/starion-dev/documentation.git
+[submodule "website"]
+	path = website
+	url = https://github.com/starion-dev/website.git

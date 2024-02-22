@@ -1,16 +1,8 @@
-/*
-
-    Tron Interpreter
-
-    - Output of every statement
-
-*/
 use crate::environment::Environment;
 use crate::expr::{CallableImpl, LiteralValue, NativeFunctionImpl, TronFunctionImpl};
 use crate::panic;
 use crate::parser::*;
 use crate::resolver::*;
-use crate::scanner::Token;
 use crate::scanner::*;
 use crate::stmt::Stmt;
 use crate::tstd::*;
@@ -286,25 +278,27 @@ impl Interpreter {
                     expression.evaluate(self.environment.clone())?;
                 }
                 Stmt::Print { expression } => {
-                    let value = expression.evaluate(self.environment.clone())?;
-                    println!(" {}", value.to_string());
+                    println!(
+                        " {}",
+                        expression.evaluate(self.environment.clone())?.to_string()
+                    );
                 }
                 Stmt::Errors { expression } => {
-                    let value = expression.evaluate(self.environment.clone())?;
-                    panic(&format!(" {}", value.to_string()));
+                    panic(&format!(
+                        " {}",
+                        expression.evaluate(self.environment.clone())?.to_string()
+                    ));
                 }
                 Stmt::Exits {} => exit(1),
                 Stmt::Import { expression } => {
                     let value = expression.evaluate(self.environment.clone())?;
-                    let val = value.to_string();
                     let path = std::env::current_dir().unwrap();
-                    let path_buf = path.join(val.trim_matches('"').trim_start_matches('/'));
-
-                    match val.as_str() {
+                    let path_buf =
+                        path.join(value.to_string().trim_matches('"').trim_start_matches('/'));
+                    match value.to_string().as_str() {
                         "\"#math\"" => include_math_natives(&mut self.environment),
                         _ => {
                             if std::path::Path::new(&path_buf).exists() {
-                                // Load and execute the library file
                                 let lib_contents = std::fs::read_to_string(&path_buf)
                                     .map_err(|e| e.to_string())?;
                                 self.execute_lib(&lib_contents)?;
@@ -327,18 +321,36 @@ impl Interpreter {
                     for (index, name) in names.iter().enumerate() {
                         let value_clone = value.clone();
                         if let Some(type_token) = &type_annotation[index] {
-                            if type_token.lexeme == value_clone.to_type() {
-                                self.environment.set_type_annotation(
-                                    name.lexeme.clone(),
-                                    type_token.lexeme.clone(),
-                                );
+                            if let LiteralValue::Integer(int_value) = &value_clone {
+                                if type_token.lexeme == int_value.to_string() {
+                                    self.environment.set_type_annotation(
+                                        name.lexeme.clone(),
+                                        type_token.lexeme.clone(),
+                                    );
+                                } else {
+                                    panic(&format!(
+                        "mismatched types: \nvariable {} is expecting {} type, but got {}",
+                        name.lexeme,
+                        type_token.lexeme,
+                        value_clone.to_type()
+                    ));
+                                }
+                            } else if let LiteralValue::StringValue(str_value) = &value_clone {
+                                if type_token.lexeme == str_value.to_string() {
+                                    self.environment.set_type_annotation(
+                                        name.lexeme.clone(),
+                                        type_token.lexeme.clone(),
+                                    );
+                                } else {
+                                    panic(&format!(
+                        "mismatched types: \nvariable {} is expecting {} type, but got {}",
+                        name.lexeme,
+                        type_token.lexeme,
+                        value_clone.to_type()
+                    ));
+                                }
                             } else {
-                                panic(&format!(
-                    "mismatched types: \nvariable {} is expecting {} type, but got {}",
-                    name.lexeme,
-                    type_token.lexeme,
-                    value_clone.to_type()
-                ));
+                                // Handle other type annotations here
                             }
                         }
                         self.environment.define(name.lexeme.clone(), value_clone);
@@ -405,7 +417,6 @@ impl Interpreter {
                     }
                     while all_true {
                         self.interpret(vec![body.as_ref()])?;
-                        // Re-evaluate conditions for the next iteration
                         all_true = true;
                         for condition in conditions {
                             let truth_value = condition.evaluate(self.environment.clone())?;
@@ -430,8 +441,6 @@ impl Interpreter {
                                 LiteralValue::Integer(i) => i,
                                 _ => return Err("Expected a number for before time".to_string()),
                             };
-
-                        // Calculate the number of times to execute the before block
                         let num_executions =
                             (time_in_ms as f64 / before_time_in_ms as f64).ceil() as u64;
                         for _ in 0..num_executions {
@@ -441,8 +450,6 @@ impl Interpreter {
                             ));
                         }
                     }
-
-                    // Wait for the remaining time if necessary
                     let remaining_time = if before_time_in_ms > 0 {
                         time_in_ms as u64 % before_time_in_ms as u64
                     } else {
@@ -459,11 +466,11 @@ impl Interpreter {
                     let statements = vec![body.as_ref()];
                     self.interpret(statements)?;
                     let end_time = std::time::SystemTime::now().duration_since(start_time);
-                    if end_time.clone().unwrap().as_micros() < 10000 {
+                    if end_time.clone().unwrap().as_micros() < 1000 {
                         println!("{:?}µs", end_time.unwrap().as_micros());
-                    } else if end_time.clone().unwrap().as_micros() > 10000 {
+                    } else if end_time.clone().unwrap().as_micros() >= 1000 {
                         println!("{:?}ms", end_time.unwrap().as_millis());
-                    } else if end_time.clone().unwrap().as_millis() > 10000 {
+                    } else if end_time.clone().unwrap().as_millis() >= 1000 {
                         println!("{:?}s", end_time.unwrap().as_secs_f32());
                     } else {
                         println!("{:?}µs", end_time.unwrap().as_micros());
@@ -489,6 +496,25 @@ impl Interpreter {
                 }
                 Stmt::BreakStmt { .. } => {
                     return Err("break".to_string());
+                }
+                Stmt::SwitchStmt {
+                    condition,
+                    case_branches,
+                    default_branch,
+                } => {
+                    let condition_value = condition.evaluate(self.environment.clone())?;
+                    let mut executed = false;
+                    for (case_value, case_body) in case_branches {
+                        let case_value = case_value.evaluate(self.environment.clone())?;
+                        if condition_value == case_value {
+                            self.interpret(case_body.iter().collect())?;
+                            executed = true;
+                            break;
+                        }
+                    }
+                    if !executed && default_branch.is_some() {
+                        self.interpret(default_branch.as_ref().unwrap().iter().collect())?;
+                    }
                 }
             };
         }

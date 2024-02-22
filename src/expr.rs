@@ -1,21 +1,13 @@
-/*
-
-    Tron Expressions
-
-    - Parser and interpreter of expressions
-
-*/
 use crate::environment::Environment;
 use crate::interpreter::Interpreter;
 use crate::panic;
-use crate::scanner;
-use crate::scanner::{Token, TokenType};
+use crate::scanner::{self, Token, TokenType};
 use rand::Rng;
 use std::cmp::{Eq, PartialEq};
 use std::hash::{Hash, Hasher};
-use std::process;
-use std::process::exit;
+use std::process::{self, exit};
 use std::rc::Rc;
+use std::collections::HashMap;
 
 #[derive(Clone)]
 pub enum CallableImpl {
@@ -48,7 +40,9 @@ pub enum LiteralValue {
     Nil,
     ArrayValue(Vec<LiteralValue>),
     Callable(CallableImpl),
-} 
+    ExactValue(String), 
+    Object(HashMap<String, LiteralValue>),
+}
 use LiteralValue::*;
 impl std::fmt::Debug for LiteralValue {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -117,7 +111,15 @@ fn unwrap_as_string(literal: Option<scanner::LiteralValue>) -> String {
 }
 impl LiteralValue {
     pub fn to_string(&self) -> String {
-        match self {    
+        match self {   
+            LiteralValue::Object(fields) => {
+                let fields_str = fields.iter()
+                    .map(|(key, value)| format!("{}: {}", key, value.to_string()))
+                    .collect::<Vec<_>>()
+                    .join(", ");
+                format!("{{{}}}", fields_str)
+            }
+            LiteralValue::ExactValue(x) => x.to_string(),
             LiteralValue::Integer(x) => x.to_string(),
             LiteralValue::BigInteger(x) => x.to_string(),
             LiteralValue::Number(x) => x.to_string(),
@@ -140,6 +142,8 @@ impl LiteralValue {
     }
     pub fn to_type(&self) -> &str {
         match self {
+            LiteralValue::Object(_) => "object",
+            LiteralValue::ExactValue(x) => x,
             LiteralValue::BigInteger(_) => "big integer",
             LiteralValue::Number(_) => "number",
             LiteralValue::Integer(_) => "integer",
@@ -174,6 +178,16 @@ impl LiteralValue {
     }
     pub fn is_falsy(&self) -> LiteralValue {
         match self {
+            Object(_) => {
+                False
+            }
+            ExactValue(s) => {
+                if s.len() == 0 {
+                    True
+                } else {
+                    False
+                }
+            }
             Number(x) => {
                 if *x == 0.0 as f32 {
                     True
@@ -220,6 +234,16 @@ impl LiteralValue {
     }
     pub fn is_truthy(&self) -> LiteralValue {
         match self {
+            Object(_) => {
+                True
+            }
+            ExactValue(s) => {
+                if s.len() == 0 {
+                    False
+                } else {
+                    True
+                }
+            }
             Number(x) => {
                 if *x == 0.0 as f32 {
                     False
@@ -266,8 +290,13 @@ impl LiteralValue {
     }
 }
 use crate::stmt::Stmt;
+#[allow(dead_code)]
 #[derive(Clone)]
-pub enum Expr {
+pub enum Expr {  
+     ObjectLiteral {
+        id: usize,
+        properties: Vec<(Token, Expr)>,
+    },
     Array {
         id: usize,
         elements: Vec<Box<Expr>>,
@@ -289,11 +318,6 @@ pub enum Expr {
         paren: Token,
         arguments: Vec<Expr>,
     },
-    Get {
-        id: usize,
-        object: Box<Expr>,
-        name: Token,
-    },
     Grouping {
         id: usize,
         expression: Box<Expr>,
@@ -307,12 +331,6 @@ pub enum Expr {
         left: Box<Expr>,
         operator: Token,
         right: Box<Expr>,
-    },
-    Set {
-        id: usize,
-        object: Box<Expr>,
-        name: Token,
-        value: Box<Expr>,
     },
     Unary {
         id: usize,
@@ -345,6 +363,7 @@ impl Eq for Expr {}
 impl Expr {
     pub fn get_id(&self) -> usize {
         match self {
+            Expr::ObjectLiteral { id, properties: _ } => *id,
             Expr::Array { id, elements: _ } => *id,
             Expr::Assign {
                 id,
@@ -363,11 +382,6 @@ impl Expr {
                 paren: _,
                 arguments: _,
             } => *id,
-            Expr::Get {
-                id,
-                object: _,
-                name: _,
-            } => *id,
             Expr::Grouping { id, expression: _ } => *id,
             Expr::Literal { id, value: _ } => *id,
             Expr::Logical {
@@ -375,12 +389,6 @@ impl Expr {
                 left: _,
                 operator: _,
                 right: _,
-            } => *id,
-            Expr::Set {
-                id,
-                object: _,
-                name: _,
-                value: _,
             } => *id,
             Expr::Unary {
                 id,
@@ -394,6 +402,13 @@ impl Expr {
 impl Expr {
     pub fn to_string(&self) -> String {
         match self {
+            Expr::ObjectLiteral { id: _, properties } => {
+                let properties_str = properties.iter()
+                    .map(|(key, value)| format!("{}: {}", key.lexeme, value.to_string()))
+                    .collect::<Vec<_>>()
+                    .join(", ");
+                format!("{{{}}}", properties_str)
+            }
             Expr::Array { id: _, elements } => {
                 let elements_str = elements
                     .iter()
@@ -420,11 +435,6 @@ impl Expr {
                 paren: _,
                 arguments,
             } => format!("({} {:?})", (*callee).to_string(), arguments),
-            Expr::Get {
-                id: _,
-                object,
-                name,
-            } => format!("(get {} {})", object.to_string(), name.lexeme),
             Expr::Grouping { id: _, expression } => {
                 format!("(group {})", (*expression).to_string())
             }
@@ -439,17 +449,6 @@ impl Expr {
                 operator.to_string(),
                 left.to_string(),
                 right.to_string()
-            ),
-            Expr::Set {
-                id: _,
-                object,
-                name,
-                value,
-            } => format!(
-                "(set {} {} {})",
-                object.to_string(),
-                name.to_string(),
-                value.to_string()
             ),
             Expr::Unary {
                 id: _,
@@ -466,6 +465,14 @@ impl Expr {
 
     pub fn evaluate(&self, environment: Environment) -> Result<LiteralValue, String> {
         match self {
+            Expr::ObjectLiteral { id: _, properties } => {
+                let mut fields = HashMap::new();
+                for (key, value_expr) in properties {
+                    let value = value_expr.evaluate(environment.clone())?;
+                    fields.insert(key.lexeme.clone(), value);
+                }
+                Ok(LiteralValue::Object(fields))
+            }
             Expr::Array { id: _, elements } => {
                 if elements.len() == 2 {
                     let array = elements[0].evaluate(environment.clone())?;
@@ -497,7 +504,7 @@ impl Expr {
                         name.lexeme.to_string()
                     ));
                     exit(1);
-                } else {
+                }
                     let new_value = (*value).evaluate(environment.clone())?;
                     let assign_success =
                         environment.assign(&name.lexeme, new_value.clone(), self.get_id());
@@ -519,15 +526,11 @@ impl Expr {
             // No type annotation exists, so no type checking is necessary
         },
     }
-                    if assign_success {
-                        Ok(new_value)
-                    } else {
-                        panic(&format!(
-                            "\n Variable {} has not been declared",
-                            name.lexeme.to_string()
-                        ));
-                        process::exit(1);
-                    }
+                if assign_success {
+                    Ok(new_value)
+                } else {
+                    panic(&format!("\n Variable {} has not been declared",name.lexeme.to_string()));
+                    process::exit(1);
                 }
             }
             Expr::Variable { id: _, name } => match environment.get(&name.lexeme, self.get_id()) {
@@ -616,45 +619,6 @@ impl Expr {
                     process::exit(1);
                 }
             },
-            Expr::Get {
-                id: _,
-                object,
-                name,
-            } => {
-                let object_evaluated = object.evaluate(environment)?;
-                match object_evaluated {
-                    LiteralValue::ArrayValue(elements) => {
-                        let index = name
-                            .lexeme
-                            .parse::<usize>()
-                            .map_err(|_| format!("Invalid array index: {}", name.lexeme))?;
-                        elements
-                            .get(index)
-                            .cloned()
-                            .ok_or_else(|| format!("Index out of bounds: {}", index))
-                    }
-                    _ => {
-                        panic("\n Trying to index a non-array value");
-                        process::exit(1);
-                    }
-                }
-            }
-
-            Expr::Set {
-                id: _,
-                object,
-                name,
-                value,
-            } => {
-                let obj_value = object.evaluate(environment.clone())?;
-                panic(&format!(
-                    "Cannot set property on type {} /  {:?} / {:?}",
-                    obj_value.to_type(),
-                    name,
-                    value
-                ));
-                process::exit(1);
-            }
             Expr::Grouping { id: _, expression } => expression.evaluate(environment),
             Expr::Unary {
                 id: _,

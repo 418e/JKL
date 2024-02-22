@@ -1,10 +1,3 @@
-/*
-
-    Tron Statements
-
-    - This file contains statement enums
-
-*/
 use crate::expr::Expr;
 use crate::scanner::Token;
 #[derive(Debug, Clone)]
@@ -59,6 +52,11 @@ pub enum Stmt {
     },
     BreakStmt {
         keyword: Token,
+    },
+    SwitchStmt {
+        condition: Expr,
+        case_branches: Vec<(Expr, Vec<Stmt>)>,
+        default_branch: Option<Vec<Stmt>>,
     },
 }
 #[derive(Debug, Clone)]

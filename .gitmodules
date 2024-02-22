@@ -1,15 +1,15 @@
-[submodule "examples"]
+[submodule "tronlang examples"]
 	path = examples
-	url = https://github.com/starion-dev/Examples.git
-[submodule "extension"]
+	url = https://github.com/418e/tron-examples.git
+[submodule "tronlang extension"]
 	path = extension
-	url = https://github.com/starion-dev/Extension.git
-[submodule "wasm"]
+	url = https://github.com/418e/tron-extension.git
+[submodule "tronlang wasm"]
 	path = wasm
-	url = https://github.com/starion-dev/Tron-Wasm
-[submodule "documentation"]
+	url = https://github.com/418e/tronlang-wasm
+[submodule "doc.tronlang.org"]
 	path = documentation
-	url = https://github.com/starion-dev/documentation.git
-[submodule "website"]
+	url = https://github.com/418e/tron-documentation.git
+[submodule "tronlang.org"]
 	path = website
-	url = https://github.com/starion-dev/website.git
+	url = https://github.com/418e/tronlang.org.git

@@ -1,24 +1,12 @@
-/*
-
-    Tron Parser
-
-    - Statement parsing happens here, if you are looking for expressions visit expr.rs
-
-*/
 use crate::expr::{Expr, Expr::*, LiteralValue};
 use crate::panic;
 use crate::scanner::{Token, TokenType, TokenType::*};
-use crate::stmt::BeforeBlock;
-use crate::stmt::Stmt;
+use crate::stmt::{BeforeBlock, Stmt};
 use std::process::exit;
 pub struct Parser {
     tokens: Vec<Token>,
     current: usize,
     next_id: usize,
-}
-#[derive(Debug)]
-enum FunctionKind {
-    Function,
 }
 
 impl Parser {
@@ -51,23 +39,22 @@ impl Parser {
         if self.match_token(Var) {
             self.var_declaration()
         } else if self.match_token(Fun) {
-            self.function(FunctionKind::Function)
+            self.function()
         } else {
             self.statement()
         }
     }
-    fn function(&mut self, kind: FunctionKind) -> Result<Stmt, String> {
-        let name = self.consume(Identifier, &format!("expected {kind:?} name"))?;
-        self.consume(LeftParen, &format!("expected '(' after {kind:?} name"))?;
-
+    fn function(&mut self) -> Result<Stmt, String> {
+        let name = self.consume(Identifier, &format!("expected function name"))?;
+        self.consume(LeftParen, &format!("expected '(' after function name"))?;
         let mut parameters: Vec<(Token, Option<Token>)> = vec![];
         if !self.check(RightParen) {
             loop {
-                if parameters.len() >= 255 {
+                if parameters.len() >= 32 {
                     let location = self.peek().line_number;
                     panic(
                         &format!(
-                            "Parser Error at line {location}: can't have more than 255 arguments"
+                            "Parser Error at line {location}: can't have more than 32 arguments"
                         )
                         .to_string(),
                     );
@@ -102,11 +89,11 @@ impl Parser {
                 })],
             });
         }
-        self.consume(Start, &format!("expected 'start' before {kind:?} body."))?;
+        self.consume(Start, &format!("Expected 'start' before function body."))?;
         let body = match self.block_statement()? {
             Stmt::Block { statements } => statements,
             _ => {
-                panic("\n Parser Error: block statement parsed something that was not a block");
+                panic("\n Block statement parsed something that was not a block");
                 exit(1)
             }
         };
@@ -116,7 +103,6 @@ impl Parser {
             body,
         })
     }
-
     fn var_declaration(&mut self) -> Result<Stmt, String> {
         let mut names: Vec<Token> = vec![];
         let mut type_annotation: Vec<Option<Token>> = vec![];
@@ -124,7 +110,11 @@ impl Parser {
             let variable_name = self.consume(Identifier, "Expected variable name")?;
             names.push(variable_name);
             let variable_type = if self.match_token(Colon) {
-                Some(self.consume(Identifier, "Expected type after ':'")?)
+                if self.match_tokens(&[Identifier, StringLit, Number, Integer]) {
+                    Some(self.previous())
+                } else {
+                    return Err(format!("Expected type after ':'"));
+                }
             } else {
                 None
             };
@@ -167,10 +157,47 @@ impl Parser {
             self.return_statement()
         } else if self.match_token(Break) {
             self.break_statement()
+        } else if self.match_token(Switch) {
+            self.switch_statement()
         } else {
             self.expression_statement()
         }
     }
+    
+    fn switch_statement(&mut self) -> Result<Stmt, String> {
+        let condition = self.expression()?;
+        self.consume(Start, "Expected Start after case value.")?;
+        let mut case_branches = Vec::new();
+        while self.match_token(Case) {
+            let case_value = self.expression()?;
+            self.consume(Start, "Expected Start after case value.")?;
+            let mut case_body = Vec::new();
+            while !self.check(End) && !self.check(Case) && !self.check(Default) {
+                let stmt = self.declaration()?;
+                case_body.push(stmt);
+            }
+            self.consume(End, "Expected End after case body.")?;
+            case_branches.push((case_value, case_body));
+        }
+        let mut default_branch = None;
+        if self.match_token(Default) {
+            self.consume(Start, "Expected Start after default keyword.")?;
+            let mut default_body = Vec::new();
+            while !self.check(End) {
+                let stmt = self.declaration()?;
+                default_body.push(stmt);
+            }
+            self.consume(End, "Expected End after default body.")?;
+            default_branch = Some(default_body);
+        }
+        self.consume(End, "Expected End after switch statement.")?;
+        Ok(Stmt::SwitchStmt {
+            condition,
+            case_branches,
+            default_branch,
+        })
+    }
+
     fn return_statement(&mut self) -> Result<Stmt, String> {
         let keyword = self.previous();
         let value;
@@ -283,7 +310,6 @@ impl Parser {
             body: Box::new(body),
         })
     }
-
     fn if_statement(&mut self) -> Result<Stmt, String> {
         let mut predicates = Vec::new();
         loop {
@@ -329,34 +355,31 @@ impl Parser {
         Ok(Stmt::Block { statements })
     }
     fn print_statement(&mut self) -> Result<Stmt, String> {
-        let value = self.expression()?;
+        let expression = self.expression()?;
         self.consume(Semicolon, "Expected ';' after value.")?;
-        Ok(Stmt::Print { expression: value })
+        Ok(Stmt::Print { expression })
     }
     fn error_statement(&mut self) -> Result<Stmt, String> {
-        let value = self.expression()?;
+        let expression = self.expression()?;
         self.consume(Semicolon, "Expected ';' after value.")?;
-        Ok(Stmt::Errors { expression: value })
+        Ok(Stmt::Errors { expression })
     }
     fn exits_statement(&mut self) -> Result<Stmt, String> {
         self.consume(Semicolon, "Expected ';' after value.")?;
         Ok(Stmt::Exits {})
     }
     fn import_statement(&mut self) -> Result<Stmt, String> {
-        let value = self.expression()?;
+        let expression = self.expression()?;
         self.consume(Semicolon, "Expected ';' after value.")?;
-        Ok(Stmt::Import { expression: value })
+        Ok(Stmt::Import { expression })
     }
     fn expression_statement(&mut self) -> Result<Stmt, String> {
-        let expr = self.expression()?;
+        let expression = self.expression()?;
         self.consume(Semicolon, "Expected ';' after expression.")?;
-        Ok(Stmt::Expression { expression: expr })
+        Ok(Stmt::Expression { expression })
     }
     fn expression(&mut self) -> Result<Expr, String> {
-        self.assignment()
-    }
-    fn assignment(&mut self) -> Result<Expr, String> {
-        let expr = self.pipe()?;
+        let expr = self.or()?;
         if self.match_token(Equal) {
             let value = self.expression()?;
             match expr {
@@ -364,16 +387,6 @@ impl Parser {
                     id: self.get_id(),
                     name,
                     value: Box::from(value),
-                }),
-                Get {
-                    id: _,
-                    object,
-                    name,
-                } => Ok(Set {
-                    id: self.get_id(),
-                    object,
-                    name,
-                    value: Box::new(value),
                 }),
                 _ => {
                     panic("Invalid assignment target");
@@ -383,20 +396,6 @@ impl Parser {
         } else {
             Ok(expr)
         }
-    }
-    fn pipe(&mut self) -> Result<Expr, String> {
-        let mut expr = self.or()?;
-        while self.match_token(Pipe) {
-            let pipe = self.previous();
-            let function = self.or()?;
-            expr = Call {
-                id: self.get_id(),
-                callee: Box::new(function),
-                paren: pipe,
-                arguments: vec![expr],
-            };
-        }
-        Ok(expr)
     }
     fn or(&mut self) -> Result<Expr, String> {
         let mut expr = self.nor()?;
@@ -510,7 +509,6 @@ impl Parser {
         }
         Ok(expr)
     }
-
     fn unary(&mut self) -> Result<Expr, String> {
         if self.match_tokens(&[Bang, Minus, Increment, Decrement, Percent, Power2, Root2]) {
             let op = self.previous();
@@ -526,25 +524,9 @@ impl Parser {
     }
     fn call(&mut self) -> Result<Expr, String> {
         let mut expr = self.primary()?;
-        if self.match_token(Dot) {
-            let name = self.consume(Identifier, "Expected token after dot-accessor")?;
-            expr = Get {
-                id: self.get_id(),
-                object: Box::new(expr),
-                name,
-            };
-        }
-
         loop {
             if self.match_token(LeftParen) {
                 expr = self.finish_call(expr)?;
-            } else if self.match_token(Dot) {
-                let name = self.consume(Identifier, "Expected token after dot-accessor")?;
-                expr = Get {
-                    id: self.get_id(),
-                    object: Box::new(expr),
-                    name,
-                };
             } else {
                 break;
             }
@@ -560,7 +542,7 @@ impl Parser {
                 if arguments.len() >= 255 {
                     let location = self.peek().line_number;
                     panic(
-                        &format!("Line {location}: Cant have more than 255 arguments").to_string(),
+                        &format!("Line {location}: Cant have more than  255 arguments").to_string(),
                     )
                 } else if !self.match_token(Comma) {
                     break;
@@ -645,14 +627,13 @@ impl Parser {
         if token.token_type == token_type {
             self.advance();
             let token = self.previous();
-            Ok(token)
-        } else {
-            panic(&format!(
-                "\nParser Error at line {}: {}",
-                token.line_number, msg
-            ));
-            exit(1)
+            return Ok(token);
         }
+        panic(&format!(
+            "\nParser Error at line {}: {}",
+            token.line_number, msg
+        ));
+        exit(1)
     }
     fn check(&mut self, typ: TokenType) -> bool {
         self.peek().token_type == typ

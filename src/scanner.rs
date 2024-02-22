@@ -1,27 +1,17 @@
-/*
-
-    Tron Scanner
-
-    - Scanner/Lexer
-
-*/
 use crate::panic;
 use std::collections::HashMap;
 use std::string::String;
-// function to check if character is digital
+
 fn is_digit(ch: char) -> bool {
     ch as u8 >= b'0' && ch as u8 <= b'9'
 }
-// function to check if character is alphabetical (or underscore)
 fn is_alpha(ch: char) -> bool {
     let uch = ch as u8;
     (uch >= b'a' && uch <= b'z') || (uch >= b'A' && uch <= b'Z') || (ch == '_')
 }
-// function to check if character is either alphabetical or digital
 fn is_alpha_numeric(ch: char) -> bool {
     is_alpha(ch) || is_digit(ch)
 }
-// list of keywords
 fn get_keywords_hashmap() -> HashMap<&'static str, TokenType> {
     HashMap::from([
         // start
@@ -126,10 +116,13 @@ fn get_keywords_hashmap() -> HashMap<&'static str, TokenType> {
         ("divide", Slash),
         ("divided by", Slash),
         ("slash", Slash),
+        ("over", Slash),
         // increase
         ("increase", Increment),
+        ("incr", Increment),
         // decrease
         ("decrease", Decrement),
+        ("decr", Decrement),
         // equal, assign
         ("equal", Equal),
         ("equals", Equal),
@@ -153,20 +146,16 @@ fn get_keywords_hashmap() -> HashMap<&'static str, TokenType> {
         ("before", Before),
         ("until", Before),
         ("during", Before),
+        // switch
+        ("switch", Switch),
+        ("match", Switch),
+        ("cases", Switch),
+        // case
+        ("case", Case),
+        // default
+        ("default", Default),
     ])
 }
-/*
-
-Scanner struct
-
-source: input
-tokens: list of tokens
-start: starting point
-current: current point
-line: line
-keywords: list of keywords from hashmap
-
-*/
 pub struct Scanner {
     source: String,
     tokens: Vec<Token>,
@@ -177,8 +166,6 @@ pub struct Scanner {
 }
 // Scanner implementation
 impl Scanner {
-    // Scanner input
-    // you see examples in main.rs and interpreter.rs
     pub fn new(source: &str) -> Self {
         Self {
             source: source.to_string(),
@@ -189,7 +176,6 @@ impl Scanner {
             keywords: get_keywords_hashmap(),
         }
     }
-    // as you might have guessed, it scans tokens and returns vector of tokens
     pub fn scan_tokens(mut self) -> Result<Vec<Token>, String> {
         while !self.is_at_end() {
             self.start = self.current;
@@ -206,11 +192,9 @@ impl Scanner {
         });
         Ok(self.tokens)
     }
-    // Function checks if token is at end
     fn is_at_end(&self) -> bool {
         self.current >= self.source.len()
     }
-    // Token scanner, contains list of characters
     fn scan_token(&mut self) -> Result<(), String> {
         let c = self.advance();
         match c {
@@ -335,8 +319,6 @@ impl Scanner {
         }
         Ok(())
     }
-    // Function checks if something is alphanumeric, if itsn't returns Identifier
-    // Function parameters are good example
     fn identifier(&mut self) {
         while is_alpha_numeric(self.peek()) {
             self.advance();
@@ -348,54 +330,48 @@ impl Scanner {
             self.add_token(Identifier);
         }
     }
-    // Number parser, recognizes floating point numbers
-fn number(&mut self) -> Result<(), String> {
-    while is_digit(self.peek()) {
-        self.advance();
-    }
-    let is_float = if self.peek() == '.' && is_digit(self.peek_next()) {
-        self.advance();
+    fn number(&mut self) -> Result<(), String> {
         while is_digit(self.peek()) {
             self.advance();
         }
-        true
-    } else {
-        false
-    };
+        let is_float = if self.peek() == '.' && is_digit(self.peek_next()) {
+            self.advance();
+            while is_digit(self.peek()) {
+                self.advance();
+            }
+            true
+        } else {
+            false
+        };
 
-    let substring = &self.source[self.start..self.current];
-    let value = substring.parse::<f32>();
-    match value {
-        Ok(value) => {
-            if is_float {
-                self.add_token_lit(Number, Some(FValue(value)));
-            } else {
-                // Check if the parsed value is an integer
-                if value.fract() ==   0.0 {
-                    // Convert the f32 to i32 and create an Integer token
-                    let int_value = value as i32;
-                    self.add_token_lit(Integer, Some(IntegerValue(int_value)));
-                } else {
-                    // If it's not an integer, create a Number token
+        let substring = &self.source[self.start..self.current];
+        let value = substring.parse::<f32>();
+        match value {
+            Ok(value) => {
+                if is_float {
                     self.add_token_lit(Number, Some(FValue(value)));
+                } else {
+                    if value.fract() == 0.0 {
+                        let int_value = value as i32;
+                        self.add_token_lit(Integer, Some(IntegerValue(int_value)));
+                    } else {
+                        self.add_token_lit(Number, Some(FValue(value)));
+                    }
                 }
             }
-        },
-        Err(_) => panic(&format!(
-            "\n Scanner Error: Could not parse number({})",
-            substring
-        )),
+            Err(_) => panic(&format!(
+                "\n Scanner Error: Could not parse number({})",
+                substring
+            )),
+        }
+        Ok(())
     }
-    Ok(())
-}
-    // See next character
     fn peek_next(&self) -> char {
         if self.current + 1 >= self.source.len() {
             return '\0';
         }
         self.source.chars().nth(self.current + 1).unwrap()
     }
-    // String parser
     fn string(&mut self) -> Result<(), String> {
         while self.peek() != '"' && !self.is_at_end() {
             if self.peek() == '\n' {
@@ -411,35 +387,27 @@ fn number(&mut self) -> Result<(), String> {
         self.add_token_lit(StringLit, Some(StringValue(value.to_string())));
         Ok(())
     }
-    // This function is used for looking at the character at current position without advancing
     fn peek(&self) -> char {
         if self.is_at_end() {
             return '\0';
         }
         self.source.chars().nth(self.current).unwrap()
     }
-    // Checks self matchers character
     fn char_match(&mut self, ch: char) -> bool {
-        if self.is_at_end() {
+        if self.is_at_end() || self.source.chars().nth(self.current).unwrap() != ch {
             return false;
-        } else if self.source.chars().nth(self.current).unwrap() != ch {
-            return false;
-        } else {
-            self.current += 1;
-            return true;
         }
+        self.current += 1;
+        true
     }
-    // Tells scanner to read next character
     fn advance(&mut self) -> char {
         let c = self.source.chars().nth(self.current).unwrap();
         self.current += 1;
         c
     }
-    // adds token
     fn add_token(&mut self, token_type: TokenType) {
         self.add_token_lit(token_type, None);
     }
-    // used to give tokens literals
     fn add_token_lit(&mut self, token_type: TokenType, literal: Option<LiteralValue>) {
         let text = self.source[self.start..self.current].to_string();
         self.tokens.push(Token {
@@ -450,7 +418,6 @@ fn number(&mut self) -> Result<(), String> {
         });
     }
 }
-// list of Tron token types
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum TokenType {
     Wait,
@@ -489,7 +456,6 @@ pub enum TokenType {
     Decrement,
     PlusEqual,
     MinusEqual,
-    Pipe,
     Identifier,
     StringLit,
     Number,
@@ -516,6 +482,9 @@ pub enum TokenType {
     Import,
     Exits,
     Break,
+    Switch,
+    Case,
+    Default,
 }
 use TokenType::*;
 impl std::fmt::Display for TokenType {
@@ -523,14 +492,8 @@ impl std::fmt::Display for TokenType {
         write!(f, "{:?}", self)
     }
 }
-
-// struct of Array
 #[derive(Debug, Clone)]
-pub struct ArrayElement {
-    #[allow(dead_code)]
-    token: Token,
-}
-// struct of LiteralValue
+pub struct ArrayElement {}
 #[derive(Debug, Clone)]
 pub enum LiteralValue {
     FValue(f32),

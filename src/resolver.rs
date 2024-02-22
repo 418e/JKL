@@ -1,10 +1,3 @@
-/*
-
-    Tron Resolver
-
-    - Resolver functions and type checkers
-
-*/
 use crate::expr::Expr;
 use crate::panic;
 use crate::scanner::Token;
@@ -88,6 +81,11 @@ impl Resolver {
             Stmt::BenchStmt { body } => {
                 self.resolve_internal(body.as_ref())?;
             }
+            Stmt::SwitchStmt {
+                condition: _,
+                case_branches: _,
+                default_branch: _,
+            } => {}
         }
         Ok(())
     }
@@ -123,14 +121,14 @@ impl Resolver {
                 self.declare(name)?;
                 if let Some(ref token) = type_annotation[index] {
                     match token.lexeme.as_str() {
-                        "number" => { /* handle number type */ }
+                        "number" => { /* */ }
                         "integer" => { /* */ }
                         "biginteger" => { /* */ }
-                        "string" => { /* handle string type */ }
-                        "array" => { /* handle array type */ }
-                        "bool" => { /* handle bool type */ }
-                        "null" => { /* handle null type */ }
-                        _ => panic(&format!("type {} doesn't exist", token.lexeme)),
+                        "string" => { /* */ }
+                        "array" => { /* */ }
+                        "bool" => { /* */ }
+                        "null" => { /* */ }
+                        _ => { /* */ }
                     }
                 }
                 self.resolve_expr(initializer)?;
@@ -219,6 +217,12 @@ impl Resolver {
     }
     fn resolve_expr(&mut self, expr: &Expr) -> Result<(), String> {
         match expr {
+            Expr::ObjectLiteral { id: _, properties } => {
+                for (_, value_expr) in properties {
+                    self.resolve_expr(value_expr)?;
+                }
+                Ok(())
+            }
             Expr::Variable { id: _, name: _ } => self.resolve_expr_var(expr, expr.get_id()),
             Expr::Assign {
                 id: _,
@@ -252,11 +256,6 @@ impl Resolver {
                 }
                 Ok(())
             }
-            Expr::Get {
-                id: _,
-                object,
-                name: _,
-            } => self.resolve_expr(object),
             Expr::Grouping { id: _, expression } => self.resolve_expr(expression),
             Expr::Literal { id: _, value: _ } => Ok(()),
             Expr::Logical {
@@ -267,15 +266,6 @@ impl Resolver {
             } => {
                 self.resolve_expr(left)?;
                 self.resolve_expr(right)
-            }
-            Expr::Set {
-                id: _,
-                object,
-                name: _,
-                value,
-            } => {
-                self.resolve_expr(value)?;
-                self.resolve_expr(object)
             }
             Expr::Unary {
                 id: _,

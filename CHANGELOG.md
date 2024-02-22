@@ -1,3 +1,21 @@
+# 2.8.0 - Feb 22
+
+### core changes
+
+- added `switch` statement (`switch`, `match`, `cases`)
+- improved perfonmance
+- custom integer/float types
+
+### documentation
+
+- changed documentation structure
+- rewrote articles
+- added new sections  
+
+### extension
+
+- added new keywords
+
 # 2.7.0 - Feb 14
 
 ### core changes

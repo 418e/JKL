@@ -1,10 +1,3 @@
-/*
-
-    Tron Environment
-
-    - This file contains environmental functions
-
-*/
 use crate::expr::{CallableImpl, LiteralValue, NativeFunctionImpl};
 use crate::panic;
 use std::cell::RefCell;

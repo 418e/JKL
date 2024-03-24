@@ -4,12 +4,12 @@
 [submodule "tronlang extension"]
 	path = extension
 	url = https://github.com/418e/tron-extension.git
-[submodule "tronlang wasm"]
-	path = wasm
-	url = https://github.com/418e/tronlang-wasm
 [submodule "doc.tronlang.org"]
 	path = documentation
 	url = https://github.com/418e/tron-documentation.git
 [submodule "tronlang.org"]
 	path = website
 	url = https://github.com/418e/tronlang.org.git
+[submodule "tron-documentation"]
+	path = tron-documentation
+	url = https://github.com/418e/tron-documentation.git

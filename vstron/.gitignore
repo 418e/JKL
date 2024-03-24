@@ -1,0 +1,4 @@
+/node_modules
+/.vscode
+/client/node_modules
+/server/node_modules

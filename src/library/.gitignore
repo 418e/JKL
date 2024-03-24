@@ -1,0 +1,18 @@
+# reserved for future updates
+/time
+/test
+/sync
+/string
+/process
+/os
+/object
+/number
+/null
+/network
+/memory
+/io
+/fs
+/error
+/convert
+/boolean
+/array

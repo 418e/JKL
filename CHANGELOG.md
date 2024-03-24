@@ -1,3 +1,30 @@
+# 3.0.0 -
+
+### core changes
+
+- added objects
+- added new types
+- added function return types
+- added callback functions
+- updated internal api
+- updated standart library
+- updated std function naming (`sin` -> `@sin`)
+- updated `and` operator (`&&` -> `&`)
+- updated error managment
+- removed multiple syntax choices
+- removed integer types
+- removed multiple variable declaration
+- removed `print`, `panic`, `exit`, `bench`, `wait/before` statements
+- removed `random`, `cube`, `cubicroot`, `power2`, `root2` operators
+- fixed type system
+- fixed exact types
+
+### other
+
+- updated extension
+- removed documentation
+- removed examples
+
 # 2.8.0 - Feb 22
 
 ### core changes
@@ -10,7 +37,7 @@
 
 - changed documentation structure
 - rewrote articles
-- added new sections  
+- added new sections
 
 ### extension
 

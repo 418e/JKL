@@ -1,4 +1,4 @@
-# 3.0.0 -
+# 3.0.0 - Mar 24
 
 ### core changes
 
@@ -197,7 +197,7 @@ say response;
 
 # 2.1.0 - Jan 10
 
-### ✨ Syntatic Sweetness
+### Syntatic Sweetness
 
 Developers can now choose, which keyword they want to use:
 
@@ -230,7 +230,7 @@ Developers can now choose, which keyword they want to use:
 
 # 2.0.0 - Jan 10
 
-## ✨ New features
+## New features
 
 - libraries
   > ability to add external functions

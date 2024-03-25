@@ -6,13 +6,13 @@ mod parser;
 mod resolver;
 mod scanner;
 mod utils;
-use utils::TronError;
 use crate::commands::help::cli_help;
 use crate::commands::run::cli_run;
 use crate::commands::update::cli_update;
 use crate::commands::version::cli_version;
 use crate::{interpreter::*, parser::*, resolver::*, scanner::*};
 use std::{env, fs, process::exit};
+use utils::TronError;
 
 pub fn panic(message: &str) {
     eprintln!("\x1B[31m{}\x1B[0m \n", message);

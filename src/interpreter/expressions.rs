@@ -8,9 +8,9 @@ pub struct FunctionImpl {
     pub name: String,
     pub arity: usize,
     pub parent_env: Environment,
-    pub params: Vec<(Token, Option<Token>)>,
+    pub params: Vec<(Token, Token)>,
     pub body: Vec<Box<Statement>>,
-    pub output_type: Option<Token>,
+    pub output_type: Token,
 }
 #[derive(Clone)]
 pub struct StdFunctionImpl {
@@ -240,12 +240,6 @@ pub enum Expression {
         key: Token,
         name: Token,
     },
-    Callback {
-        id: usize,
-        params: Vec<(Token, Option<Token>)>,
-        body: Vec<Box<Statement>>,
-        var_name: Token,
-    },
     Array {
         id: usize,
         elements: Vec<Box<Expression>>,
@@ -290,7 +284,15 @@ pub enum Expression {
         id: usize,
         name: Token,
     },
+    Function {
+        id: usize,
+        name: Token,
+        params: Vec<(Token, Token)>,
+        body: Vec<Box<Statement>>,
+        output_type: Token,
+    }
 }
+
 impl std::fmt::Debug for Expression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}: {}", self.get_id(), self.to_string())
@@ -312,16 +314,17 @@ impl Eq for Expression {}
 impl Expression {
     pub fn get_id(&self) -> usize {
         match self {
+            Expression::Function {
+                id,
+                name: _,
+                params: _,
+                body: _,
+                output_type: _,
+            } => *id,
             Expression::ObjectCall {
                 id,
                 key: _,
                 name: _,
-            } => *id,
-            Expression::Callback {
-                id,
-                params: _,
-                body: _,
-                var_name: _,
             } => *id,
             Expression::Object { id, properties: _ } => *id,
             Expression::Array { id, elements: _ } => *id,
@@ -362,6 +365,22 @@ impl Expression {
 impl Expression {
     pub fn to_string(&self) -> String {
         match self {
+            Expression::Function {
+                id: _,
+                name,
+                params,
+                body: _,
+                output_type,
+            } => format!(
+                "{}({}): {}",
+                name.lexeme,
+                params
+                    .iter()
+                    .map(|(name, typ)| format!("{}: {}", name.lexeme, typ.lexeme).to_string())
+                    .collect::<Vec<_>>()
+                    .join(", "),
+                output_type.lexeme
+            ),
             Expression::Object { id: _, properties } => {
                 let properties_str = properties
                     .iter()
@@ -370,12 +389,6 @@ impl Expression {
                     .join(", ");
                 format!("{{{}}}", properties_str)
             }
-            Expression::Callback {
-                id: _,
-                params: _,
-                body: _,
-                var_name: _,
-            } => format!(""), //
             Expression::ObjectCall {
                 id: _,
                 key,
@@ -439,6 +452,35 @@ impl Expression {
 
     pub fn evaluate(&self, environment: Environment) -> Result<TronType, String> {
         match self {
+            Expression::Function {
+                id: _,
+                name,
+                params,
+                body,
+                output_type,
+            } => {
+                let function_impl = FunctionImpl {
+                    name: name.clone().lexeme,
+                    arity: params.len(),
+                    parent_env: environment.clone(),
+                    params: params.clone(),
+                    body: body.clone(),
+                    output_type: output_type.clone(),
+                };
+                let callback_env = environment.enclose();
+
+                let int = Interpreter::with_env(callback_env.clone());
+                let callable = int.make_function(&Statement::FunctionStatement {
+                    name: name.clone(),
+                    params: function_impl.clone().params,
+                    body: function_impl.clone().body,
+                    output_type: function_impl.clone().output_type,
+                    line: name.line_number,
+                });
+                let fun = TronType::Callable(CallableImpl::Function(callable));
+                environment.define(function_impl.clone().name.clone(), fun);
+                Ok(TronType::Callable(CallableImpl::Function(function_impl)))
+            }
             Expression::Object { id: _, properties } => {
                 let mut fields = HashMap::new();
                 for (key, value_expr) in properties {
@@ -456,34 +498,6 @@ impl Expression {
                     },
                     _ => Err(format!("'{}' is not an object", key.lexeme)),
                 }
-            }
-            Expression::Callback {
-                id: _,
-                params,
-                body,
-                var_name,
-            } => {
-                let function_impl = FunctionImpl {
-                    name: var_name.clone().lexeme,
-                    arity: params.len(),
-                    parent_env: environment.clone(),
-                    params: params.clone(),
-                    body: body.clone(),
-                    output_type: None,
-                };
-                let callback_env = environment.enclose();
-
-                let int = Interpreter::with_env(callback_env.clone());
-                let callable = int.make_function(&Statement::FunctionStatement {
-                    name: var_name.clone(),
-                    params: function_impl.clone().params,
-                    body: function_impl.clone().body,
-                    output_type: function_impl.clone().output_type,
-                    line: var_name.line_number,
-                });
-                let fun = TronType::Callable(CallableImpl::Function(callable));
-                environment.define(function_impl.clone().name.clone(), fun);
-                Ok(TronType::Callable(CallableImpl::Function(function_impl)))
             }
             Expression::Array { id: _, elements } => {
                 if elements.len() == 2 {
@@ -776,31 +790,29 @@ pub fn run_tron_function(
     let fun_env = tronfun.parent_env.enclose();
     for (i, val) in arg_vals.iter().enumerate() {
         if i < tronfun.params.len() {
-            let (param_name_token, param_type_token_option) = &tronfun.params[i];
+            let (param_name_token, param_type_token) = &tronfun.params[i];
             let param_name_lexeme = &param_name_token.lexeme;
 
-            if let Some(param_type_token) = param_type_token_option {
-                let param_type_lexeme = &param_type_token.lexeme;
+            let param_type_lexeme = &param_type_token.lexeme;
 
-                match (param_type_lexeme.as_str(), val) {
-                    ("number", TronType::Number(_)) => {}
-                    ("string", TronType::StringValue(_)) => {}
-                    ("array", TronType::ArrayValue(_)) => {}
-                    ("object", TronType::Object(_)) => {}
-                    ("bool", TronType::True) | ("bool", TronType::False) => {}
-                    ("null", TronType::Null) => {}
-                    _ => {
-                        TronError::throw(
-                            "E4002",
-                            0,
-                            vec![
-                                tronfun.name.to_string(),
-                                param_name_lexeme.to_string(),
-                                val.to_type().to_string(),
-                                param_type_lexeme.to_string(),
-                            ],
-                        );
-                    }
+            match (param_type_lexeme.as_str(), val) {
+                ("number", TronType::Number(_)) => {}
+                ("string", TronType::StringValue(_)) => {}
+                ("array", TronType::ArrayValue(_)) => {}
+                ("object", TronType::Object(_)) => {}
+                ("bool", TronType::True) | ("bool", TronType::False) => {}
+                ("null", TronType::Null) => {}
+                _ => {
+                    TronError::throw(
+                        "E4002",
+                        0,
+                        vec![
+                            tronfun.name.to_string(),
+                            param_name_lexeme.to_string(),
+                            val.to_type().to_string(),
+                            param_type_lexeme.to_string(),
+                        ],
+                    );
                 }
             }
 
@@ -815,26 +827,23 @@ pub fn run_tron_function(
         if let Err(_e) = result {
             TronError::throw("E4006", 0, vec![]);
         } else if let Some(value) = int.specials.get("return") {
-            if let Some(output_type_token) = &tronfun.output_type {
-                let output_type_lexeme = &output_type_token.lexeme;
-                let value_clone = value.clone();
-                let value_clone_type = value_clone.to_type();
-                let value_clone_string = value_clone.to_string();
-                if !(output_type_lexeme == value_clone_type
-                    || output_type_lexeme.clone() == value_clone_string)
-                {
-                    TronError::throw("E4017", 0, vec![]);
-                }
+            let output_type_lexeme = &tronfun.output_type.lexeme;
+            let value_clone = value.clone();
+            let value_clone_type = value_clone.to_type();
+            let value_clone_string = value_clone.to_string();
+            if !(output_type_lexeme == value_clone_type
+                || output_type_lexeme.clone() == value_clone_string)
+            {
+                TronError::throw("E4017", 0, vec![]);
             }
             return Ok(value.clone());
         }
     }
 
-    if let Some(output_type_token) = &tronfun.output_type {
-        let output_type_lexeme = &output_type_token.lexeme;
-        if output_type_lexeme != "null" {
-            TronError::throw("E4017", 0, vec![]);
-        }
+    let output_type_lexeme = &tronfun.output_type.lexeme;
+    if output_type_lexeme != "null" {
+        TronError::throw("E4017", 0, vec![]);
     }
+
     Ok(TronType::Null)
 }

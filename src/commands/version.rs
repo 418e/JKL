@@ -1,3 +1,3 @@
 pub fn cli_version() {
-    println!("v3.0.0");
+    println!("v3.1.0");
 }

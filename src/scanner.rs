@@ -301,14 +301,14 @@ pub enum Statement {
     /// # Fields
     ///
     /// - `name`: This field holds the `Token` that represents the name of the variable being declared.
-    /// - `value_type`: This field is an optional `Token` that represents the type of the value being declared.
+    /// - `value_type`: `Token` that represents the type of the value being declared.
     /// - `value`: This field holds the `Expression` that represents the initial value of the variable being declared.
     /// - `line`: This field represents the line number in the source code where the statement was found.
     ///
     /// # Example
     ///
     /// ```
-    /// let x = 0;
+    /// let x: number = 0;
     /// ```
     ///
     /// In this example, the `VariableStatement` declares a variable named `x` with an initial value of `5`.
@@ -319,10 +319,10 @@ pub enum Statement {
     /// `VariableStatement` variants. These statements are then processed by the interpreter or compiler to declare the
     /// specified variables in the current scope.
     ///
-    /// ### Last Updated: (v3.0.0)
+    /// ### Last Updated: (v3.1.0)
     VariableStatement {
         name: Token,
-        value_type: Option<Token>,
+        value_type: Token,
         value: Expression,
         line: usize,
     },
@@ -442,15 +442,15 @@ pub enum Statement {
     /// # Fields
     ///
     /// - `name`: This field holds the `Token` that represents the name of the function being declared.
-    /// - `params`: This field is a vector of tuples, where each tuple contains a `Token` representing the name of a parameter and an optional `Token` representing the type of the parameter.
+    /// - `params`: This field is a vector of tuples, where each tuple contains a `Token` representing the name of a parameter and `Token` representing the type of the parameter.
     /// - `body`: This field holds a vector of boxed `Statement` enums, which represent the sequence of statements that make up the body of the function.
-    /// - `output_type`: This field is an optional `Token` that represents the return type of the function.
+    /// - `output_type`: `Token` that represents the return type of the function.
     /// - `line`: This field represents the line number in the source code where the statement was found.
     ///
     /// # Example
     ///
     /// ```
-    /// fn add(a, b){
+    /// fn add(a: number, b: number): number{
     ///     return a + b;
     /// }
     /// ```
@@ -462,12 +462,12 @@ pub enum Statement {
     /// When parsing Tron code, the scanner and parser will identify function declaration statements and represent them as
     /// `FunctionStatement` variants. These statements are then processed by the interpreter or compiler to declare the specified functions in the current scope.
     ///
-    /// ### Last Updated: (v3.0.0)
+    /// ### Last Updated: (v3.1.0)
     FunctionStatement {
         name: Token,
-        params: Vec<(Token, Option<Token>)>,
+        params: Vec<(Token, Token)>,
         body: Vec<Box<Statement>>,
-        output_type: Option<Token>,
+        output_type: Token,
         line: usize,
     },
     /// The `ReturnStatement` variant in the `Statement` enum represents a return statement.

@@ -210,7 +210,7 @@ impl Interpreter {
         } = fn_stmt
         {
             let arity = params.len();
-            let params: Vec<(Token, Option<Token>)> = params
+            let params: Vec<(Token, Token)> = params
                 .iter()
                 .map(|(name, type_token)| (name.clone(), type_token.clone()))
                 .collect();
@@ -235,12 +235,12 @@ impl Interpreter {
                 parent_env: self.environment.clone(),
                 params: vec![],
                 body: vec![],
-                output_type: Some(Token {
+                output_type: Token {
                     token_type: TokenType::Null,
                     lexeme: "".to_string(),
                     literal: None,
                     line_number: 0,
-                }),
+                },
             }
         }
     }

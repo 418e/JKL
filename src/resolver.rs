@@ -344,22 +344,21 @@ impl Resolver {
             let new_value = (*value).evaluate(environment.clone())?;
             let value_clone = new_value.clone();
 
-            if let Some(ref token) = value_type {
-                if token.lexeme == value_clone.to_type() || token.lexeme == value_clone.to_string()
-                {
-                    environment.set_value_type(name.lexeme.clone(), token.lexeme.clone());
-                } else {
-                    TronError::throw(
-                        "E4003",
-                        *line,
-                        vec![
-                            "variable".to_string(),
-                            name.lexeme.to_string(),
-                            token.lexeme.to_string(),
-                            value_clone.to_type().to_string(),
-                        ],
-                    );
-                }
+            if value_type.lexeme == value_clone.to_type()
+                || value_type.lexeme == value_clone.to_string()
+            {
+                environment.set_value_type(name.lexeme.clone(), value_type.lexeme.clone());
+            } else {
+                TronError::throw(
+                    "E4003",
+                    *line,
+                    vec![
+                        "variable".to_string(),
+                        name.lexeme.to_string(),
+                        value_type.lexeme.to_string(),
+                        value_clone.to_type().to_string(),
+                    ],
+                );
             }
             self.resolve_expr(value, *line, environment)?;
             self.define(name);
@@ -605,6 +604,25 @@ impl Resolver {
         environment: &mut Environment,
     ) -> Result<(), String> {
         match expr {
+            Expression::Function {
+                id: _,
+                name: _,
+                params,
+                body,
+                output_type: _,
+            } => {
+                let enclosing_function = self.current_function;
+                self.current_function = FunctionType::Function;
+                self.begin_scope();
+                for (param_name, _param_type) in params {
+                    self.declare(param_name)?;
+                    self.define(param_name);
+                }
+                self.resolve_many(&body.iter().map(|b| b.as_ref()).collect(), environment)?;
+                self.end_scope();
+                self.current_function = enclosing_function;
+                Ok(())
+            }
             Expression::Object { id: _, properties } => {
                 for (_, value_expr) in properties {
                     self.resolve_expr(value_expr, line, environment)?;
@@ -616,25 +634,6 @@ impl Resolver {
                 key: _,
                 name: _,
             } => Ok(()), //
-            Expression::Callback {
-                id: _,
-                params,
-                body,
-                var_name: _,
-            } => {
-                let enclosing_function = self.current_function;
-                self.current_function = FunctionType::Function;
-                self.begin_scope();
-                for (param_name, _param_type) in params {
-                    self.declare(param_name)?;
-                    self.define(param_name);
-                }
-                self.resolve_many(&body.iter().map(|b| b.as_ref()).collect(), environment)?;
-                self.end_scope();
-
-                self.current_function = enclosing_function;
-                Ok(())
-            } //
             Expression::Variable { id: _, name: _ } => {
                 self.resolve_expr_var(expr, expr.get_id(), line)
             }

@@ -1,3 +1,9 @@
+# 3.1.0 - Mar 28
+
+- variable and function type declarations are no longer optional
+- removed callbacks
+- added function expression (anonymous)
+
 # 3.0.0 - Mar 24
 
 ### core changes

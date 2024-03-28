@@ -169,7 +169,7 @@ impl Parser {
     /// let function_statement = parser.function()?;
     /// ```
     ///
-    /// ### Last Updated: (v3.0.0)
+    /// ### Last Updated: (v3.1.0)
     fn function(&mut self) -> Result<Statement, String> {
         let line_number = self.peek().line_number;
         let name = self.consume(Identifier, &format!("expected function name"), line_number)?;
@@ -178,7 +178,7 @@ impl Parser {
             &format!("expected '(' after function name"),
             line_number,
         )?;
-        let mut params: Vec<(Token, Option<Token>)> = vec![];
+        let mut params: Vec<(Token, Token)> = vec![];
         if !self.check(RightParen) {
             loop {
                 if params.len() >= 32 {
@@ -186,23 +186,19 @@ impl Parser {
                 }
                 let param_name =
                     self.consume(Identifier, "expected parameter name", line_number)?;
-                let param_type = if self.match_token(Colon) {
-                    Some(self.consume(Identifier, "expected type after ':'", line_number)?)
-                } else {
-                    None
-                };
-                params.push((param_name, param_type));
+                self.consume(Colon, "expected `:` after parameter name", line_number)?;
+                let param_type = self.consume(Identifier, "expected type after ':'", line_number);
+
+                params.push((param_name, param_type?));
                 if !self.match_token(Comma) {
                     break;
                 }
             }
         }
         self.consume(RightParen, "expected ')' after parameters.", line_number)?;
-        let output_type = if self.match_token(Colon) {
-            Some(self.consume(Identifier, "expected type after ':'", line_number)?)
-        } else {
-            None
-        };
+        self.consume(Colon, "expected `:` before function body", line_number)?;
+        let output_type = self.consume(Identifier, "expected type after `:`", line_number)?;
+
         if self.match_token(Equal) {
             let body_expr = self.expression()?;
             self.consume(
@@ -227,11 +223,7 @@ impl Parser {
                 line: line_number,
             });
         }
-        self.consume(
-            LeftBrace,
-            &format!("Expected 'start' before function body."),
-            line_number,
-        )?;
+        self.consume(LeftBrace, "Expected '{' before function body.", line_number)?;
         let body = match self.block_statement()? {
             Statement::BlockStatement {
                 statements,
@@ -270,19 +262,17 @@ impl Parser {
     /// let variable_statement = parser.var_declaration()?;
     /// ```
     ///
-    /// ### Last Updated: (v3.0.0)
+    /// ### Last Updated: (v3.1.0)
     fn var_declaration(&mut self) -> Result<Statement, String> {
         let line_number = self.peek().line_number;
         let name = self.consume(Identifier, "Expected variable name", line_number)?;
-        let value_type = if self.match_token(Colon) {
-            if self.match_tokens(&[Identifier, StringLit, Number]) {
-                Some(self.previous(1))
-            } else {
-                return Err(format!("Expected type after ':'"));
-            }
+        let _col = self.consume(Colon, "Expected `:` after variable name", line_number);
+        let value_type = if self.match_tokens(&[Identifier, StringLit, Number]) {
+            self.previous(1)
         } else {
-            None
+            return Err(format!("Expected type after ':'"));
         };
+
         self.consume(Equal, "Expected '=' after variable name", line_number)?;
         let value = self.expression()?;
         self.consume(
@@ -1068,7 +1058,7 @@ impl Parser {
     ///
     /// The `primary()` method is called internally by the `Parser` to process primary expressions within the code.
     ///
-    /// ### Last Updated: (v3.0.0)
+    /// ### Last Updated: (v3.1.0)
     fn primary(&mut self) -> Result<Expression, String> {
         let line_number = self.peek().line_number;
         let token = self.peek();
@@ -1080,12 +1070,16 @@ impl Parser {
             literal: None,
         };
         match token.token_type {
+            Function => {
+                result = self.parse_function_expr(var_name)?;
+            }
             Identifier => {
                 self.advance();
                 let mut expr = Expression::Variable {
                     id: self.get_id(),
                     name: self.previous(1),
                 };
+
                 if self.match_token(LeftBracket) {
                     let index = self.expression()?;
                     self.consume(RightBracket, "Expected ']' after index", line_number)?;
@@ -1093,8 +1087,6 @@ impl Parser {
                         id: self.get_id(),
                         elements: vec![Box::new(expr), Box::new(index)],
                     };
-                } else if self.match_token(TokenType::Line) {
-                    return self.parse_callback(var_name.clone());
                 } else if self.match_token(Dot) {
                     let key = self.consume(Identifier, "Expected key after '.'", line_number)?;
                     expr = Expression::ObjectCall {
@@ -1103,7 +1095,6 @@ impl Parser {
                         key,
                     }
                 }
-
                 result = expr;
             }
             LeftParen => {
@@ -1126,7 +1117,6 @@ impl Parser {
                 return self.parse_array();
             }
             TokenType::LeftBrace => return self.parse_object(),
-            TokenType::Line => return self.parse_callback(var_name.clone()),
 
             _ => {
                 TronError::throw("E2003", self.current, vec![token.token_type.to_string()]);
@@ -1252,57 +1242,57 @@ impl Parser {
         })
     }
 
-    fn parse_callback(&mut self, var_name: Token) -> Result<Expression, String> {
+    fn parse_function_expr(&mut self, var_name: Token) -> Result<Expression, String> {
         let line_number = self.peek().line_number;
+        self.consume(Function, "", line_number)?;
         self.consume(
-            TokenType::Line,
-            "Expected '|' to start a callback function",
+            LeftParen,
+            &format!("expected '(' after function"),
             line_number,
         )?;
 
         let mut params = Vec::new();
-        while !self.check(TokenType::Line) && !self.is_at_end() {
-            let arg_name = self.consume(Identifier, "Expected argument name", line_number)?;
-            let arg_type = if self.match_token(Colon) {
-                Some(self.consume(Identifier, "Expected type after ':'", line_number)?)
-            } else {
-                None
-            };
-            params.push((arg_name, arg_type));
+        if !self.check(RightParen) {
+            loop {
+                if params.len() >= 32 {
+                    TronError::throw("E2004", self.current, vec![]);
+                }
+                let param_name =
+                    self.consume(Identifier, "expected parameter name", line_number)?;
+                self.consume(Colon, "expected `:` after parameter name", line_number)?;
+                let param_type = self.consume(Identifier, "expected type after ':'", line_number);
 
-            if !self.match_token(Comma) {
-                break;
+                params.push((param_name, param_type?));
+                if !self.match_token(Comma) {
+                    break;
+                }
             }
         }
+        self.consume(RightParen, "expected ')' after parameters.", line_number)?;
 
-        self.consume(
-            TokenType::Line,
-            "Expected '|' to end the argument list",
-            line_number,
-        )?;
+        self.consume(Colon, "expected `:` before function body", line_number)?;
 
-        self.consume(
-            LeftBrace,
-            "Expected '{' to start the callback body",
-            line_number,
-        )?;
+        let output_type = self.consume(Identifier, "expected type after `:`", line_number)?;
 
-        let mut body = Vec::new();
-        while !self.check(RightBrace) && !self.is_at_end() {
-            let stmt = self.declaration()?;
-            body.push(Box::new(stmt));
-        }
+        self.consume(LeftBrace, "Expected '{' before function body.", line_number)?;
 
-        self.consume(
-            RightBrace,
-            "Expected '}' to end the callback body",
-            line_number,
-        )?;
-        Ok(Expression::Callback {
+        let body = match self.block_statement()? {
+            Statement::BlockStatement {
+                statements,
+                line: _,
+            } => statements,
+            _ => {
+                TronError::throw("E2002", self.current, vec![]);
+                vec![]
+            }
+        };
+
+        Ok(Expression::Function {
             id: self.get_id(),
+            name: var_name,
             params,
             body,
-            var_name,
+            output_type,
         })
     }
     /// The `consume()` method is used to consume a token of a specific type from the token stream.
